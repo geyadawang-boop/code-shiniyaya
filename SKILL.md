@@ -301,7 +301,7 @@ AI: 读最新snapshot → 恢复全部状态 → 继续执行
 ### 中断恢复
 - stop/CTRL+C → 保存session状态 → 等用户
 - "继续修复" → 从session JSON恢复继续
-- 预算到90% → 写FINAL-STATUS.md → 停止并通知
+- 预算完全耗尽(>90%+BREAK_GLASS, 见§修复预算) → 写FINAL-STATUS.md → 停止并通知
 
 ### 与其他规则的关系
 - 规则1（双批准门控）: 迭代模式下降级为事后CHANGELOG.md审计
@@ -412,7 +412,8 @@ CC必须在调用任何工具(Read/Grep/Bash/Write/Edit)前，对照调用栈缓
 
 17. **防卡死检查** (v4.6.1, 规则26优先): CC在迭代循环中自动检查自身行为——连续3次相同Write操作(同文件+同内容)→触发卡死。连续3轮迭代产生相同发现(相同file:line+描述)→触发重复。连续输出"done"/"final"/"complete"等无实质变更→触发等待陷阱。**规则26(无意义输出循环阻断)优先于此自检执行**——先阻断无意义输出，再执行自检纠正。触发后切换策略(Agent类型/维度/源文件)，若仍无进展→暂停+等用户指令。每次操作必须产生可验证的新进展。纠正动作不计入重试配额。
 
-18. **死循环根因阻断** (v4.6.9, HARD): CC追踪最后10个工具调用。检测: (a)Read-Grep-Read同信息≥2次→阻断; (b)Write done→Read done→Write done≥3次→阻断; (c)连续3次输出无≥1新信息→阻断; (d)输出内容hash与上次相同度>80%且无Write/Edit→阻断。阻断→写DEAD_LOOP_LOG.md→切换策略→等用户。此自检=规则26同级。
+18. **死循环根因阻断** (v4.6.9, v4.7.5 降级为部分可行): CC在同turn内追踪最后10个工具调用。(a)同turn内Read-Grep-Read同信息≥2次→阻断(可行); (b)同turn内Write done→Read done→Write done≥3次→阻断(可行); (c)跨turn连续3次输出无≥1新信息→阻断(不可行——需要跨turn内容hash比对，CC每turn fresh context); (d)跨turn输出内容hash与上次相同度>80%且无Write/Edit→阻断(不可行——同(c))。可行项(a)(b)阻断→写DEAD_LOOP_LOG.md→切换策略→等用户。不可行项(c)(d)由一字恢复(L3)承接——用户"继"恢复时自然打断循环。
+   `# ponytail: 自检#18(c)(d)跨turn部分不可行(需要跨turn持久状态 v4.6.10审计已确认)，ceiling: 同turn内(a)(b)检测，upgrade: CC支持跨turn状态时`
 
 违反任何自检项=立即自纠正, 不等待用户, 不汇报。
 
