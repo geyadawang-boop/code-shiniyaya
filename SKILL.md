@@ -402,13 +402,13 @@ CC必须在调用任何工具(Read/Grep/Bash/Write/Edit)前，对照调用栈缓
 
 12. **4源深度利用检查** (v3.9.0): 4个开源项目的价值不仅在于模式提取, 更在于它们展示了如何实现自我迭代/自动化接管/持续优化的完整机制。每轮扫描必须深入这些项目的核心自动化能力:(a) AutoAgent的flow/dynamic.py—事件驱动+GOTO/ABORT控制流, flow/core.py—listen_group依赖声明, main.py—3层重试+元Agent升级, constant.py—环境变量特征检测。(b) autodream的auto_dream.py—Learn+Consolidate双重反思, checksum幂等写入, MAX_*上限常量系统, 向量记忆同步。(c) autoresearch的program.md—NEVER STOP指令, Git状态机, TSV结果日志, 崩溃分类法, 固定预算。(d) autonomous-coding的agent.py—Init+Loop两阶段, 不可变检查清单, auto-continue延迟, 轨迹记录, 三层安全模型。这些能力是code-shiniyaya自我迭代的蓝本——每次迭代必须至少从2个项目中提取"如何自动化自身"的模式并写入SKILL.md。仅提取静态代码质量模式=未充分利用源文件。
 
-13. **产出物写入检查**: 每次迭代的产出(报告/计划/记忆)必须写入正确的目录: (a) 报告→`C:\Users\shiniyaya\Desktop\code-shiniyaya\报告\iteration-reports\iter-{N}\`, (b) 记忆→`C:\Users\shiniyaya\Desktop\code-shiniyaya\memory\`, (c) 优化计划→`C:\Users\shiniyaya\Desktop\code-shiniyaya\memory\optimization-plan.md`。写入错误路径=违规, 立即纠正。
+13. **产出物写入检查**: 每次迭代的产出(报告/计划/记忆)必须写入正确的目录: (a) 报告路径见规则27, (b) 记忆→`C:\Users\shiniyaya\Desktop\code-shiniyaya\memory\`, (c) 优化计划→`C:\Users\shiniyaya\Desktop\code-shiniyaya\memory\optimization-plan.md`。写入错误路径=违规, 立即纠正。
 
 14. **4源自我迭代能力提取检查** (v3.9.1): 4源的核心价值=展示"AI如何自动化自身"。每轮20 Agent扫描必须包含以下4个维度的深度挖掘: (a) 事件驱动自动化—AutoAgent的GOTO/ABORT/listen_group/transfer_back, (b) 记忆驱动反思—autodream的Learn+Consolidate/向量同步/孤儿检测, (c) 自主连续性—autoresearch的NEVER STOP/固定预算/崩溃自分类, (d) 两阶段执行—autonomous-coding的Init+Loop/不可变清单/ThinkTool。仅提取表层模式(如截断/上限)=浪费源文件价值。每轮迭代结束时检查: 本轮是否从至少2个源中提取了"自动化自身"的模式并写入SKILL.md?
 
 15. **源文件旋转利用检查** (v3.9.1): 禁止连续2轮扫描同一源文件的同一段代码。每轮必须轮换: (a) 从未读文件列表中选取新文件, (b) 从已读文件中选取之前未扫描的函数/段落, (c) 交叉配对——2个源的2个不同函数组合形成新对比维度。未读文件列表见memory/iteration-task.md每个源底部的"未扫描文件"条目。
 
-16. **报告路径一致性检查** (v3.9.1): 所有产出报告必须写入 `C:\Users\shiniyaya\Desktop\code-shiniyaya\报告\iteration-reports\iter-{N}\`。写入前检查路径存在(不存在→mkdir创建)。禁止写入 `C:\Users\shiniyaya\Desktop\报告\`(旧路径, 已废弃)。若上一轮产出写入错误路径→立即移动到正确路径+更新所有引用。
+16. **报告路径一致性检查** (v3.9.1): 报告路径见规则27。写入前检查路径存在(不存在→mkdir创建)。禁止写入 `C:\Users\shiniyaya\Desktop\报告\`(旧路径, 已废弃)。若上一轮产出写入错误路径→立即移动到正确路径+更新所有引用。
 
 17. **防卡死检查** (v4.6.1, 规则26优先): CC在迭代循环中自动检查自身行为——连续3次相同Write操作(同文件+同内容)→触发卡死。连续3轮迭代产生相同发现(相同file:line+描述)→触发重复。连续输出"done"/"final"/"complete"等无实质变更→触发等待陷阱。**规则26(无意义输出循环阻断)优先于此自检执行**——先阻断无意义输出，再执行自检纠正。触发后切换策略(Agent类型/维度/源文件)，若仍无进展→暂停+等用户指令。每次操作必须产生可验证的新进展。纠正动作不计入重试配额。
 
@@ -418,7 +418,7 @@ CC必须在调用任何工具(Read/Grep/Bash/Write/Edit)前，对照调用栈缓
 违反任何自检项=立即自纠正, 不等待用户, 不汇报。
 
 ### 交付 (v4.6.9 统一编号: 规则27-28)
-27. **所有报告→`C:\Users\shiniyaya\Desktop\code-shiniyaya\报告\iteration-reports\iter-{N}\`**: 交叉验证报告/基准测试报告/bug扫描报告/优化计划。CODE_SHINIYAYA_REPORT_DIR可覆盖根路径(默认=`C:\Users\shiniyaya\Desktop\code-shiniyaya\报告\`)。
+27. **报告路径(权威定义)**: 所有报告→`C:\Users\shiniyaya\Desktop\code-shiniyaya\报告\iteration-reports\iter-{N}\`。交叉验证报告/基准测试报告/bug扫描报告/优化计划均写入此路径。CODE_SHINIYAYA_REPORT_DIR可覆盖根路径(默认=`C:\Users\shiniyaya\Desktop\code-shiniyaya\报告\`)。自检#13和#16引用此处路径定义。
 28. **Codex消息可复制**: 纯文本, `=`分隔, 无Markdown表格, 中文+术语。用 `-->` 不用 `→`。用户提供内容消毒后嵌入(转义 ``` 围栏, 不允许Codex控制序列)。CC从源文件读取并嵌入的内容也需经过相同消毒流水线(Bidi移除→NFKC→零宽→Null→C0/C1控制字符)。
 
 ## 反模式 (24个)
@@ -852,9 +852,11 @@ ps, lsof, sleep                  (进程管理, 需额外验证)
 **敏感命令额外验证**:
 - `rm`: 完全禁止 (Agent 不应删除文件; 用 git 清理)
 - `pkill`/`kill`: 仅允许杀 dev 相关进程 (node, npm, vite, next, python)
-- `chmod`: 仅允许 `+x` (脚本执行权限), 禁止递归
+- `chmod`: 仅允许 `+x` (脚本执行权限), 禁止递归 (`-R` 和 `--recursive` 均阻断)
 
-**复合命令防御**: 解析 `&&`, `||`, `;` 命令链, **每段独立验证**。任一段不通过 → 整条命令阻断。解析失败 (畸形命令) → 阻断 (fail-safe)。
+**复合命令防御**: 解析 `&&`, `||`, `;`, `|`, `$()`, `` ` ``, `>`, `<`, `>>` 命令链, **每段独立验证**。任一段不通过 → 整条命令阻断。解析失败 (畸形命令) → 阻断 (fail-safe)。
+
+**危险参数拦截** (强制执行, 非条件): `-e`, `-c`, `--eval`, `--code`, `exec` 参数传入 shell/解释器一律阻断。此拦截对所有命令生效, 不受 sandbox 状态影响。
 
 **实现模板**: 参考 `autonomous-coding-src/autonomous-coding/security.py` — `extract_commands()`, `split_command_segments()`, `bash_security_hook()`
 
