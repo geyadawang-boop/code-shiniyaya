@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BiliSum · 集成参考 - Unified State Components</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/enhancements.css">
+<style>
+  .demo-section { margin: 20px 0; padding: 16px; background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); }
+  .demo-section h3 { margin-bottom: 12px; font-size: 14px; color: var(--text-secondary); }
+  .demo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <header class="app-topbar">
+    <div class="brand"><span class="brand-mark">&#x1F4FA;</span><span class="brand-title">BiliSum</span><span class="brand-subtitle">集成参考</span></div>
+  </header>
+  <div class="content-area">
+
+    <h2>Unified State Components Reference</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Loading / Empty / Error / Content -- 4-state unified system</p>
+
+    <!-- SKELETON SCREEN -->
+    <div class="demo-section">
+      <h3>1. Skeleton Screen (loading)</h3>
+      <div class="demo-grid">
+        <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line" style="width:65%"></div><div class="skeleton skeleton-text"></div></div>
+        <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line" style="width:65%"></div><div class="skeleton skeleton-text"></div></div>
+        <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line" style="width:65%"></div><div class="skeleton skeleton-text"></div></div>
+      </div>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div class="demo-section">
+      <h3>2. Empty State</h3>
+      <div class="demo-grid">
+        <div class="empty-state">
+          <div class="empty-state-icon">&#x1F4DA;</div>
+          <div class="empty-state-title">暂无视频</div>
+          <div class="empty-state-text">导入第一个视频后，这里会显示内容</div>
+          <div class="empty-state-action"><button class="btn btn-primary btn-sm">前往导入</button></div>
+        </div>
+        <div class="empty-state empty-state--compact">
+          <div class="empty-state-icon">&#x1F50D;</div>
+          <div class="empty-state-title">无搜索结果</div>
+          <div class="empty-state-text">换个关键词试试</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ERROR STATE -->
+    <div class="demo-section">
+      <h3>3. Error State (with retry)</h3>
+      <div class="error-state">
+        <div class="error-state-icon">&#x26A0;</div>
+        <div class="error-state-title">连接失败</div>
+        <div class="error-state-message">无法连接到服务器。请检查网络连接后重试。</div>
+        <div class="error-state-actions">
+          <button class="btn btn-outline btn-sm">&#x21BB; 重试</button>
+          <button class="btn btn-outline btn-sm">&#x2699; 设置</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5-STATE BUTTON -->
+    <div class="demo-section">
+      <h3>4. 5-State Button System</h3>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+        <button class="btn btn-primary">Normal</button>
+        <button class="btn btn-primary" disabled>Disabled</button>
+        <button class="btn btn-primary btn-loading">Loading</button>
+        <button class="btn btn-outline">Outline</button>
+        <button class="btn btn-outline" disabled>Disabled</button>
+        <button class="btn btn-outline btn-loading">Loading</button>
+      </div>
+    </div>
+
+    <!-- UI STATE SWITCHER -->
+    <div class="demo-section">
+      <h3>5. UI State Switcher (data-ui-state)</h3>
+      <div id="stateDemo" data-ui-state="loading" style="min-height:180px">
+        <div class="ui-state-loading"><div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-line"></div></div></div>
+        <div class="ui-state-empty"><div class="empty-state"><div class="empty-state-icon">&#x1F4AD;</div><div class="empty-state-text">暂无数据</div></div></div>
+        <div class="ui-state-error"><div class="error-state"><div class="error-state-icon">&#x26A0;</div><div class="error-state-title">加载失败</div></div></div>
+        <div class="ui-state-content"><div style="padding:20px;text-align:center;font-weight:600;color:var(--primary-dark)">&#x2705; 内容加载成功！</div></div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:10px">
+        <button class="btn btn-outline btn-sm" onclick="setUIState('stateDemo','loading')">Loading</button>
+        <button class="btn btn-outline btn-sm" onclick="setUIState('stateDemo','empty')">Empty</button>
+        <button class="btn btn-outline btn-sm" onclick="setUIState('stateDemo','error')">Error</button>
+        <button class="btn btn-outline btn-sm" onclick="setUIState('stateDemo','ready')">Ready</button>
+      </div>
+    </div>
+
+    <!-- MODAL DEMO -->
+    <div class="demo-section">
+      <h3>6. Animated Modal</h3>
+      <button class="btn btn-primary" onclick="demoModal()">打开模态框（带动画）</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Demo Modal -->
+<div class="modal-backdrop" id="demoModal" style="display:none;">
+  <div class="modal-card">
+    <div class="modal-title">&#x2728; 动画模态框</div>
+    <div class="modal-subtitle">打开和关闭都有过渡动画</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">这个模态框使用 visibility + opacity 过渡，而不是 display:none/flex</p>
+    <button class="btn btn-outline btn-sm" onclick="closeDemoModal()">关闭</button>
+  </div>
+</div>
+
+<script src="/js/common.js"></script>
+<script src="/js/enhancements.js"></script>
+<script>
+  function setUIState(containerId, state) {
+    var el = document.getElementById(containerId);
+    if (!el) return;
+    var stateMap = { loading: "loading", empty: "empty", error: "error", ready: "content" };
+    el.setAttribute("data-ui-state", stateMap[state] || "loading");
+  }
+
+  function demoModal() {
+    var m = document.getElementById("demoModal");
+    m.style.display = "flex";
+    m.offsetHeight;
+    m.classList.add("open");
+  }
+  function closeDemoModal() {
+    var m = document.getElementById("demoModal");
+    m.classList.remove("open");
+    m.classList.add("closing");
+    setTimeout(function() {
+      m.style.display = "none";
+      m.classList.remove("closing");
+    }, 250);
+  }
+</script>
+</body>
+</html>

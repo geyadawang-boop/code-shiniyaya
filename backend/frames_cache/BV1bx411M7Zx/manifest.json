@@ -1,0 +1,18 @@
+{
+  "bvid": "BV1bx411M7Zx",
+  "created_at": 1784205554.205559,
+  "model": "qwen-vl-plus",
+  "video_path": "",
+  "duration_sec": 1153.0,
+  "frame_cap": 0,
+  "frames_extracted": 0,
+  "frames_deduped": 0,
+  "frames_analyzed": 0,
+  "results": [],
+  "gaps": [
+    {
+      "stage": "gate",
+      "error": "setting_off"
+    }
+  ]
+}

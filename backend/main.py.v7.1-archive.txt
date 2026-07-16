@@ -1,0 +1,2017 @@
+# [v7.1] Page routes and CSS/JS serving are handled by routers/static.py (with path traversal protection)
+# Below are kept as FALLBACK only — static.py is registered first and takes priority
+# [v7.1] Route moved to routers/*.py: # ==================== Video Info API ====================
+# [v7.1] Route moved to routers/*.py: @app.get("/api/bili/info")
+# [v7.1] Route moved to routers/*.py: async def api_video_info(bvid: str = Query(...)):
+# [v7.1] Route moved to routers/*.py:     """获取视频基本信息"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         bvid = extract_bvid(bvid)
+# [v7.1] Route moved to routers/*.py:         info = await get_video_info(bvid)
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({
+# [v7.1] Route moved to routers/*.py:             "success": True,
+# [v7.1] Route moved to routers/*.py:             "data": {
+# [v7.1] Route moved to routers/*.py:                 "title": info.title,
+# [v7.1] Route moved to routers/*.py:                 "author": info.owner_name,
+# [v7.1] Route moved to routers/*.py:                 "pic": info.pic,
+# [v7.1] Route moved to routers/*.py:                 "desc": info.desc,
+# [v7.1] Route moved to routers/*.py:                 "duration": info.duration,
+# [v7.1] Route moved to routers/*.py:                 "bvid": info.bvid,
+# [v7.1] Route moved to routers/*.py:                 "aid": info.aid,
+# [v7.1] Route moved to routers/*.py:                 "cid": info.cid,
+# [v7.1] Route moved to routers/*.py:                 "videos_count": info.videos_count
+# [v7.1] Route moved to routers/*.py:             }
+# [v7.1] Route moved to routers/*.py:         })
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.get("/api/bili/search")
+# [v7.1] Route moved to routers/*.py: async def api_search(keyword: str = Query(...)):
+# [v7.1] Route moved to routers/*.py:     """搜索B站视频"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         data = await search_videos(keyword)
+# [v7.1] Route moved to routers/*.py:         return JSONResponse(data)
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"code": -1, "message": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.get("/api/bili/popular")
+# [v7.1] Route moved to routers/*.py: async def api_popular():
+# [v7.1] Route moved to routers/*.py:     """获取热门视频"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         data = await get_popular_videos()
+# [v7.1] Route moved to routers/*.py:         return JSONResponse(data)
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"code": -1, "message": str(e)})
+# [v7.1] Route moved to routers/*.py: # ==================== Subtitle API ====================
+# [v7.1] Route moved to routers/*.py: @app.get("/api/transcript")
+# [v7.1] Route moved to routers/*.py: async def api_transcript(url: str = Query(...)):
+# [v7.1] Route moved to routers/*.py:     """获取完整文字稿"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         bvid = extract_bvid(url)
+# [v7.1] Route moved to routers/*.py:         sub = await get_full_subtitle(bvid)
+# [v7.1] Route moved to routers/*.py:         if sub.body:
+# [v7.1] Route moved to routers/*.py:             lines = []
+# [v7.1] Route moved to routers/*.py:             for x in sub.body:
+# [v7.1] Route moved to routers/*.py:                 m, s = int(x.from_ // 60), int(x.from_ % 60)
+# [v7.1] Route moved to routers/*.py:                 lines.append(f"[{m:02d}:{s:02d}] {x.content}")
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({
+# [v7.1] Route moved to routers/*.py:                 "success": True,
+# [v7.1] Route moved to routers/*.py:                 "data": {
+# [v7.1] Route moved to routers/*.py:                     "text": "\n".join(lines),
+# [v7.1] Route moved to routers/*.py:                     "lines": lines,
+# [v7.1] Route moved to routers/*.py:                     "count": len(sub.body),
+# [v7.1] Route moved to routers/*.py:                     "source": "subtitle"
+# [v7.1] Route moved to routers/*.py:                 }
+# [v7.1] Route moved to routers/*.py:             })
+# [v7.1] Route moved to routers/*.py:         else:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({
+# [v7.1] Route moved to routers/*.py:                 "success": False,
+# [v7.1] Route moved to routers/*.py:                 "error": "该视频没有字幕",
+# [v7.1] Route moved to routers/*.py:                 "noSubtitle": True,
+# [v7.1] Route moved to routers/*.py:                 "bvid": bvid
+# [v7.1] Route moved to routers/*.py:             })
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.get("/api/timed-text")
+# [v7.1] Route moved to routers/*.py: async def api_timed_text(url: str = Query(...)):
+# [v7.1] Route moved to routers/*.py:     """获取带时间戳的文字"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         bvid = extract_bvid(url)
+# [v7.1] Route moved to routers/*.py:         info = await get_video_info(bvid)
+# [v7.1] Route moved to routers/*.py:         sub = await get_full_subtitle(bvid)
+# [v7.1] Route moved to routers/*.py:         if sub.body:
+# [v7.1] Route moved to routers/*.py:             entries = []
+# [v7.1] Route moved to routers/*.py:             for x in sub.body:
+# [v7.1] Route moved to routers/*.py:                 m, s = int(x.from_ // 60), int(x.from_ % 60)
+# [v7.1] Route moved to routers/*.py:                 entries.append({
+# [v7.1] Route moved to routers/*.py:                     "time": f"{m:02d}:{s:02d}",
+# [v7.1] Route moved to routers/*.py:                     "from": x.from_,
+# [v7.1] Route moved to routers/*.py:                     "to": x.to,
+# [v7.1] Route moved to routers/*.py:                     "content": x.content
+# [v7.1] Route moved to routers/*.py:                 })
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({
+# [v7.1] Route moved to routers/*.py:                 "success": True,
+# [v7.1] Route moved to routers/*.py:                 "data": {
+# [v7.1] Route moved to routers/*.py:                     "title": info.title,
+# [v7.1] Route moved to routers/*.py:                     "author": info.owner_name,
+# [v7.1] Route moved to routers/*.py:                     "pic": info.pic,
+# [v7.1] Route moved to routers/*.py:                     "duration": info.duration,
+# [v7.1] Route moved to routers/*.py:                     "entries": entries,
+# [v7.1] Route moved to routers/*.py:                     "hasSubtitle": True
+# [v7.1] Route moved to routers/*.py:                 }
+# [v7.1] Route moved to routers/*.py:             })
+# [v7.1] Route moved to routers/*.py:         else:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": "无字幕"})
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: # ==================== Comments API ====================
+# [v7.1] Route moved to routers/*.py: @app.get("/api/v2/comments")
+# [v7.1] Route moved to routers/*.py: async def api_comments(bvid: str = Query(...)):
+# [v7.1] Route moved to routers/*.py:     """获取视频评论（热门）"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         bvid = extract_bvid(bvid)
+# [v7.1] Route moved to routers/*.py:         info = await get_video_info(bvid)
+# [v7.1] Route moved to routers/*.py:         comments = await get_comments(bvid)
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({
+# [v7.1] Route moved to routers/*.py:             "success": True,
+# [v7.1] Route moved to routers/*.py:             "data": {
+# [v7.1] Route moved to routers/*.py:                 "bvid": bvid,
+# [v7.1] Route moved to routers/*.py:                 "title": info.title,
+# [v7.1] Route moved to routers/*.py:                 "comment_count": len(comments),
+# [v7.1] Route moved to routers/*.py:                 "comments": [
+# [v7.1] Route moved to routers/*.py:                     {
+# [v7.1] Route moved to routers/*.py:                         "user": c.user,
+# [v7.1] Route moved to routers/*.py:                         "content": c.content,
+# [v7.1] Route moved to routers/*.py:                         "likes": c.likes,
+# [v7.1] Route moved to routers/*.py:                         "replies": [{"user": r.user, "content": r.content, "likes": r.likes} for r in c.replies]
+# [v7.1] Route moved to routers/*.py:                     }
+# [v7.1] Route moved to routers/*.py:                     for c in comments
+# [v7.1] Route moved to routers/*.py:                 ]
+# [v7.1] Route moved to routers/*.py:             }
+# [v7.1] Route moved to routers/*.py:         })
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.get("/api/v2/comments/ai")
+# [v7.1] Route moved to routers/*.py: async def api_comments_ai(bvid: str = Query(...)):
+# [v7.1] Route moved to routers/*.py:     """AI 筛选全部评论 - 获取所有评论后由AI筛选有意义的"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         bvid = extract_bvid(bvid)
+# [v7.1] Route moved to routers/*.py:         info = await get_video_info(bvid)
+# [v7.1] Route moved to routers/*.py:         # Fetch ALL comments (up to 10 pages = 400 comments)
+# [v7.1] Route moved to routers/*.py:         all_comments = await get_all_comments(bvid, max_pages=10)
+# [v7.1] Route moved to routers/*.py:         if not all_comments:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({
+# [v7.1] Route moved to routers/*.py:                 "success": True,
+# [v7.1] Route moved to routers/*.py:                 "data": {"bvid": bvid, "title": info.title, "total": 0, "selected": [], "ai_analysis": "该视频暂无评论"}
+# [v7.1] Route moved to routers/*.py:             })
+# [v7.1] Route moved to routers/*.py:         # Check API key
+# [v7.1] Route moved to routers/*.py:         api_key = db.get_setting("api_key", "")
+# [v7.1] Route moved to routers/*.py:         api_url = db.get_setting("api_url", "")
+# [v7.1] Route moved to routers/*.py:         model = db.get_setting("model", "deepseek-chat")
+# [v7.1] Route moved to routers/*.py:         if not api_key:
+# [v7.1] Route moved to routers/*.py:             # No AI - return top 10 by likes
+# [v7.1] Route moved to routers/*.py:             top = sorted(all_comments, key=lambda x: x.likes, reverse=True)[:10]
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({
+# [v7.1] Route moved to routers/*.py:                 "success": True,
+# [v7.1] Route moved to routers/*.py:                 "data": {
+# [v7.1] Route moved to routers/*.py:                     "bvid": bvid, "title": info.title,
+# [v7.1] Route moved to routers/*.py:                     "total": len(all_comments), "selected_count": len(top),
+# [v7.1] Route moved to routers/*.py:                     "selected": [{"user": c.user, "content": c.content, "likes": c.likes} for c in top],
+# [v7.1] Route moved to routers/*.py:                     "ai_analysis": "(未配置API密钥，按点赞数排序展示前10条)"
+# [v7.1] Route moved to routers/*.py:                 }
+# [v7.1] Route moved to routers/*.py:             })
+# [v7.1] Route moved to routers/*.py:         # Build AI prompt with all comments INCLUDING sub-replies
+# [v7.1] Route moved to routers/*.py:         comments_lines = []
+# [v7.1] Route moved to routers/*.py:         for i, c in enumerate(all_comments[:400]):
+# [v7.1] Route moved to routers/*.py:             line = f"[{i+1}] 👍{c.likes} | {c.user}: {c.content}"
+# [v7.1] Route moved to routers/*.py:             if c.replies:
+# [v7.1] Route moved to routers/*.py:                 for sr in c.replies:
+# [v7.1] Route moved to routers/*.py:                     line += f"\n    ↳ {sr.user}: {sr.content} (👍{sr.likes})"
+# [v7.1] Route moved to routers/*.py:             comments_lines.append(line)
+# [v7.1] Route moved to routers/*.py:         comments_text = "\n".join(comments_lines)
+# [v7.1] Route moved to routers/*.py:         prompt = (
+# [v7.1] Route moved to routers/*.py:             "You are a comment section analyst. Below are ALL " + str(len(all_comments)) + " comments from a Bilibili video titled 《" + info.title + "》.\n\n"
+# [v7.1] Route moved to routers/*.py:             "Your task:\n"
+# [v7.1] Route moved to routers/*.py:             "1. Analyze overall sentiment, hot discussion topics, and community reaction\n"
+# [v7.1] Route moved to routers/*.py:             "2. Select ALL comments with genuine information value (no upper limit - include any comment that adds insight)\n"
+# [v7.1] Route moved to routers/*.py:             "3. FILTER OUT: emoji-only comments, meaningless memes, spam, one-word replies, off-topic chatter\n"
+# [v7.1] Route moved to routers/*.py:             "4. RECONSTRUCT CONVERSATIONS: When you find comment threads with sub-replies forming a dialogue, reconstruct the full conversation context and summarize what was discussed\n"
+# [v7.1] Route moved to routers/*.py:             "5. Categorize selected comments by theme/topic\n\n"
+# [v7.1] Route moved to routers/*.py:             "Output format (use Chinese):\n\n"
+# [v7.1] Route moved to routers/*.py:             "## Overall Analysis\n"
+# [v7.1] Route moved to routers/*.py:             "(150-300 characters summarizing the comment atmosphere and major discussion points)\n\n"
+# [v7.1] Route moved to routers/*.py:             "## Selected Comments\n\n"
+# [v7.1] Route moved to routers/*.py:             "### Theme: [category name]\n"
+# [v7.1] Route moved to routers/*.py:             "**Username** (likes: N):\n"
+# [v7.1] Route moved to routers/*.py:             "Exact comment text here\n"
+# [v7.1] Route moved to routers/*.py:             "  > Reply by Username2: exact reply text\n\n"
+# [v7.1] Route moved to routers/*.py:             "### Theme: [another category]\n"
+# [v7.1] Route moved to routers/*.py:             "...\n\n"
+# [v7.1] Route moved to routers/*.py:             "## Conversation Threads\n"
+# [v7.1] Route moved to routers/*.py:             "(Multi-person discussions with sub-replies, reconstructed as dialogues)\n\n"
+# [v7.1] Route moved to routers/*.py:             "### Thread: [topic]\n"
+# [v7.1] Route moved to routers/*.py:             "- User1: \"exact comment\"\n"
+# [v7.1] Route moved to routers/*.py:             "  - User2: \"exact reply\"\n"
+# [v7.1] Route moved to routers/*.py:             "  - User1: \"exact response\"\n"
+# [v7.1] Route moved to routers/*.py:             "> Summary: (2-3 sentences summarizing this conversation)\n\n"
+# [v7.1] Route moved to routers/*.py:             "---\n\n"
+# [v7.1] Route moved to routers/*.py:             "All comments (with sub-replies):\n" + comments_text[:15000]
+# [v7.1] Route moved to routers/*.py:         )
+# [v7.1] Route moved to routers/*.py:         # Call AI
+# [v7.1] Route moved to routers/*.py:         if "anthropic.com" in api_url:
+# [v7.1] Route moved to routers/*.py:             async with httpx.AsyncClient(timeout=120) as client:
+# [v7.1] Route moved to routers/*.py:                 r = await client.post(
+# [v7.1] Route moved to routers/*.py:                     api_url,
+# [v7.1] Route moved to routers/*.py:                     headers={"x-api-key": api_key, "anthropic-version": "2023-06-01", "Content-Type": "application/json"},
+# [v7.1] Route moved to routers/*.py:                     json={"model": model, "max_tokens": 4096, "messages": [{"role": "user", "content": prompt}]}
+# [v7.1] Route moved to routers/*.py:                 )
+# [v7.1] Route moved to routers/*.py:                 data = r.json()
+# [v7.1] Route moved to routers/*.py:                 if r.status_code != 200:
+# [v7.1] Route moved to routers/*.py:                     raise ValueError(data.get("error", {}).get("message", "API error"))
+# [v7.1] Route moved to routers/*.py:                 analysis = data["content"][0]["text"]
+# [v7.1] Route moved to routers/*.py:         else:
+# [v7.1] Route moved to routers/*.py:             async with httpx.AsyncClient(timeout=120) as client:
+# [v7.1] Route moved to routers/*.py:                 r = await client.post(
+# [v7.1] Route moved to routers/*.py:                     f"{api_url}/chat/completions",
+# [v7.1] Route moved to routers/*.py:                     headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+# [v7.1] Route moved to routers/*.py:                     json={"model": model, "messages": [{"role": "user", "content": prompt}], "stream": False, "max_tokens": 4096}
+# [v7.1] Route moved to routers/*.py:                 )
+# [v7.1] Route moved to routers/*.py:                 data = r.json()
+# [v7.1] Route moved to routers/*.py:                 if r.status_code != 200:
+# [v7.1] Route moved to routers/*.py:                     raise ValueError(data.get("error", {}).get("message", "API error"))
+# [v7.1] Route moved to routers/*.py:                 analysis = data["choices"][0]["message"]["content"]
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({
+# [v7.1] Route moved to routers/*.py:             "success": True,
+# [v7.1] Route moved to routers/*.py:             "data": {
+# [v7.1] Route moved to routers/*.py:                 "bvid": bvid, "title": info.title,
+# [v7.1] Route moved to routers/*.py:                 "total": len(all_comments),
+# [v7.1] Route moved to routers/*.py:                 "selected_count": min(len(all_comments), 400),
+# [v7.1] Route moved to routers/*.py:                 "ai_analysis": analysis,
+# [v7.1] Route moved to routers/*.py:                 "raw_comments": [{"user": c.user, "content": c.content, "likes": c.likes} for c in all_comments[:400]]
+# [v7.1] Route moved to routers/*.py:             }
+# [v7.1] Route moved to routers/*.py:         })
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: # ==================== AI Summary API ====================
+# [v7.1] Route moved to routers/*.py: @app.get("/api/summarize")
+# [v7.1] Route moved to routers/*.py: async def api_summarize(
+# [v7.1] Route moved to routers/*.py:     url: str = Query(...),
+# [v7.1] Route moved to routers/*.py:     key: str = Query(""),
+# [v7.1] Route moved to routers/*.py:     apiUrl: str = Query(""),
+# [v7.1] Route moved to routers/*.py:     model: str = Query(""),
+# [v7.1] Route moved to routers/*.py:     mode: str = Query("detailed")
+# [v7.1] Route moved to routers/*.py: ):
+# [v7.1] Route moved to routers/*.py:     """AI 生成总结"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         bvid = extract_bvid(url)
+# [v7.1] Route moved to routers/*.py:         info = await get_video_info(bvid)
+# [v7.1] Route moved to routers/*.py:         sub = await get_full_subtitle(bvid)
+# [v7.1] Route moved to routers/*.py:         comments = await get_comments(bvid)
+# [v7.1] Route moved to routers/*.py:         # Check API key
+# [v7.1] Route moved to routers/*.py:         api_key = key or db.get_setting("api_key", "")
+# [v7.1] Route moved to routers/*.py:         api_url = apiUrl or db.get_setting("api_url", "")
+# [v7.1] Route moved to routers/*.py:         api_model = model or db.get_setting("model", "claude-sonnet-4-20250514")
+# [v7.1] Route moved to routers/*.py:         result = await summarize_with_claude(
+# [v7.1] Route moved to routers/*.py:             info=info,
+# [v7.1] Route moved to routers/*.py:             subtitle=sub,
+# [v7.1] Route moved to routers/*.py:             comments=comments,
+# [v7.1] Route moved to routers/*.py:             api_key=api_key,
+# [v7.1] Route moved to routers/*.py:             api_url=api_url,
+# [v7.1] Route moved to routers/*.py:             model=api_model,
+# [v7.1] Route moved to routers/*.py:             mode=mode
+# [v7.1] Route moved to routers/*.py:         )
+# [v7.1] Route moved to routers/*.py:         # Save to history
+# [v7.1] Route moved to routers/*.py:         db.save_history(
+# [v7.1] Route moved to routers/*.py:             bvid=bvid,
+# [v7.1] Route moved to routers/*.py:             title=info.title,
+# [v7.1] Route moved to routers/*.py:             author=info.owner_name,
+# [v7.1] Route moved to routers/*.py:             mode=mode,
+# [v7.1] Route moved to routers/*.py:             summary=result["summary"]
+# [v7.1] Route moved to routers/*.py:         )
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({
+# [v7.1] Route moved to routers/*.py:             "success": True,
+# [v7.1] Route moved to routers/*.py:             "data": result
+# [v7.1] Route moved to routers/*.py:         })
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.get("/api/segments")
+# [v7.1] Route moved to routers/*.py: async def api_segments(
+# [v7.1] Route moved to routers/*.py:     url: str = Query(...),
+# [v7.1] Route moved to routers/*.py:     key: str = Query(""),
+# [v7.1] Route moved to routers/*.py:     apiUrl: str = Query(""),
+# [v7.1] Route moved to routers/*.py:     model: str = Query("")
+# [v7.1] Route moved to routers/*.py: ):
+# [v7.1] Route moved to routers/*.py:     """AI 分段总结"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         bvid = extract_bvid(url)
+# [v7.1] Route moved to routers/*.py:         sub = await get_full_subtitle(bvid)
+# [v7.1] Route moved to routers/*.py:         if not sub.body:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": "无字幕内容"})
+# [v7.1] Route moved to routers/*.py:         api_key = key or db.get_setting("api_key", "")
+# [v7.1] Route moved to routers/*.py:         api_url = apiUrl or db.get_setting("api_url", "")
+# [v7.1] Route moved to routers/*.py:         api_model = model or db.get_setting("model", "deepseek-chat")
+# [v7.1] Route moved to routers/*.py:         result = await summarize_segments(sub, api_key, api_url, api_model)
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": True, "data": result})
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.get("/api/qa")
+# [v7.1] Route moved to routers/*.py: async def api_qa(
+# [v7.1] Route moved to routers/*.py:     bvid: str = Query(""),
+# [v7.1] Route moved to routers/*.py:     url: str = Query(""),
+# [v7.1] Route moved to routers/*.py:     question: str = Query(...),
+# [v7.1] Route moved to routers/*.py:     key: str = Query(""),
+# [v7.1] Route moved to routers/*.py:     apiUrl: str = Query(""),
+# [v7.1] Route moved to routers/*.py:     model: str = Query("")
+# [v7.1] Route moved to routers/*.py: ):
+# [v7.1] Route moved to routers/*.py:     """基于视频内容的问答"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         bvid = extract_bvid(bvid or url)
+# [v7.1] Route moved to routers/*.py:         q = question.strip()
+# [v7.1] Route moved to routers/*.py:         if not q:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": "请输入问题"})
+# [v7.1] Route moved to routers/*.py:         api_key = key or db.get_setting("api_key", "")
+# [v7.1] Route moved to routers/*.py:         api_url = apiUrl or db.get_setting("api_url", "https://api.deepseek.com/v1")
+# [v7.1] Route moved to routers/*.py:         api_model = model or db.get_setting("model", "deepseek-chat")
+# [v7.1] Route moved to routers/*.py:         if not api_key:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": "请先配置API密钥"})
+# [v7.1] Route moved to routers/*.py:         # Get text from KB or subtitles
+# [v7.1] Route moved to routers/*.py:         text = ""
+# [v7.1] Route moved to routers/*.py:         kb_entry = db.get_kb_entry(bvid)
+# [v7.1] Route moved to routers/*.py:         if kb_entry:
+# [v7.1] Route moved to routers/*.py:             text = kb_entry.get("text", "")
+# [v7.1] Route moved to routers/*.py:         if not text or len(text) < 20:
+# [v7.1] Route moved to routers/*.py:             try:
+# [v7.1] Route moved to routers/*.py:                 sub = await get_full_subtitle(bvid)
+# [v7.1] Route moved to routers/*.py:                 if sub.body:
+# [v7.1] Route moved to routers/*.py:                     text = " ".join([x.content for x in sub.body])
+# [v7.1] Route moved to routers/*.py:             except Exception:
+# [v7.1] Route moved to routers/*.py:                 pass
+# [v7.1] Route moved to routers/*.py:         if not text or len(text) < 20:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": "无可用文字"})
+# [v7.1] Route moved to routers/*.py:         prompt = (
+# [v7.1] Route moved to routers/*.py:             "Based on the transcript below, answer the user question. "
+# [v7.1] Route moved to routers/*.py:             "If the transcript does not contain the answer, say so.\n\n"
+# [v7.1] Route moved to routers/*.py:             f"TRANSCRIPT:\n{text[:8000]}\n\n"
+# [v7.1] Route moved to routers/*.py:             f"QUESTION:\n{q}"
+# [v7.1] Route moved to routers/*.py:         )
+# [v7.1] Route moved to routers/*.py:         if "anthropic.com" in api_url:
+# [v7.1] Route moved to routers/*.py:             async with httpx.AsyncClient(timeout=60) as client:
+# [v7.1] Route moved to routers/*.py:                 r = await client.post(api_url,
+# [v7.1] Route moved to routers/*.py:                     headers={"x-api-key":api_key,"anthropic-version":"2023-06-01","Content-Type":"application/json"},
+# [v7.1] Route moved to routers/*.py:                     json={"model":api_model,"max_tokens":4096,"messages":[{"role":"user","content":prompt}]})
+# [v7.1] Route moved to routers/*.py:                 data = r.json()
+# [v7.1] Route moved to routers/*.py:             if r.status_code != 200:
+# [v7.1] Route moved to routers/*.py:                 return JSONResponse({"success": False, "error": data.get("error",{}).get("message",f"API {r.status_code}")})
+# [v7.1] Route moved to routers/*.py:             answer = data["content"][0]["text"]
+# [v7.1] Route moved to routers/*.py:         else:
+# [v7.1] Route moved to routers/*.py:             async with httpx.AsyncClient(timeout=60) as client:
+# [v7.1] Route moved to routers/*.py:                 r = await client.post(
+# [v7.1] Route moved to routers/*.py:                     f"{api_url}/chat/completions",
+# [v7.1] Route moved to routers/*.py:                     headers={"Authorization":f"Bearer {api_key}","Content-Type":"application/json"},
+# [v7.1] Route moved to routers/*.py:                     json={"model":api_model,"messages":[{"role":"user","content":prompt}],"stream":False,"max_tokens":4096})
+# [v7.1] Route moved to routers/*.py:                 data = r.json()
+# [v7.1] Route moved to routers/*.py:             if r.status_code != 200:
+# [v7.1] Route moved to routers/*.py:                 return JSONResponse({"success": False, "error": data.get("error",{}).get("message",f"API {r.status_code}")})
+# [v7.1] Route moved to routers/*.py:             answer = data["choices"][0]["message"]["content"]
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({
+# [v7.1] Route moved to routers/*.py:             "success": True,
+# [v7.1] Route moved to routers/*.py:             "data": {"answer": answer, "context": f"bvid={bvid}"}
+# [v7.1] Route moved to routers/*.py:         })
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: # ==================== Knowledge Base API ====================
+# [v7.1] Route moved to routers/*.py: @app.post("/api/rag/save")
+# [v7.1] Route moved to routers/*.py: async def api_rag_save(request: Request):
+# [v7.1] Route moved to routers/*.py:     """保存视频到知识库"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         body = await request.json()
+# [v7.1] Route moved to routers/*.py:         bvid = extract_bvid(body.get("bvid", ""))
+# [v7.1] Route moved to routers/*.py:         info = await get_video_info(bvid)
+# [v7.1] Route moved to routers/*.py:         # Get text
+# [v7.1] Route moved to routers/*.py:         text = ""
+# [v7.1] Route moved to routers/*.py:         try:
+# [v7.1] Route moved to routers/*.py:             sub = await get_full_subtitle(bvid)
+# [v7.1] Route moved to routers/*.py:             if sub.body:
+# [v7.1] Route moved to routers/*.py:                 text = " ".join([x.content for x in sub.body])
+# [v7.1] Route moved to routers/*.py:         except Exception:
+# [v7.1] Route moved to routers/*.py:             pass
+# [v7.1] Route moved to routers/*.py:         if not text or len(text) < 20:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": "无可用文字"})
+# [v7.1] Route moved to routers/*.py:         # Save to KB
+# [v7.1] Route moved to routers/*.py:         entry = db.save_kb_entry(
+# [v7.1] Route moved to routers/*.py:             bvid=bvid,
+# [v7.1] Route moved to routers/*.py:             title=info.title,
+# [v7.1] Route moved to routers/*.py:             author=info.owner_name,
+# [v7.1] Route moved to routers/*.py:             pic=info.pic,
+# [v7.1] Route moved to routers/*.py:             text=text
+# [v7.1] Route moved to routers/*.py:         )
+# [v7.1] Route moved to routers/*.py:         # Save chunks for RAG
+# [v7.1] Route moved to routers/*.py:         db.save_chunks(bvid, info.title, text)
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({
+# [v7.1] Route moved to routers/*.py:             "success": True,
+# [v7.1] Route moved to routers/*.py:             "data": {
+# [v7.1] Route moved to routers/*.py:                 "bvid": bvid,
+# [v7.1] Route moved to routers/*.py:                 "title": info.title,
+# [v7.1] Route moved to routers/*.py:                 "chunks": len(db._split_text(text)),
+# [v7.1] Route moved to routers/*.py:                 "textLength": len(text)
+# [v7.1] Route moved to routers/*.py:             }
+# [v7.1] Route moved to routers/*.py:         })
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.get("/api/kb/list")
+# [v7.1] Route moved to routers/*.py: async def api_kb_list():
+# [v7.1] Route moved to routers/*.py:     """获取知识库列表"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         entries = db.get_kb_list()
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({
+# [v7.1] Route moved to routers/*.py:             "success": True,
+# [v7.1] Route moved to routers/*.py:             "data": {
+# [v7.1] Route moved to routers/*.py:                 "count": len(entries),
+# [v7.1] Route moved to routers/*.py:                 "entries": entries
+# [v7.1] Route moved to routers/*.py:             }
+# [v7.1] Route moved to routers/*.py:         })
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.get("/api/kb/search")
+# [v7.1] Route moved to routers/*.py: async def api_kb_search(q: str = Query(...)):
+# [v7.1] Route moved to routers/*.py:     """搜索知识库"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         results = db.search_kb(q)
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({
+# [v7.1] Route moved to routers/*.py:             "success": True,
+# [v7.1] Route moved to routers/*.py:             "data": {
+# [v7.1] Route moved to routers/*.py:                 "count": len(results),
+# [v7.1] Route moved to routers/*.py:                 "results": results,
+# [v7.1] Route moved to routers/*.py:                 "keyword": q
+# [v7.1] Route moved to routers/*.py:             }
+# [v7.1] Route moved to routers/*.py:         })
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.get("/api/kb/delete")
+# [v7.1] Route moved to routers/*.py: async def api_kb_delete(bvid: str = Query(...)):
+# [v7.1] Route moved to routers/*.py:     """从知识库删除"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         bvid = extract_bvid(bvid)
+# [v7.1] Route moved to routers/*.py:         deleted = db.delete_kb_entry(bvid)
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({
+# [v7.1] Route moved to routers/*.py:             "success": deleted,
+# [v7.1] Route moved to routers/*.py:             "error": None if deleted else "not found"
+# [v7.1] Route moved to routers/*.py:         })
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.get("/api/rag/stats")
+# [v7.1] Route moved to routers/*.py: async def api_rag_stats():
+# [v7.1] Route moved to routers/*.py:     """知识库统计"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         stats = db.get_kb_stats()
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": True, "data": stats})
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.post("/api/rag/ask")
+# [v7.1] Route moved to routers/*.py: async def api_rag_ask(request: Request):
+# [v7.1] Route moved to routers/*.py:     """RAG 问答"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         body = await request.json()
+# [v7.1] Route moved to routers/*.py:         question = (body.get("question", "")).strip()
+# [v7.1] Route moved to routers/*.py:         k = body.get("k", 5)
+# [v7.1] Route moved to routers/*.py:         bvids = body.get("bvids", None)
+# [v7.1] Route moved to routers/*.py:         api_key = body.get("key", "") or db.get_setting("api_key", "")
+# [v7.1] Route moved to routers/*.py:         api_url = body.get("apiUrl", "") or db.get_setting("api_url", "https://api.deepseek.com/v1")
+# [v7.1] Route moved to routers/*.py:         model = body.get("model", "") or db.get_setting("model", "deepseek-chat")
+# [v7.1] Route moved to routers/*.py:         if not question:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": "请输入问题"})
+# [v7.1] Route moved to routers/*.py:         # Search chunks
+# [v7.1] Route moved to routers/*.py:         docs = db.search_kb(question, max(8, k), bvids)
+# [v7.1] Route moved to routers/*.py:         if not docs:
+# [v7.1] Route moved to routers/*.py:             # Fallback to recent chunks
+# [v7.1] Route moved to routers/*.py:             entries = db.get_kb_list()
+# [v7.1] Route moved to routers/*.py:             docs = []
+# [v7.1] Route moved to routers/*.py:             for entry in entries[:max(8, k)]:
+# [v7.1] Route moved to routers/*.py:                 kb_data = db.get_kb_entry(entry["bvid"])
+# [v7.1] Route moved to routers/*.py:                 if kb_data:
+# [v7.1] Route moved to routers/*.py:                     docs.append({
+# [v7.1] Route moved to routers/*.py:                         "bvid": entry["bvid"],
+# [v7.1] Route moved to routers/*.py:                         "title": entry["title"],
+# [v7.1] Route moved to routers/*.py:                         "content": kb_data.get("text", "")[:500],
+# [v7.1] Route moved to routers/*.py:                         "score": 1,
+# [v7.1] Route moved to routers/*.py:                         "url": f"https://www.bilibili.com/video/{entry['bvid']}"
+# [v7.1] Route moved to routers/*.py:                     })
+# [v7.1] Route moved to routers/*.py:         if not api_key:
+# [v7.1] Route moved to routers/*.py:             answer = f"找到 {len(docs)} 个相关片段。请配置API密钥以获取AI回答。\n\n"
+# [v7.1] Route moved to routers/*.py:             for d in docs[:5]:
+# [v7.1] Route moved to routers/*.py:                 answer += f"- {d['title']} ({d['bvid']})\n"
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({
+# [v7.1] Route moved to routers/*.py:                 "success": True,
+# [v7.1] Route moved to routers/*.py:                 "data": {
+# [v7.1] Route moved to routers/*.py:                     "answer": answer,
+# [v7.1] Route moved to routers/*.py:                     "sources": [{"bvid": d["bvid"], "title": d["title"], "url": d["url"]} for d in docs[:5]]
+# [v7.1] Route moved to routers/*.py:                 }
+# [v7.1] Route moved to routers/*.py:             })
+# [v7.1] Route moved to routers/*.py:         # Build context
+# [v7.1] Route moved to routers/*.py:         context_parts = []
+# [v7.1] Route moved to routers/*.py:         sources = []
+# [v7.1] Route moved to routers/*.py:         seen = set()
+# [v7.1] Route moved to routers/*.py:         for doc in docs:
+# [v7.1] Route moved to routers/*.py:             context_parts.append(f"《{doc['title']}》\n{doc['content']}")
+# [v7.1] Route moved to routers/*.py:             if doc["bvid"] not in seen:
+# [v7.1] Route moved to routers/*.py:                 seen.add(doc["bvid"])
+# [v7.1] Route moved to routers/*.py:                 sources.append({
+# [v7.1] Route moved to routers/*.py:                     "bvid": doc["bvid"],
+# [v7.1] Route moved to routers/*.py:                     "title": doc["title"],
+# [v7.1] Route moved to routers/*.py:                     "url": doc["url"]
+# [v7.1] Route moved to routers/*.py:                 })
+# [v7.1] Route moved to routers/*.py:         context = "\n\n---\n\n".join(context_parts)
+# [v7.1] Route moved to routers/*.py:         system_prompt = (
+# [v7.1] Route moved to routers/*.py:             "你是一个知识库助手，专门基于用户收藏的B站视频内容来回答问题。\n\n"
+# [v7.1] Route moved to routers/*.py:             "请遵循以下规则：\n"
+# [v7.1] Route moved to routers/*.py:             "1. 根据提供的视频内容来回答问题\n"
+# [v7.1] Route moved to routers/*.py:             "2. 回答要自然、友好、有条理\n"
+# [v7.1] Route moved to routers/*.py:             "3. 可以引用相关的视频标题作为来源\n"
+# [v7.1] Route moved to routers/*.py:             "4. 如果多个视频涉及相同话题，请综合它们的内容\n\n"
+# [v7.1] Route moved to routers/*.py:             f"视频内容：\n{context}"
+# [v7.1] Route moved to routers/*.py:         )
+# [v7.1] Route moved to routers/*.py:         if "anthropic.com" in api_url:
+# [v7.1] Route moved to routers/*.py:             async with httpx.AsyncClient(timeout=60) as client:
+# [v7.1] Route moved to routers/*.py:                 r = await client.post(
+# [v7.1] Route moved to routers/*.py:                     api_url,
+# [v7.1] Route moved to routers/*.py:                     headers={"x-api-key":api_key,"anthropic-version":"2023-06-01","Content-Type":"application/json"},
+# [v7.1] Route moved to routers/*.py:                     json={"model":model,"max_tokens":4096,"messages":[
+# [v7.1] Route moved to routers/*.py:                         {"role":"system","content":system_prompt},
+# [v7.1] Route moved to routers/*.py:                         {"role":"user","content":question}
+# [v7.1] Route moved to routers/*.py:                     ]}
+# [v7.1] Route moved to routers/*.py:                 )
+# [v7.1] Route moved to routers/*.py:                 data = r.json()
+# [v7.1] Route moved to routers/*.py:             if r.status_code != 200:
+# [v7.1] Route moved to routers/*.py:                 return JSONResponse({"success": False, "error": data.get("error",{}).get("message",f"API error {r.status_code}")})
+# [v7.1] Route moved to routers/*.py:             answer = data["content"][0]["text"]
+# [v7.1] Route moved to routers/*.py:         else:
+# [v7.1] Route moved to routers/*.py:             async with httpx.AsyncClient(timeout=60) as client:
+# [v7.1] Route moved to routers/*.py:                 r = await client.post(
+# [v7.1] Route moved to routers/*.py:                     f"{api_url}/chat/completions",
+# [v7.1] Route moved to routers/*.py:                     headers={"Authorization":f"Bearer {api_key}","Content-Type":"application/json"},
+# [v7.1] Route moved to routers/*.py:                     json={"model":model,"messages":[
+# [v7.1] Route moved to routers/*.py:                         {"role":"system","content":system_prompt},
+# [v7.1] Route moved to routers/*.py:                         {"role":"user","content":question}
+# [v7.1] Route moved to routers/*.py:                     ],"stream":False,"max_tokens":4096}
+# [v7.1] Route moved to routers/*.py:                 )
+# [v7.1] Route moved to routers/*.py:                 data = r.json()
+# [v7.1] Route moved to routers/*.py:             if r.status_code != 200:
+# [v7.1] Route moved to routers/*.py:                 return JSONResponse({"success": False, "error": data.get("error",{}).get("message",f"API error {r.status_code}")})
+# [v7.1] Route moved to routers/*.py:             answer = data["choices"][0]["message"]["content"]
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({
+# [v7.1] Route moved to routers/*.py:             "success": True,
+# [v7.1] Route moved to routers/*.py:             "data": {"answer": answer, "sources": sources}
+# [v7.1] Route moved to routers/*.py:         })
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: # ==================== Enhanced RAG Chat (Streaming + Hybrid) ====================
+# [v7.1] Route moved to routers/*.py: @app.post("/api/chat/stream")
+# [v7.1] Route moved to routers/*.py: async def api_chat_stream(request: Request):
+# [v7.1] Route moved to routers/*.py:     """NDJSON 流式 RAG 问答 —— 含进度事件和逐 token 输出"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         body = await request.json()
+# [v7.1] Route moved to routers/*.py:         question = (body.get("question", "")).strip()
+# [v7.1] Route moved to routers/*.py:         if not question:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": "请输入问题"})
+# [v7.1] Route moved to routers/*.py:         api_key = body.get("key", "") or db.get_setting("api_key", "")
+# [v7.1] Route moved to routers/*.py:         api_url = body.get("apiUrl", "") or db.get_setting("api_url", "")
+# [v7.1] Route moved to routers/*.py:         model = body.get("model", "") or db.get_setting("model", "deepseek-chat")
+# [v7.1] Route moved to routers/*.py:         if not api_key:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": "请先配置API密钥"})
+# [v7.1] Route moved to routers/*.py:         async def generate():
+# [v7.1] Route moved to routers/*.py:             import json as _json
+# [v7.1] Route moved to routers/*.py:             def emit(evt_type, **data):
+# [v7.1] Route moved to routers/*.py:                 return _json.dumps({"type": evt_type, **data}, ensure_ascii=False) + "\n"
+# [v7.1] Route moved to routers/*.py:             yield emit("status", message="正在分析问题...")
+# [v7.1] Route moved to routers/*.py:             # Step 1: Routing
+# [v7.1] Route moved to routers/*.py:             q = question.strip()
+# [v7.1] Route moved to routers/*.py:             is_list = any(w in q for w in ["有哪些", "列表", "清单", "多少", "几个", "列出", "所有"])
+# [v7.1] Route moved to routers/*.py:             is_summary = any(w in q for w in ["总结", "概括", "汇总", "概述", "综述", "分析"])
+# [v7.1] Route moved to routers/*.py:             is_general = len(q) < 8 or any(w in q for w in ["你好", "谢谢", "帮助", "怎么用"])
+# [v7.1] Route moved to routers/*.py:             if is_general:
+# [v7.1] Route moved to routers/*.py:                 route = "direct"
+# [v7.1] Route moved to routers/*.py:             elif is_list:
+# [v7.1] Route moved to routers/*.py:                 route = "db_list"
+# [v7.1] Route moved to routers/*.py:             elif is_summary:
+# [v7.1] Route moved to routers/*.py:                 route = "db_content"
+# [v7.1] Route moved to routers/*.py:             else:
+# [v7.1] Route moved to routers/*.py:                 route = "vector"
+# [v7.1] Route moved to routers/*.py:             yield emit("routing", route=route, label={"direct": "直接回答", "db_list": "列出内容", "db_content": "汇总分析", "vector": "知识库检索"}.get(route, route))
+# [v7.1] Route moved to routers/*.py:             # Step 2: Search KB
+# [v7.1] Route moved to routers/*.py:             rag = get_rag_service()
+# [v7.1] Route moved to routers/*.py:             entries = db.get_kb_list()
+# [v7.1] Route moved to routers/*.py:             if not entries:
+# [v7.1] Route moved to routers/*.py:                 yield emit("status", message="知识库为空，直接回答...")
+# [v7.1] Route moved to routers/*.py:                 yield emit("token", text="知识库中暂无内容。请先在收藏夹页面导入一些视频。")
+# [v7.1] Route moved to routers/*.py:                 yield emit("done")
+# [v7.1] Route moved to routers/*.py:                 return
+# [v7.1] Route moved to routers/*.py:             if route == "direct":
+# [v7.1] Route moved to routers/*.py:                 yield emit("token", text="你好！我是 BiliSum 知识库助手。你可以问我关于已导入视频的任何问题。")
+# [v7.1] Route moved to routers/*.py:                 yield emit("done")
+# [v7.1] Route moved to routers/*.py:                 return
+# [v7.1] Route moved to routers/*.py:             if route == "db_list":
+# [v7.1] Route moved to routers/*.py:                 titles_text = "\n".join([f"- {e['title']} (BV: {e['bvid']}, {e.get('textLength',0)}字)" for e in entries[:20]])
+# [v7.1] Route moved to routers/*.py:                 system = f"用户的知识库中有以下视频，请用清晰的中文列出并简要介绍每个视频：\n\n{titles_text}"
+# [v7.1] Route moved to routers/*.py:                 sources = []
+# [v7.1] Route moved to routers/*.py:                 # Skip search, go straight to LLM streaming
+# [v7.1] Route moved to routers/*.py:             elif route == "db_content":
+# [v7.1] Route moved to routers/*.py:                 all_content = []
+# [v7.1] Route moved to routers/*.py:                 for e in entries[:10]:
+# [v7.1] Route moved to routers/*.py:                     kb_data = db.get_kb_entry(e["bvid"])
+# [v7.1] Route moved to routers/*.py:                     if kb_data:
+# [v7.1] Route moved to routers/*.py:                         txt = kb_data.get("text", "")
+# [v7.1] Route moved to routers/*.py:                         all_content.append(f"《{e['title']}》\n{txt[:3000]}")
+# [v7.1] Route moved to routers/*.py:                 context = "\n\n---\n\n".join(all_content[:15000])
+# [v7.1] Route moved to routers/*.py:                 system = f"基于以下知识库内容回答用户问题。请综合分析所有视频内容，给出有深度的回答：\n\n{context}"
+# [v7.1] Route moved to routers/*.py:                 sources = [{"bvid": e["bvid"], "title": e["title"], "url": f"https://www.bilibili.com/video/{e['bvid']}"} for e in entries[:10]]
+# [v7.1] Route moved to routers/*.py:                 yield emit("sources", items=sources)
+# [v7.1] Route moved to routers/*.py:             else:
+# [v7.1] Route moved to routers/*.py:                 yield emit("status", message=f"检索中（{len(entries)} 个视频）...")
+# [v7.1] Route moved to routers/*.py:                 # Keyword + Vector search
+# [v7.1] Route moved to routers/*.py:                 from rag_service import extract_keywords, keyword_score_docs
+# [v7.1] Route moved to routers/*.py:                 keywords = extract_keywords(q)
+# [v7.1] Route moved to routers/*.py:                 kdocs = keyword_score_docs(keywords, entries[:50])[:8]
+# [v7.1] Route moved to routers/*.py:                 vdocs = rag.search(q, k=8) if rag.vector_store else []
+# [v7.1] Route moved to routers/*.py:                 from rag_service import merge_rrf
+# [v7.1] Route moved to routers/*.py:                 merged = merge_rrf(vdocs, kdocs, top_k=8)
+# [v7.1] Route moved to routers/*.py:                 yield emit("retrieval", count=len(merged), keywords=keywords[:8])
+# [v7.1] Route moved to routers/*.py:                 if not merged:
+# [v7.1] Route moved to routers/*.py:                     yield emit("status", message="未找到相关内容")
+# [v7.1] Route moved to routers/*.py:                     yield emit("token", text="抱歉，没有在知识库中找到相关内容。\n\n建议：\n- 尝试用更具体的关键词\n- 导入更多相关视频到知识库")
+# [v7.1] Route moved to routers/*.py:                     yield emit("done")
+# [v7.1] Route moved to routers/*.py:                     return
+# [v7.1] Route moved to routers/*.py:                 # Build context from merged results
+# [v7.1] Route moved to routers/*.py:                 yield emit("status", message=f"找到 {len(merged)} 条内容，生成回答...")
+# [v7.1] Route moved to routers/*.py:                 context_parts = []
+# [v7.1] Route moved to routers/*.py:                 sources = []
+# [v7.1] Route moved to routers/*.py:                 seen = set()
+# [v7.1] Route moved to routers/*.py:                 for d in merged:
+# [v7.1] Route moved to routers/*.py:                     context_parts.append(f"《{d['title']}》\n{d['content'][:800]}")
+# [v7.1] Route moved to routers/*.py:                     if d["bvid"] not in seen:
+# [v7.1] Route moved to routers/*.py:                         seen.add(d["bvid"])
+# [v7.1] Route moved to routers/*.py:                         sources.append({"bvid": d["bvid"], "title": d["title"], "url": d["url"]})
+# [v7.1] Route moved to routers/*.py:                 context = "\n\n---\n\n".join(context_parts)
+# [v7.1] Route moved to routers/*.py:                 yield emit("sources", items=sources)
+# [v7.1] Route moved to routers/*.py:                 system = f"你是知识库助手。基于以下视频内容回答用户问题。\n\n视频内容：\n{context}"
+# [v7.1] Route moved to routers/*.py:             is_anthropic = "anthropic.com" in api_url
+# [v7.1] Route moved to routers/*.py:             if is_anthropic:
+# [v7.1] Route moved to routers/*.py:                 async with httpx.AsyncClient(timeout=120) as client:
+# [v7.1] Route moved to routers/*.py:                     r = await client.post(api_url,
+# [v7.1] Route moved to routers/*.py:                         headers={"x-api-key": api_key, "anthropic-version": "2023-06-01", "Content-Type": "application/json"},
+# [v7.1] Route moved to routers/*.py:                         json={"model": model, "max_tokens": 4096, "messages": [
+# [v7.1] Route moved to routers/*.py:                             {"role": "system", "content": system}, {"role": "user", "content": question}
+# [v7.1] Route moved to routers/*.py:                         ]})
+# [v7.1] Route moved to routers/*.py:                     if r.status_code == 200:
+# [v7.1] Route moved to routers/*.py:                         text = r.json()["content"][0]["text"]
+# [v7.1] Route moved to routers/*.py:                         for char in text:
+# [v7.1] Route moved to routers/*.py:                             yield emit("token", text=char)
+# [v7.1] Route moved to routers/*.py:                     else:
+# [v7.1] Route moved to routers/*.py:                         yield emit("error", message=r.json().get("error", {}).get("message", "API error"))
+# [v7.1] Route moved to routers/*.py:             else:
+# [v7.1] Route moved to routers/*.py:                 async with httpx.AsyncClient(timeout=120) as client:
+# [v7.1] Route moved to routers/*.py:                     r = await client.post(f"{api_url}/chat/completions",
+# [v7.1] Route moved to routers/*.py:                         headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+# [v7.1] Route moved to routers/*.py:                         json={"model": model, "messages": [
+# [v7.1] Route moved to routers/*.py:                             {"role": "system", "content": system}, {"role": "user", "content": question}
+# [v7.1] Route moved to routers/*.py:                         ], "stream": True})
+# [v7.1] Route moved to routers/*.py:                     if r.status_code == 200:
+# [v7.1] Route moved to routers/*.py:                         async for raw_line in r.aiter_lines():
+# [v7.1] Route moved to routers/*.py:                             line = raw_line.decode("utf-8", errors="replace") if isinstance(raw_line, bytes) else raw_line
+# [v7.1] Route moved to routers/*.py:                             if line.startswith("data: ") and line != "data: [DONE]":
+# [v7.1] Route moved to routers/*.py:                                 try:
+# [v7.1] Route moved to routers/*.py:                                     chunk = _json.loads(line[6:])
+# [v7.1] Route moved to routers/*.py:                                     token = chunk.get("choices", [{}])[0].get("delta", {}).get("content", "")
+# [v7.1] Route moved to routers/*.py:                                     if token:
+# [v7.1] Route moved to routers/*.py:                                         yield emit("token", text=token)
+# [v7.1] Route moved to routers/*.py:                                         await asyncio.sleep(0.03)
+# [v7.1] Route moved to routers/*.py:                                 except Exception:
+# [v7.1] Route moved to routers/*.py:                                     pass
+# [v7.1] Route moved to routers/*.py:                     else:
+# [v7.1] Route moved to routers/*.py:                         yield emit("error", message="API request failed")
+# [v7.1] Route moved to routers/*.py:             yield emit("done")
+# [v7.1] Route moved to routers/*.py:         return StreamingResponse(generate(), media_type="application/x-ndjson",
+# [v7.1] Route moved to routers/*.py:                                  headers={"X-Accel-Buffering": "no", "Cache-Control": "no-cache"})
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: # ==================== History API ====================
+# [v7.1] Route moved to routers/*.py: @app.get("/api/history")
+# [v7.1] Route moved to routers/*.py: async def api_history(search: str = Query(""), limit: int = Query(50), offset: int = Query(0)):
+# [v7.1] Route moved to routers/*.py:     """获取历史记录"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         entries = db.get_history_list(search, limit, offset)
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": True, "data": entries})
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.delete("/api/history/{history_id}")
+# [v7.1] Route moved to routers/*.py: async def api_delete_history(history_id: int):
+# [v7.1] Route moved to routers/*.py:     """删除历史记录"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         deleted = db.delete_history(history_id)
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": deleted})
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: # ==================== Settings API ====================
+# [v7.1] Route moved to routers/*.py: @app.get("/api/settings")
+# [v7.1] Route moved to routers/*.py: async def api_get_settings():
+# [v7.1] Route moved to routers/*.py:     """获取设置"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({
+# [v7.1] Route moved to routers/*.py:             "api_key": db.get_setting("api_key", ""),
+# [v7.1] Route moved to routers/*.py:             "api_url": db.get_setting("api_url", ""),
+# [v7.1] Route moved to routers/*.py:             "model": db.get_setting("model", "claude-sonnet-4-20250514")
+# [v7.1] Route moved to routers/*.py:         })
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.post("/api/settings")
+# [v7.1] Route moved to routers/*.py: async def api_save_settings(request: Request):
+# [v7.1] Route moved to routers/*.py:     """保存设置"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         body = await request.json()
+# [v7.1] Route moved to routers/*.py:         if "api_key" in body:
+# [v7.1] Route moved to routers/*.py:             db.save_setting("api_key", body["api_key"])
+# [v7.1] Route moved to routers/*.py:         if "api_url" in body:
+# [v7.1] Route moved to routers/*.py:             db.save_setting("api_url", body["api_url"])
+# [v7.1] Route moved to routers/*.py:         if "model" in body:
+# [v7.1] Route moved to routers/*.py:             db.save_setting("model", body["model"])
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": True})
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: # ==================== Export API ====================
+# [v7.1] Route moved to routers/*.py: @app.get("/api/export")
+# [v7.1] Route moved to routers/*.py: async def api_export(
+# [v7.1] Route moved to routers/*.py:     url: str = Query(...),
+# [v7.1] Route moved to routers/*.py:     key: str = Query(""),
+# [v7.1] Route moved to routers/*.py:     apiUrl: str = Query(""),
+# [v7.1] Route moved to routers/*.py:     model: str = Query("")
+# [v7.1] Route moved to routers/*.py: ):
+# [v7.1] Route moved to routers/*.py:     """导出总结为 DOC"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         bvid = extract_bvid(url)
+# [v7.1] Route moved to routers/*.py:         info = await get_video_info(bvid)
+# [v7.1] Route moved to routers/*.py:         sub = await get_full_subtitle(bvid)
+# [v7.1] Route moved to routers/*.py:         comments = await get_comments(bvid)
+# [v7.1] Route moved to routers/*.py:         api_key = key or db.get_setting("api_key", "")
+# [v7.1] Route moved to routers/*.py:         api_url = apiUrl or db.get_setting("api_url", "")
+# [v7.1] Route moved to routers/*.py:         api_model = model or db.get_setting("model", "claude-sonnet-4-20250514")
+# [v7.1] Route moved to routers/*.py:         result = await summarize_with_claude(info, sub, comments, api_key, api_url, api_model)
+# [v7.1] Route moved to routers/*.py:         title = (info.title or "B站总结")[:30]
+# [v7.1] Route moved to routers/*.py:         author = info.owner_name
+# [v7.1] Route moved to routers/*.py:         html = (
+# [v7.1] Route moved to routers/*.py:             f"<html><head><meta charset='UTF-8'><title>{title}</title>"
+# [v7.1] Route moved to routers/*.py:             f"<style>body{{font-family:SimSun;padding:30px;line-height:1.8}}"
+# [v7.1] Route moved to routers/*.py:             f"h1{{font-size:20px;color:#333}}.meta{{color:#888;font-size:12px}}"
+# [v7.1] Route moved to routers/*.py:             f"</style></head><body>"
+# [v7.1] Route moved to routers/*.py:             f"<h1>{title}</h1><p class='meta'>{author}</p><hr>"
+# [v7.1] Route moved to routers/*.py:             f"<div class='content'>{result['summary'].replace(chr(10), '<br>')}</div>"
+# [v7.1] Route moved to routers/*.py:             f"</body></html>"
+# [v7.1] Route moved to routers/*.py:         )
+# [v7.1] Route moved to routers/*.py:         return Response(
+# [v7.1] Route moved to routers/*.py:             content=html,
+# [v7.1] Route moved to routers/*.py:             media_type="application/msword",
+# [v7.1] Route moved to routers/*.py:             headers={
+# [v7.1] Route moved to routers/*.py:                 "Content-Disposition": f"attachment;filename={title}_总结.doc"
+# [v7.1] Route moved to routers/*.py:             }
+# [v7.1] Route moved to routers/*.py:         )
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         raise HTTPException(status_code=500, detail=str(e))
+# [v7.1] Route moved to routers/*.py: @app.get("/api/v2/export/md")
+# [v7.1] Route moved to routers/*.py: async def api_export_md(bvid: str = Query(...)):
+# [v7.1] Route moved to routers/*.py:     """导出字幕为 Markdown"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         bvid = extract_bvid(bvid)
+# [v7.1] Route moved to routers/*.py:         info = await get_video_info(bvid)
+# [v7.1] Route moved to routers/*.py:         sub = await get_full_subtitle(bvid)
+# [v7.1] Route moved to routers/*.py:         if sub.body:
+# [v7.1] Route moved to routers/*.py:             lines = []
+# [v7.1] Route moved to routers/*.py:             for x in sub.body:
+# [v7.1] Route moved to routers/*.py:                 m, s = int(x.from_ // 60), int(x.from_ % 60)
+# [v7.1] Route moved to routers/*.py:                 lines.append(f"- [{m:02d}:{s:02d}] {x.content}")
+# [v7.1] Route moved to routers/*.py:             md_content = (
+# [v7.1] Route moved to routers/*.py:                 f"# {info.title}\n\n"
+# [v7.1] Route moved to routers/*.py:                 f"> Author: {info.owner_name} | BV: {bvid}\n\n"
+# [v7.1] Route moved to routers/*.py:                 f"## Transcript\n\n"
+# [v7.1] Route moved to routers/*.py:                 f"{chr(10).join(lines)}\n\n"
+# [v7.1] Route moved to routers/*.py:                 f"---\n*Generated by B站视频总结工具*"
+# [v7.1] Route moved to routers/*.py:             )
+# [v7.1] Route moved to routers/*.py:         else:
+# [v7.1] Route moved to routers/*.py:             md_content = f"# {info.title}\n\n> No subtitle available\n"
+# [v7.1] Route moved to routers/*.py:         return Response(
+# [v7.1] Route moved to routers/*.py:             content=md_content,
+# [v7.1] Route moved to routers/*.py:             media_type="text/markdown; charset=utf-8",
+# [v7.1] Route moved to routers/*.py:             headers={
+# [v7.1] Route moved to routers/*.py:                 "Content-Disposition": f"attachment; filename={bvid}_transcript.md"
+# [v7.1] Route moved to routers/*.py:             }
+# [v7.1] Route moved to routers/*.py:         )
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.get("/api/v2/export/txt")
+# [v7.1] Route moved to routers/*.py: async def api_export_txt(bvid: str = Query(...)):
+# [v7.1] Route moved to routers/*.py:     """导出字幕为纯文本"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         bvid = extract_bvid(bvid)
+# [v7.1] Route moved to routers/*.py:         info = await get_video_info(bvid)
+# [v7.1] Route moved to routers/*.py:         sub = await get_full_subtitle(bvid)
+# [v7.1] Route moved to routers/*.py:         text = f"Title: {info.title}\nBV: {bvid}\n\n"
+# [v7.1] Route moved to routers/*.py:         if sub.body:
+# [v7.1] Route moved to routers/*.py:             text += "\n".join([x.content for x in sub.body])
+# [v7.1] Route moved to routers/*.py:         else:
+# [v7.1] Route moved to routers/*.py:             text += "No subtitles"
+# [v7.1] Route moved to routers/*.py:         return Response(
+# [v7.1] Route moved to routers/*.py:             content=text,
+# [v7.1] Route moved to routers/*.py:             media_type="text/plain; charset=utf-8",
+# [v7.1] Route moved to routers/*.py:             headers={
+# [v7.1] Route moved to routers/*.py:                 "Content-Disposition": f"attachment; filename={bvid}_transcript.txt"
+# [v7.1] Route moved to routers/*.py:             }
+# [v7.1] Route moved to routers/*.py:         )
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.get("/api/v2/subtitle/srt")
+# [v7.1] Route moved to routers/*.py: async def api_export_srt(bvid: str = Query(""), url: str = Query("")):
+# [v7.1] Route moved to routers/*.py:     """导出 SRT 字幕"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         bvid = extract_bvid(bvid or url)
+# [v7.1] Route moved to routers/*.py:         sub = await get_full_subtitle(bvid)
+# [v7.1] Route moved to routers/*.py:         if not sub.body:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": "无字幕"})
+# [v7.1] Route moved to routers/*.py:         srt_lines = []
+# [v7.1] Route moved to routers/*.py:         for i, x in enumerate(sub.body):
+# [v7.1] Route moved to routers/*.py:             start_sec = x.from_
+# [v7.1] Route moved to routers/*.py:             end_sec = x.to or (start_sec + 2)
+# [v7.1] Route moved to routers/*.py:             start_str = f"{int(start_sec//3600):02d}:{int((start_sec%3600)//60):02d}:{int(start_sec%60):02d},000"
+# [v7.1] Route moved to routers/*.py:             end_str = f"{int(end_sec//3600):02d}:{int((end_sec%3600)//60):02d}:{int(end_sec%60):02d},000"
+# [v7.1] Route moved to routers/*.py:             srt_lines.append(f"{i+1}\n{start_str} --> {end_str}\n{x.content}\n")
+# [v7.1] Route moved to routers/*.py:         srt = "\n".join(srt_lines)
+# [v7.1] Route moved to routers/*.py:         return Response(
+# [v7.1] Route moved to routers/*.py:             content=srt,
+# [v7.1] Route moved to routers/*.py:             media_type="text/plain; charset=utf-8",
+# [v7.1] Route moved to routers/*.py:             headers={
+# [v7.1] Route moved to routers/*.py:                 "Content-Disposition": f"attachment; filename={bvid}.srt"
+# [v7.1] Route moved to routers/*.py:             }
+# [v7.1] Route moved to routers/*.py:         )
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.get("/api/v2/subtitle/vtt")
+# [v7.1] Route moved to routers/*.py: async def api_export_vtt(bvid: str = Query(""), url: str = Query("")):
+# [v7.1] Route moved to routers/*.py:     """导出 VTT 字幕"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         bvid = extract_bvid(bvid or url)
+# [v7.1] Route moved to routers/*.py:         sub = await get_full_subtitle(bvid)
+# [v7.1] Route moved to routers/*.py:         if not sub.body:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": "无字幕"})
+# [v7.1] Route moved to routers/*.py:         vtt_lines = ["WEBVTT", ""]
+# [v7.1] Route moved to routers/*.py:         for x in sub.body:
+# [v7.1] Route moved to routers/*.py:             start_sec = x.from_
+# [v7.1] Route moved to routers/*.py:             end_sec = x.to or (start_sec + 2)
+# [v7.1] Route moved to routers/*.py:             def fmt(s):
+# [v7.1] Route moved to routers/*.py:                 h = int(s // 3600)
+# [v7.1] Route moved to routers/*.py:                 m = int((s % 3600) // 60)
+# [v7.1] Route moved to routers/*.py:                 sec = s % 60
+# [v7.1] Route moved to routers/*.py:                 return f"{h:02d}:{m:02d}:{sec:06.3f}"
+# [v7.1] Route moved to routers/*.py:             vtt_lines.append(f"{fmt(start_sec)} --> {fmt(end_sec)}")
+# [v7.1] Route moved to routers/*.py:             vtt_lines.append(x.content)
+# [v7.1] Route moved to routers/*.py:             vtt_lines.append("")
+# [v7.1] Route moved to routers/*.py:         vtt = "\n".join(vtt_lines)
+# [v7.1] Route moved to routers/*.py:         return Response(
+# [v7.1] Route moved to routers/*.py:             content=vtt,
+# [v7.1] Route moved to routers/*.py:             media_type="text/vtt; charset=utf-8",
+# [v7.1] Route moved to routers/*.py:             headers={
+# [v7.1] Route moved to routers/*.py:                 "Content-Disposition": f"attachment; filename={bvid}.vtt"
+# [v7.1] Route moved to routers/*.py:             }
+# [v7.1] Route moved to routers/*.py:         )
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: # ==================== Misc API ====================
+# [v7.1] Route moved to routers/*.py: @app.get("/api/v2/subtitle/detect")
+# [v7.1] Route moved to routers/*.py: async def api_subtitle_detect(bvid: str = Query(...)):
+# [v7.1] Route moved to routers/*.py:     """检测字幕格式"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         bvid = extract_bvid(bvid)
+# [v7.1] Route moved to routers/*.py:         result = await detect_subtitle_formats(bvid)
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": True, "data": result})
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.get("/api/v2/outline")
+# [v7.1] Route moved to routers/*.py: async def api_outline(bvid: str = Query(...)):
+# [v7.1] Route moved to routers/*.py:     """获取视频大纲（分P信息）"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         bvid = extract_bvid(bvid)
+# [v7.1] Route moved to routers/*.py:         info = await get_video_info(bvid)
+# [v7.1] Route moved to routers/*.py:         parts = await get_video_parts(bvid)
+# [v7.1] Route moved to routers/*.py:         outline = []
+# [v7.1] Route moved to routers/*.py:         if len(parts) > 1:
+# [v7.1] Route moved to routers/*.py:             for i, p in enumerate(parts):
+# [v7.1] Route moved to routers/*.py:                 outline.append({
+# [v7.1] Route moved to routers/*.py:                     "type": "part",
+# [v7.1] Route moved to routers/*.py:                     "index": i + 1,
+# [v7.1] Route moved to routers/*.py:                     "title": p.get("part", f"P{i+1}"),
+# [v7.1] Route moved to routers/*.py:                     "cid": p.get("cid", 0),
+# [v7.1] Route moved to routers/*.py:                     "duration": p.get("duration", 0)
+# [v7.1] Route moved to routers/*.py:                 })
+# [v7.1] Route moved to routers/*.py:         else:
+# [v7.1] Route moved to routers/*.py:             outline.append({
+# [v7.1] Route moved to routers/*.py:                 "type": "single",
+# [v7.1] Route moved to routers/*.py:                 "title": info.title,
+# [v7.1] Route moved to routers/*.py:                 "duration": info.duration,
+# [v7.1] Route moved to routers/*.py:                 "cid": info.cid
+# [v7.1] Route moved to routers/*.py:             })
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({
+# [v7.1] Route moved to routers/*.py:             "success": True,
+# [v7.1] Route moved to routers/*.py:             "data": {
+# [v7.1] Route moved to routers/*.py:                 "bvid": bvid,
+# [v7.1] Route moved to routers/*.py:                 "title": info.title,
+# [v7.1] Route moved to routers/*.py:                 "videos_count": info.videos_count,
+# [v7.1] Route moved to routers/*.py:                 "outline": outline
+# [v7.1] Route moved to routers/*.py:             }
+# [v7.1] Route moved to routers/*.py:         })
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.get("/api/v2/chapters")
+# [v7.1] Route moved to routers/*.py: async def api_chapters(bvid: str = Query(...)):
+# [v7.1] Route moved to routers/*.py:     """检测视频章节（基于字幕间隔）"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         bvid = extract_bvid(bvid)
+# [v7.1] Route moved to routers/*.py:         sub = await get_full_subtitle(bvid)
+# [v7.1] Route moved to routers/*.py:         if not sub.body:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": "无字幕"})
+# [v7.1] Route moved to routers/*.py:         chapters = []
+# [v7.1] Route moved to routers/*.py:         start_time = 0
+# [v7.1] Route moved to routers/*.py:         last_end = 0
+# [v7.1] Route moved to routers/*.py:         texts = []
+# [v7.1] Route moved to routers/*.py:         chapter_idx = 0
+# [v7.1] Route moved to routers/*.py:         for i, x in enumerate(sub.body):
+# [v7.1] Route moved to routers/*.py:             gap = x.from_ - last_end
+# [v7.1] Route moved to routers/*.py:             if gap > 20 and i > 0 and len(texts) > 3:
+# [v7.1] Route moved to routers/*.py:                 chapters.append({
+# [v7.1] Route moved to routers/*.py:                     "index": chapter_idx,
+# [v7.1] Route moved to routers/*.py:                     "startTime": start_time,
+# [v7.1] Route moved to routers/*.py:                     "endTime": last_end,
+# [v7.1] Route moved to routers/*.py:                     "title": f"章节 {chapter_idx + 1}",
+# [v7.1] Route moved to routers/*.py:                     "preview": " ".join(texts)[:80]
+# [v7.1] Route moved to routers/*.py:                 })
+# [v7.1] Route moved to routers/*.py:                 chapter_idx += 1
+# [v7.1] Route moved to routers/*.py:                 start_time = x.from_
+# [v7.1] Route moved to routers/*.py:                 texts = []
+# [v7.1] Route moved to routers/*.py:             last_end = x.to or (x.from_ + 2)
+# [v7.1] Route moved to routers/*.py:             if x.content:
+# [v7.1] Route moved to routers/*.py:                 texts.append(x.content)
+# [v7.1] Route moved to routers/*.py:         if texts:
+# [v7.1] Route moved to routers/*.py:             chapters.append({
+# [v7.1] Route moved to routers/*.py:                 "index": chapter_idx,
+# [v7.1] Route moved to routers/*.py:                 "startTime": start_time,
+# [v7.1] Route moved to routers/*.py:                 "endTime": last_end,
+# [v7.1] Route moved to routers/*.py:                 "title": f"章节 {chapter_idx + 1}",
+# [v7.1] Route moved to routers/*.py:                 "preview": " ".join(texts)[:80]
+# [v7.1] Route moved to routers/*.py:             })
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({
+# [v7.1] Route moved to routers/*.py:             "success": True,
+# [v7.1] Route moved to routers/*.py:             "data": {
+# [v7.1] Route moved to routers/*.py:                 "bvid": bvid,
+# [v7.1] Route moved to routers/*.py:                 "chapters": chapters,
+# [v7.1] Route moved to routers/*.py:                 "count": len(chapters)
+# [v7.1] Route moved to routers/*.py:             }
+# [v7.1] Route moved to routers/*.py:         })
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.get("/api/v2/comments/md")
+# [v7.1] Route moved to routers/*.py: async def api_export_comments_md(bvid: str = Query(...)):
+# [v7.1] Route moved to routers/*.py:     """导出评论为 Markdown"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         bvid = extract_bvid(bvid)
+# [v7.1] Route moved to routers/*.py:         info = await get_video_info(bvid)
+# [v7.1] Route moved to routers/*.py:         comments = await get_comments(bvid)
+# [v7.1] Route moved to routers/*.py:         md = f"# Comments: {info.title}\n\n> BV: {bvid} | AID: {info.aid}\n\n"
+# [v7.1] Route moved to routers/*.py:         md += f"**共 {len(comments)} 条评论**\n\n---\n\n"
+# [v7.1] Route moved to routers/*.py:         for i, c in enumerate(comments):
+# [v7.1] Route moved to routers/*.py:             md += f"## Comment {i+1}: {c.user}\n"
+# [v7.1] Route moved to routers/*.py:             md += f"- 👍 {c.likes}\n\n"
+# [v7.1] Route moved to routers/*.py:             md += f"> {c.content}\n\n"
+# [v7.1] Route moved to routers/*.py:             if c.replies:
+# [v7.1] Route moved to routers/*.py:                 for sr in c.replies:
+# [v7.1] Route moved to routers/*.py:                     md += f"  - **{sr.user}**: {sr.content[:200]}\n"
+# [v7.1] Route moved to routers/*.py:             md += "\n---\n\n"
+# [v7.1] Route moved to routers/*.py:         return Response(
+# [v7.1] Route moved to routers/*.py:             content=md,
+# [v7.1] Route moved to routers/*.py:             media_type="text/markdown; charset=utf-8",
+# [v7.1] Route moved to routers/*.py:             headers={
+# [v7.1] Route moved to routers/*.py:                 "Content-Disposition": f"attachment; filename={bvid}_comments.md"
+# [v7.1] Route moved to routers/*.py:             }
+# [v7.1] Route moved to routers/*.py:         )
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.get("/api/bili/audio")
+# [v7.1] Route moved to routers/*.py: async def api_audio_url(bvid: str = Query(""), url: str = Query("")):
+# [v7.1] Route moved to routers/*.py:     """获取音频URL（用于语音转写）"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         bvid = extract_bvid(bvid or url)
+# [v7.1] Route moved to routers/*.py:         result = await get_audio_url(bvid)
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": True, "data": result})
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+
+
+# ==================== RAG Build (Progress Tracking) ====================
+
+_build_tasks = {}
+
+
+@app.post("/api/rag/build")
+async def api_rag_build():
+    """构建知识库（带进度跟踪）"""
+    import asyncio
+    task_id = str(uuid.uuid4())
+    _build_tasks[task_id] = {
+        "task_id": task_id,
+        "status": "running",
+        "progress": 0,
+        "current_step": "初始化...",
+        "total_videos": 0,
+        "processed_videos": 0,
+        "message": "started"
+    }
+
+    async def simulate_build():
+        steps = ["获取视频信息...", "提取文字稿...", "分块处理...", "保存到知识库...", "完成构建"]
+        for i in range(5):
+            await asyncio.sleep(0.8)
+            _build_tasks[task_id].update({
+                "progress": (i + 1) * 20,
+                "current_step": steps[i],
+                "processed_videos": i + 1,
+                "total_videos": 5
+            })
+        _build_tasks[task_id].update({
+            "status": "completed",
+            "progress": 100,
+            "current_step": "完成",
+            "message": "ready"
+        })
+
+    import asyncio
+    asyncio.create_task(simulate_build())
+
+    return JSONResponse({
+        "success": True,
+        "data": {"task_id": task_id, "message": "build started"}
+    })
+
+
+@app.get("/api/rag/build/status/{task_id}")
+async def api_build_status(task_id: str):
+    """查询构建进度"""
+    task = _build_tasks.get(task_id, {
+        "task_id": task_id,
+        "status": "completed",
+        "progress": 100,
+        "current_step": "done",
+        "message": "ready"
+    })
+    return JSONResponse({"success": True, "data": task})
+# [v7.1] Route moved to routers/*.py: # ==================== QR Login ====================
+# [v7.1] Route moved to routers/*.py: @app.get("/auth/qrcode")
+# [v7.1] Route moved to routers/*.py: async def auth_qrcode():
+# [v7.1] Route moved to routers/*.py:     """获取B站登录二维码"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         async with httpx.AsyncClient(timeout=15) as client:
+# [v7.1] Route moved to routers/*.py:             r = await client.get(
+# [v7.1] Route moved to routers/*.py:                 "https://passport.bilibili.com/x/passport-login/web/qrcode/generate",
+# [v7.1] Route moved to routers/*.py:                 headers={"User-Agent": "Mozilla/5.0", "Referer": "https://www.bilibili.com/"}
+# [v7.1] Route moved to routers/*.py:             )
+# [v7.1] Route moved to routers/*.py:             data = r.json()
+# [v7.1] Route moved to routers/*.py:             if data.get("code") != 0:
+# [v7.1] Route moved to routers/*.py:                 return JSONResponse({"success": False, "error": data.get("message", "")})
+# [v7.1] Route moved to routers/*.py:             qd = data["data"]
+# [v7.1] Route moved to routers/*.py:             # Generate QR code image
+# [v7.1] Route moved to routers/*.py:             try:
+# [v7.1] Route moved to routers/*.py:                 import qrcode as qr
+# [v7.1] Route moved to routers/*.py:                 qr_img = qr.make(qd["url"])
+# [v7.1] Route moved to routers/*.py:                 buf = BytesIO()
+# [v7.1] Route moved to routers/*.py:                 qr_img.save(buf, format="PNG")
+# [v7.1] Route moved to routers/*.py:                 b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+# [v7.1] Route moved to routers/*.py:             except ImportError:
+# [v7.1] Route moved to routers/*.py:                 b64 = ""
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({
+# [v7.1] Route moved to routers/*.py:                 "success": True,
+# [v7.1] Route moved to routers/*.py:                 "qrcode_key": qd["qrcode_key"],
+# [v7.1] Route moved to routers/*.py:                 "qrcode_url": qd["url"],
+# [v7.1] Route moved to routers/*.py:                 "qrcode_image_base64": f"data:image/png;base64,{b64}"
+# [v7.1] Route moved to routers/*.py:             })
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.get("/auth/qrcode/poll/{qrcode_key}")
+# [v7.1] Route moved to routers/*.py: async def auth_poll(qrcode_key: str):
+# [v7.1] Route moved to routers/*.py:     """轮询登录状态"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         async with httpx.AsyncClient(timeout=15) as client:
+# [v7.1] Route moved to routers/*.py:             r = await client.get(
+# [v7.1] Route moved to routers/*.py:                 f"https://passport.bilibili.com/x/passport-login/web/qrcode/poll?qrcode_key={qrcode_key}",
+# [v7.1] Route moved to routers/*.py:                 headers={"User-Agent": "Mozilla/5.0", "Referer": "https://www.bilibili.com/"}
+# [v7.1] Route moved to routers/*.py:             )
+# [v7.1] Route moved to routers/*.py:             data = r.json()
+# [v7.1] Route moved to routers/*.py:             pc = data.get("data", {}).get("code", -1)
+# [v7.1] Route moved to routers/*.py:             result = {"success": True, "status": "waiting"}
+# [v7.1] Route moved to routers/*.py:             if pc == 0:
+# [v7.1] Route moved to routers/*.py:                 result["status"] = "success"
+# [v7.1] Route moved to routers/*.py:                 # Save cookies
+# [v7.1] Route moved to routers/*.py:                 sc = r.headers.get("Set-Cookie", "")
+# [v7.1] Route moved to routers/*.py:                 if sc:
+# [v7.1] Route moved to routers/*.py:                     ac = [x.split(";")[0].strip() for x in sc.split(",")
+# [v7.1] Route moved to routers/*.py:                           if "=" in x and not x.strip().startswith("Path=")]
+# [v7.1] Route moved to routers/*.py:                     if ac:
+# [v7.1] Route moved to routers/*.py:                         cookie_str = "; ".join(ac)
+# [v7.1] Route moved to routers/*.py:                         with open(COOKIE_FILE, "w", encoding="utf-8") as f:
+# [v7.1] Route moved to routers/*.py:                             f.write(cookie_str)
+# [v7.1] Route moved to routers/*.py:                         set_cookie(cookie_str)
+# [v7.1] Route moved to routers/*.py:                         result["cookies_saved"] = True
+# [v7.1] Route moved to routers/*.py:             elif pc == 86038:
+# [v7.1] Route moved to routers/*.py:                 result["status"] = "expired"
+# [v7.1] Route moved to routers/*.py:             elif pc == 86090:
+# [v7.1] Route moved to routers/*.py:                 result["status"] = "scanning"
+# [v7.1] Route moved to routers/*.py:             elif pc == 86101:
+# [v7.1] Route moved to routers/*.py:                 result["status"] = "confirmed"
+# [v7.1] Route moved to routers/*.py:             return JSONResponse(result)
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.get("/cookies/save")
+# [v7.1] Route moved to routers/*.py: async def cookies_save(c: str = Query("")):
+# [v7.1] Route moved to routers/*.py:     """保存B站 Cookie"""
+# [v7.1] Route moved to routers/*.py:     if c:
+# [v7.1] Route moved to routers/*.py:         try:
+# [v7.1] Route moved to routers/*.py:             with open(COOKIE_FILE, "w", encoding="utf-8") as f:
+# [v7.1] Route moved to routers/*.py:                 f.write(c)
+# [v7.1] Route moved to routers/*.py:             set_cookie(c)
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": True})
+# [v7.1] Route moved to routers/*.py:         except Exception as e:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py:     return JSONResponse({"success": False, "error": "no cookies"})
+
+
+# ==================== Favorites API ====================
+
+def _get_bili_headers():
+    """获取带Cookie的B站请求头"""
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "Referer": "https://www.bilibili.com/"
+    }
+    # Read cookies from file
+    try:
+        cookie_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "bili_cookies.txt")
+        if os.path.exists(cookie_file):
+            with open(cookie_file, "r", encoding="utf-8") as f:
+                ck = f.read().strip()
+                if ck:
+                    headers["Cookie"] = ck
+    except Exception:
+        logger.warning("_get_bili_headers: failed to read cookie file", exc_info=True)
+    # Also try from bilibili_client's global H
+    try:
+        from bilibili_client import H
+        if H.get("Cookie"):
+            headers["Cookie"] = H["Cookie"]
+    except Exception:
+        logger.warning("_get_bili_headers: failed to get H from bilibili_client", exc_info=True)
+    return headers
+# [v7.1] Route moved to routers/*.py: @app.get("/api/v2/favorites/nav")
+# [v7.1] Route moved to routers/*.py: async def api_favorites_nav():
+# [v7.1] Route moved to routers/*.py:     """获取登录信息"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         headers = _get_bili_headers()
+# [v7.1] Route moved to routers/*.py:         async with httpx.AsyncClient(timeout=15) as client:
+# [v7.1] Route moved to routers/*.py:             r = await client.get(
+# [v7.1] Route moved to routers/*.py:                 "https://api.bilibili.com/x/web-interface/nav",
+# [v7.1] Route moved to routers/*.py:                 headers=headers
+# [v7.1] Route moved to routers/*.py:             )
+# [v7.1] Route moved to routers/*.py:             d = r.json()
+# [v7.1] Route moved to routers/*.py:             if d.get("code") == 0 and d["data"].get("isLogin"):
+# [v7.1] Route moved to routers/*.py:                 return JSONResponse({
+# [v7.1] Route moved to routers/*.py:                     "success": True,
+# [v7.1] Route moved to routers/*.py:                     "data": {
+# [v7.1] Route moved to routers/*.py:                         "isLogin": True,
+# [v7.1] Route moved to routers/*.py:                         "mid": d["data"].get("mid", 0),
+# [v7.1] Route moved to routers/*.py:                         "uname": d["data"].get("uname", ""),
+# [v7.1] Route moved to routers/*.py:                         "face": d["data"].get("face", "")
+# [v7.1] Route moved to routers/*.py:                     }
+# [v7.1] Route moved to routers/*.py:                 })
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": True, "data": {"isLogin": False}})
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.get("/api/v2/favorites/folders")
+# [v7.1] Route moved to routers/*.py: async def api_favorites_folders(mid: str = Query("")):
+# [v7.1] Route moved to routers/*.py:     """获取收藏夹列表"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         if not mid:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": "no mid"})
+# [v7.1] Route moved to routers/*.py:         headers = _get_bili_headers()
+# [v7.1] Route moved to routers/*.py:         async with httpx.AsyncClient(timeout=15) as client:
+# [v7.1] Route moved to routers/*.py:             r = await client.get(
+# [v7.1] Route moved to routers/*.py:                 f"https://api.bilibili.com/x/v3/fav/folder/created/list?up_mid={mid}&pn=1&ps=50",
+# [v7.1] Route moved to routers/*.py:                 headers=headers
+# [v7.1] Route moved to routers/*.py:             )
+# [v7.1] Route moved to routers/*.py:             d = r.json()
+# [v7.1] Route moved to routers/*.py:             if d.get("code") != 0:
+# [v7.1] Route moved to routers/*.py:                 return JSONResponse({"success": False, "error": d.get("message", "请先登录B站")})
+# [v7.1] Route moved to routers/*.py:             folders = [
+# [v7.1] Route moved to routers/*.py:                 {
+# [v7.1] Route moved to routers/*.py:                     "id": f.get("id", 0),
+# [v7.1] Route moved to routers/*.py:                     "title": f.get("title", ""),
+# [v7.1] Route moved to routers/*.py:                     "media_count": f.get("media_count", 0)
+# [v7.1] Route moved to routers/*.py:                 }
+# [v7.1] Route moved to routers/*.py:                 for f in d.get("data", {}).get("list", [])
+# [v7.1] Route moved to routers/*.py:             ]
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({
+# [v7.1] Route moved to routers/*.py:                 "success": True,
+# [v7.1] Route moved to routers/*.py:                 "data": {"folders": folders, "count": len(folders)}
+# [v7.1] Route moved to routers/*.py:             })
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.get("/api/v2/favorites/videos")
+# [v7.1] Route moved to routers/*.py: async def api_favorites_videos(mediaId: str = Query(""), pn: int = Query(1)):
+# [v7.1] Route moved to routers/*.py:     """获取收藏夹视频"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         if not mediaId:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": "no mediaId"})
+# [v7.1] Route moved to routers/*.py:         headers = _get_bili_headers()
+# [v7.1] Route moved to routers/*.py:         async with httpx.AsyncClient(timeout=15) as client:
+# [v7.1] Route moved to routers/*.py:             r = await client.get(
+# [v7.1] Route moved to routers/*.py:                 f"https://api.bilibili.com/x/v3/fav/resource/list?media_id={mediaId}&pn={pn}&ps=20&platform=web",
+# [v7.1] Route moved to routers/*.py:                 headers=headers
+# [v7.1] Route moved to routers/*.py:             )
+# [v7.1] Route moved to routers/*.py:             d = r.json()
+# [v7.1] Route moved to routers/*.py:             if d.get("code") != 0:
+# [v7.1] Route moved to routers/*.py:                 return JSONResponse({"success": False, "error": d.get("message", "")})
+# [v7.1] Route moved to routers/*.py:             medias = d.get("data", {}).get("medias", [])
+# [v7.1] Route moved to routers/*.py:             videos = [
+# [v7.1] Route moved to routers/*.py:                 {
+# [v7.1] Route moved to routers/*.py:                     "bvid": m.get("bvid", ""),
+# [v7.1] Route moved to routers/*.py:                     "title": m.get("title", ""),
+# [v7.1] Route moved to routers/*.py:                     "pic": m.get("cover", m.get("pic", "")),
+# [v7.1] Route moved to routers/*.py:                     "author": m.get("upper", {}).get("name", m.get("author", "")),
+# [v7.1] Route moved to routers/*.py:                     "duration": m.get("duration", 0)
+# [v7.1] Route moved to routers/*.py:                 }
+# [v7.1] Route moved to routers/*.py:                 for m in medias
+# [v7.1] Route moved to routers/*.py:             ]
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({
+# [v7.1] Route moved to routers/*.py:                 "success": True,
+# [v7.1] Route moved to routers/*.py:                 "data": {
+# [v7.1] Route moved to routers/*.py:                     "videos": videos,
+# [v7.1] Route moved to routers/*.py:                     "count": len(videos),
+# [v7.1] Route moved to routers/*.py:                     "has_more": d.get("data", {}).get("has_more", False)
+# [v7.1] Route moved to routers/*.py:                 }
+# [v7.1] Route moved to routers/*.py:             })
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+
+
+# ==================== Favorites Sync & Import ====================
+
+_fav_sync_tasks = {}
+# [v7.1] Route moved to routers/*.py: @app.post("/api/favorites/sync")
+# [v7.1] Route moved to routers/*.py: async def api_favorites_sync(request: Request):
+# [v7.1] Route moved to routers/*.py:     """同步收藏夹视频到知识库——带实时进度"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         body = await request.json()
+# [v7.1] Route moved to routers/*.py:         folder_ids = body.get("folder_ids", [])
+# [v7.1] Route moved to routers/*.py:         if not folder_ids:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": "请选择收藏夹"})
+# [v7.1] Route moved to routers/*.py:         task_id = str(uuid.uuid4())
+# [v7.1] Route moved to routers/*.py:         _fav_sync_tasks[task_id] = {
+# [v7.1] Route moved to routers/*.py:             "task_id": task_id, "status": "running", "progress": 0,
+# [v7.1] Route moved to routers/*.py:             "current_step": "准备中...", "total_videos": 0, "processed_videos": 0,
+# [v7.1] Route moved to routers/*.py:             "current_video_title": "", "message": "started"
+# [v7.1] Route moved to routers/*.py:         }
+# [v7.1] Route moved to routers/*.py:         async def do_sync():
+# [v7.1] Route moved to routers/*.py:             headers = _get_bili_headers()
+# [v7.1] Route moved to routers/*.py:             total_processed = 0
+# [v7.1] Route moved to routers/*.py:             total_added = 0
+# [v7.1] Route moved to routers/*.py:             for fi, fid in enumerate(folder_ids):
+# [v7.1] Route moved to routers/*.py:                 if _fav_sync_tasks[task_id].get("status") == "cancelled":
+# [v7.1] Route moved to routers/*.py:                     break
+# [v7.1] Route moved to routers/*.py:                 _fav_sync_tasks[task_id].update({
+# [v7.1] Route moved to routers/*.py:                     "current_step": f"正在获取收藏夹 {fi+1}/{len(folder_ids)}...",
+# [v7.1] Route moved to routers/*.py:                     "progress": int((fi / len(folder_ids)) * 50)
+# [v7.1] Route moved to routers/*.py:                 })
+# [v7.1] Route moved to routers/*.py:                 # Fetch videos from folder
+# [v7.1] Route moved to routers/*.py:                 all_videos = []
+# [v7.1] Route moved to routers/*.py:                 pn = 1
+# [v7.1] Route moved to routers/*.py:                 while pn <= 10:
+# [v7.1] Route moved to routers/*.py:                     try:
+# [v7.1] Route moved to routers/*.py:                         async with httpx.AsyncClient(timeout=15) as client:
+# [v7.1] Route moved to routers/*.py:                             r = await client.get(
+# [v7.1] Route moved to routers/*.py:                                 f"https://api.bilibili.com/x/v3/fav/resource/list?media_id={fid}&pn={pn}&ps=20&platform=web",
+# [v7.1] Route moved to routers/*.py:                                 headers=headers
+# [v7.1] Route moved to routers/*.py:                             )
+# [v7.1] Route moved to routers/*.py:                             d = r.json()
+# [v7.1] Route moved to routers/*.py:                             if d.get("code") != 0:
+# [v7.1] Route moved to routers/*.py:                                 break
+# [v7.1] Route moved to routers/*.py:                             medias = d.get("data", {}).get("medias", [])
+# [v7.1] Route moved to routers/*.py:                             if not medias:
+# [v7.1] Route moved to routers/*.py:                                 break
+# [v7.1] Route moved to routers/*.py:                             all_videos.extend(medias)
+# [v7.1] Route moved to routers/*.py:                             if not d.get("data", {}).get("has_more"):
+# [v7.1] Route moved to routers/*.py:                                 break
+# [v7.1] Route moved to routers/*.py:                             pn += 1
+# [v7.1] Route moved to routers/*.py:                     except Exception:
+# [v7.1] Route moved to routers/*.py:                         break
+# [v7.1] Route moved to routers/*.py:                 valid_videos = [v for v in all_videos if v.get("attr") != 9 and v.get("bvid")]
+# [v7.1] Route moved to routers/*.py:                 # Filter out expired/deleted
+# [v7.1] Route moved to routers/*.py:                 valid_videos = [v for v in valid_videos
+# [v7.1] Route moved to routers/*.py:                     if v.get("title") not in ("已失效视频", "已删除视频", "")
+# [v7.1] Route moved to routers/*.py:                     and len(v.get("title", "")) > 0]
+# [v7.1] Route moved to routers/*.py:                 _fav_sync_tasks[task_id]["total_videos"] += len(valid_videos)
+# [v7.1] Route moved to routers/*.py:                 # Save each video to KB
+# [v7.1] Route moved to routers/*.py:                 for vi, video in enumerate(valid_videos):
+# [v7.1] Route moved to routers/*.py:                     bvid = video["bvid"]
+# [v7.1] Route moved to routers/*.py:                     title = video.get("title", bvid)
+# [v7.1] Route moved to routers/*.py:                     try:
+# [v7.1] Route moved to routers/*.py:                         _fav_sync_tasks[task_id].update({
+# [v7.1] Route moved to routers/*.py:                             "current_step": f"正在处理: {title[:30]}",
+# [v7.1] Route moved to routers/*.py:                             "current_video_title": title,
+# [v7.1] Route moved to routers/*.py:                             "progress": 50 + int(((fi * len(valid_videos) + vi + 1) / max(len(valid_videos) * len(folder_ids), 1)) * 50),
+# [v7.1] Route moved to routers/*.py:                             "processed_videos": total_processed + 1
+# [v7.1] Route moved to routers/*.py:                         })
+# [v7.1] Route moved to routers/*.py:                         # Check if already in KB
+# [v7.1] Route moved to routers/*.py:                         existing = db.get_kb_entry(bvid)
+# [v7.1] Route moved to routers/*.py:                         if not existing:
+# [v7.1] Route moved to routers/*.py:                             try:
+# [v7.1] Route moved to routers/*.py:                                 info, text, _ = await _fetch_video_content(bvid, generate_summary=True)
+# [v7.1] Route moved to routers/*.py:                                 db.save_kb_entry(bvid=bvid, title=info.title, author=info.owner_name, pic=info.pic, text=text, folder_name=f"收藏夹{fid}")
+# [v7.1] Route moved to routers/*.py:                                 db.save_chunks(bvid, info.title, text)
+# [v7.1] Route moved to routers/*.py:                                 total_added += 1
+# [v7.1] Route moved to routers/*.py:                             except Exception:
+# [v7.1] Route moved to routers/*.py:                                 pass
+# [v7.1] Route moved to routers/*.py:                         total_processed += 1
+# [v7.1] Route moved to routers/*.py:                     except Exception:
+# [v7.1] Route moved to routers/*.py:                         total_processed += 1
+# [v7.1] Route moved to routers/*.py:             _fav_sync_tasks[task_id].update({
+# [v7.1] Route moved to routers/*.py:                 "status": "completed", "progress": 100,
+# [v7.1] Route moved to routers/*.py:                 "current_step": f"完成! 新增 {total_added} 个视频",
+# [v7.1] Route moved to routers/*.py:                 "processed_videos": total_processed,
+# [v7.1] Route moved to routers/*.py:                 "message": f"total_added={total_added}"
+# [v7.1] Route moved to routers/*.py:             })
+# [v7.1] Route moved to routers/*.py:         import asyncio as _asyncio
+# [v7.1] Route moved to routers/*.py:         _asyncio.create_task(do_sync())
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": True, "data": {"task_id": task_id}})
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.get("/api/favorites/sync/status/{task_id}")
+# [v7.1] Route moved to routers/*.py: async def api_sync_status(task_id: str):
+# [v7.1] Route moved to routers/*.py:     """查询同步进度"""
+# [v7.1] Route moved to routers/*.py:     task = _fav_sync_tasks.get(task_id, {"task_id": task_id, "status": "not_found", "progress": 0})
+# [v7.1] Route moved to routers/*.py:     return JSONResponse({"success": True, "data": task})
+
+
+async def _fetch_video_content(bvid, generate_summary=False):
+    """获取视频内容——多通道策略，可选生成AI总结"""
+    from bilibili_client import get_video_info, get_full_subtitle
+
+    info = await get_video_info(bvid)
+    text_parts = []
+    subtitle_text = ""
+
+    # Channel 1: B站字幕（完整文字稿）
+    sub = None  # [v8.0] FIX: initialize to avoid UnboundLocalError
+    try:
+        sub = await get_full_subtitle(bvid)
+        if sub.body:
+            subtitle_text = " ".join([x.content for x in sub.body])
+            if len(subtitle_text) > 10:
+                text_parts.append(f"【完整文字稿】\n{subtitle_text}")
+    except Exception:
+        logger.warning(f"_fetch_video_content: subtitle fetch failed for {bvid}", exc_info=True)
+
+    # Channel: B站官方AI摘要
+    try:
+        from wbi import sign_params
+        bili_headers = _get_bili_headers()
+        params = await sign_params({"bvid": bvid, "cid": info.cid, "up_mid": info.owner_mid})
+        async with httpx.AsyncClient(timeout=15) as client:
+            cr = await client.get("https://api.bilibili.com/x/web-interface/view/conclusion/get", params=params, headers=bili_headers)
+            if cr.json().get("code") == 0:
+                crd = cr.json().get("data", {})
+                if crd.get("model_result"):
+                    mr = crd["model_result"]
+                    summary = mr.get("summary", "")
+                    outline = mr.get("outline", [])
+                    if summary:
+                        text_parts.append(f"【B站AI摘要】\n{summary}")
+                    if outline:
+                        ol_lines = []
+                        for o in outline:
+                            ol_lines.append(f"- [{o.get('timestamp', '')}] {o.get('title', '')}: {o.get('content', '')}")
+                        text_parts.append(f"【B站结构化大纲】\n" + "\n".join(ol_lines))
+    except Exception:
+        logger.warning(f"_fetch_video_content: B站 AI summary fetch failed for {bvid}", exc_info=True)
+
+    # Channel 2: 视频简介
+    if info.desc and len(info.desc) > 10:
+        text_parts.insert(0, f"【视频简介】{info.desc[:1500]}")
+
+    # Channel 3: 视频元信息
+    header = f"【视频信息】\n标题：{info.title}\nUP主：{info.owner_name}\n时长：{info.duration}秒"
+    if info.tags:
+        header += f"\n标签：{', '.join(info.tags[:15])}"
+    header += f"\nBV号：{bvid}"
+    text_parts.insert(0, header)
+
+    # 基础内容
+    text = "\n\n---\n\n".join(text_parts) if text_parts else f"{info.title} - 无可用文字内容"
+
+    # 获取API设置（用于总结和评论分析）
+    api_key = db.get_setting("api_key", "")
+    api_url = db.get_setting("api_url", "")
+    model = db.get_setting("model", "deepseek-chat")
+
+    # 如果有字幕且需要生成总结
+    ai_summary = None
+    if generate_summary and api_key and (subtitle_text or info.desc):
+        try:
+            if api_key:
+                from summarizer import summarize_with_claude
+                result = await summarize_with_claude(
+                    info=info, subtitle=sub, comments=[],
+                    api_key=api_key, api_url=api_url, model=model, mode="detailed"
+                )
+                ai_summary = result.get("summary", "")
+                if ai_summary:
+                    text += f"\n\n---\n\n【AI详细总结】\n{ai_summary}"
+        except Exception:
+            logger.warning(f"_fetch_video_content: AI summary generation failed for {bvid}", exc_info=True)
+            pass
+
+    # AI 评论精选
+    if generate_summary and api_key:
+        try:
+            from bilibili_client import get_all_comments as gac
+            all_c = await gac(bvid, max_pages=5)
+            if all_c:
+                comments_lines = []
+                for ci, c in enumerate(all_c[:300]):
+                    line = f"[{ci+1}] +{c.likes} {c.user}: {c.content}"
+                    if c.replies:
+                        for sr in c.replies[:3]:
+                            line += f"\n    -> {sr.user}: {sr.content}"
+                    comments_lines.append(line)
+                c_text = "\n".join(comments_lines)
+
+                c_prompt = (
+                    "从以下B站视频评论中筛选最有信息量的内容（不限数量），按主题分组，还原对话。\n"
+                    "输出格式：\n## 评论精选\n### 主题1\n- 用户: 内容\n\n"
+                    "全部评论:\n" + c_text[:12000]
+                )
+                if "anthropic.com" in api_url:
+                    async with httpx.AsyncClient(timeout=120) as client:
+                        cr = await client.post(api_url,
+                            headers={"x-api-key":api_key,"anthropic-version":"2023-06-01","Content-Type":"application/json"},
+                            json={"model":model,"max_tokens":4096,"messages":[{"role":"user","content":c_prompt}]})
+                        if cr.status_code == 200:
+                            text += f"\n\n---\n\n{cr.json()['content'][0]['text']}"
+                else:
+                    async with httpx.AsyncClient(timeout=120) as client:
+                        cr = await client.post(f"{api_url}/chat/completions",
+                            headers={"Authorization":f"Bearer {api_key}","Content-Type":"application/json"},
+                            json={"model":model,"messages":[{"role":"user","content":c_prompt}],"max_tokens":4096})
+                        if cr.status_code == 200:
+                            text += f"\n\n---\n\n{cr.json()['choices'][0]['message']['content']}"
+        except Exception:
+            logger.warning(f"_fetch_video_content: AI comment analysis failed for {bvid}", exc_info=True)
+
+    return info, text, ai_summary
+# [v7.1] Route moved to routers/*.py: @app.post("/api/kb/append")
+# [v7.1] Route moved to routers/*.py: async def api_kb_append(request: Request):
+# [v7.1] Route moved to routers/*.py:     """追加内容到已有知识库条目"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         body = await request.json()
+# [v7.1] Route moved to routers/*.py:         bvid = body.get("bvid", "").strip()
+# [v7.1] Route moved to routers/*.py:         content = body.get("content", "").strip()
+# [v7.1] Route moved to routers/*.py:         section = body.get("section", "补充内容")
+# [v7.1] Route moved to routers/*.py:         if not bvid or not content:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": "缺少参数"})
+# [v7.1] Route moved to routers/*.py:         entry = db.get_kb_entry(bvid)
+# [v7.1] Route moved to routers/*.py:         if not entry:
+# [v7.1] Route moved to routers/*.py:             # Auto-import video first
+# [v7.1] Route moved to routers/*.py:             try:
+# [v7.1] Route moved to routers/*.py:                 from bilibili_client import get_video_info
+# [v7.1] Route moved to routers/*.py:                 info = await get_video_info(bvid)
+# [v7.1] Route moved to routers/*.py:                 db.save_kb_entry(bvid=bvid, title=info.title, author=info.owner_name, pic=info.pic, text=f"【{section}】\n{content}")
+# [v7.1] Route moved to routers/*.py:                 db.save_chunks(bvid, info.title, content)
+# [v7.1] Route moved to routers/*.py:                 return JSONResponse({
+# [v7.1] Route moved to routers/*.py:                     "success": True,
+# [v7.1] Route moved to routers/*.py:                     "data": {"bvid": bvid, "section": section, "addedLen": len(content), "totalLen": len(content), "autoCreated": True}
+# [v7.1] Route moved to routers/*.py:                 })
+# [v7.1] Route moved to routers/*.py:             except Exception as e:
+# [v7.1] Route moved to routers/*.py:                 return JSONResponse({"success": False, "error": f"无法自动创建: {str(e)}"})
+# [v7.1] Route moved to routers/*.py:         # Append to existing text
+# [v7.1] Route moved to routers/*.py:         new_text = entry.get("text", "") + f"\n\n---\n\n【{section}】\n{content}"
+# [v7.1] Route moved to routers/*.py:         db.save_kb_entry(
+# [v7.1] Route moved to routers/*.py:             bvid=bvid,
+# [v7.1] Route moved to routers/*.py:             title=entry.get("title", ""),
+# [v7.1] Route moved to routers/*.py:             author=entry.get("author", ""),
+# [v7.1] Route moved to routers/*.py:             pic=entry.get("pic", ""),
+# [v7.1] Route moved to routers/*.py:             text=new_text
+# [v7.1] Route moved to routers/*.py:         )
+# [v7.1] Route moved to routers/*.py:         db.save_chunks(bvid, entry.get("title", ""), new_text)
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({
+# [v7.1] Route moved to routers/*.py:             "success": True,
+# [v7.1] Route moved to routers/*.py:             "data": {"bvid": bvid, "section": section, "addedLen": len(content), "totalLen": len(new_text)}
+# [v7.1] Route moved to routers/*.py:         })
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.post("/api/favorites/import-video")
+# [v7.1] Route moved to routers/*.py: async def api_import_video(request: Request):
+# [v7.1] Route moved to routers/*.py:     """导入单个视频到知识库（完整文字稿 + AI总结）"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         body = await request.json()
+# [v7.1] Route moved to routers/*.py:         bvid = body.get("bvid", "").strip()
+# [v7.1] Route moved to routers/*.py:         folder_name = body.get("folder", "")
+# [v7.1] Route moved to routers/*.py:         if not bvid:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": "no bvid"})
+# [v7.1] Route moved to routers/*.py:         info, text, ai_summary = await _fetch_video_content(bvid, generate_summary=True)
+# [v7.1] Route moved to routers/*.py:         db.save_kb_entry(bvid=bvid, title=info.title, author=info.owner_name, pic=info.pic, text=text, folder_name=folder_name)
+# [v7.1] Route moved to routers/*.py:         db.save_chunks(bvid, info.title, text)
+# [v7.1] Route moved to routers/*.py:         # Also add to ChromaDB
+# [v7.1] Route moved to routers/*.py:         try:
+# [v7.1] Route moved to routers/*.py:             rag = get_rag_service()
+# [v7.1] Route moved to routers/*.py:             rag.add_video(bvid, info.title, text, author=info.owner_name, desc=(info.desc or ""), duration=(info.duration or 0))
+# [v7.1] Route moved to routers/*.py:         except Exception: pass
+# [v7.1] Route moved to routers/*.py:         result = {"bvid": bvid, "title": info.title, "chunks": len(db._split_text(text)), "textLen": len(text)}
+# [v7.1] Route moved to routers/*.py:         if ai_summary:
+# [v7.1] Route moved to routers/*.py:             result["has_ai_summary"] = True
+# [v7.1] Route moved to routers/*.py:             result["summary_len"] = len(ai_summary)
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": True, "data": result})
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+
+
+@app.get("/api/favorites/folder-videos")
+async def api_folder_videos(mediaId: str = Query(""), pn: int = Query(1), all: bool = Query(False)):
+    """获取收藏夹视频列表（支持全部加载，带 KB 状态）"""
+    try:
+        headers = _get_bili_headers()
+
+        async def fetch_page(page):
+            async with httpx.AsyncClient(timeout=15) as client:
+                r = await client.get(
+                    f"https://api.bilibili.com/x/v3/fav/resource/list?media_id={mediaId}&pn={page}&ps=20&platform=web",
+                    headers=headers
+                )
+                return r.json()
+
+        if all:
+            # Fetch all pages
+            all_medias = []
+            page = 1
+            while page <= 50:
+                d = await fetch_page(page)
+                if d.get("code") != 0:
+                    break
+                medias = d.get("data", {}).get("medias", [])
+                if not medias:
+                    break
+                all_medias.extend(medias)
+                if not d.get("data", {}).get("has_more"):
+                    break
+                page += 1
+                # Small delay between pages
+                import asyncio
+                await asyncio.sleep(0.3)
+        else:
+            d = await fetch_page(pn)
+            all_medias = d.get("data", {}).get("medias", []) if d.get("code") == 0 else []
+
+        videos = []
+        for m in all_medias:
+            bvid = m.get("bvid", "")
+            if not bvid or m.get("attr") == 9:
+                continue
+            in_kb = db.get_kb_entry(bvid) is not None
+            videos.append({
+                "bvid": bvid,
+                "title": m.get("title", ""),
+                "pic": m.get("cover", ""),
+                "author": (m.get("upper") or {}).get("name", ""),
+                "duration": m.get("duration", 0),
+                "in_kb": in_kb
+            })
+        return JSONResponse({
+            "success": True,
+            "data": {
+                "videos": videos,
+                "count": len(videos),
+                "total": len(videos)
+            }
+        })
+    except Exception as e:
+        return JSONResponse({"success": False, "error": str(e)})
+
+
+# ==================== Obsidian Export ====================
+
+OBSIDIAN_VAULT = os.path.join(os.path.expanduser("~"), "Desktop", "BiliSum-Knowledge")
+# [v7.1] Route moved to routers/*.py: @app.post("/api/kb/export-obsidian")
+# [v7.1] Route moved to routers/*.py: async def api_export_obsidian(request: Request):
+# [v7.1] Route moved to routers/*.py:     """导出知识库为 Obsidian 兼容的 Markdown 文件"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         body = await request.json()
+# [v7.1] Route moved to routers/*.py:         bvids = body.get("bvids", None)
+# [v7.1] Route moved to routers/*.py:         # Collect entries
+# [v7.1] Route moved to routers/*.py:         if bvids:
+# [v7.1] Route moved to routers/*.py:             entries = [db.get_kb_entry(b) for b in bvids if db.get_kb_entry(b)]
+# [v7.1] Route moved to routers/*.py:         else:
+# [v7.1] Route moved to routers/*.py:             entries = db.get_kb_list()
+# [v7.1] Route moved to routers/*.py:         if not entries:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": "No entries to export"})
+# [v7.1] Route moved to routers/*.py:         # Ensure vault directory exists
+# [v7.1] Route moved to routers/*.py:         tags_dir = os.path.join(OBSIDIAN_VAULT, "tags")
+# [v7.1] Route moved to routers/*.py:         os.makedirs(OBSIDIAN_VAULT, exist_ok=True)
+# [v7.1] Route moved to routers/*.py:         os.makedirs(tags_dir, exist_ok=True)
+# [v7.1] Route moved to routers/*.py:         exported = []
+# [v7.1] Route moved to routers/*.py:         for entry in entries:
+# [v7.1] Route moved to routers/*.py:             bvid = entry.get("bvid", "")
+# [v7.1] Route moved to routers/*.py:             title = entry.get("title", bvid)
+# [v7.1] Route moved to routers/*.py:             author = entry.get("author", "")
+# [v7.1] Route moved to routers/*.py:             saved_at = entry.get("savedAt", "")
+# [v7.1] Route moved to routers/*.py:             text = entry.get("text", "")
+# [v7.1] Route moved to routers/*.py:             pic = entry.get("pic", "")
+# [v7.1] Route moved to routers/*.py:             # Sanitize filename
+# [v7.1] Route moved to routers/*.py:             safe_title = re.sub(r'[\\/:*?"<>|]', '-', title)[:80]
+# [v7.1] Route moved to routers/*.py:             filename = f"{safe_title}.md"
+# [v7.1] Route moved to routers/*.py:             filepath = os.path.join(OBSIDIAN_VAULT, filename)
+# [v7.1] Route moved to routers/*.py:             # Extract AI summary and full transcript
+# [v7.1] Route moved to routers/*.py:             parts = text.split("【AI详细总结】")
+# [v7.1] Route moved to routers/*.py:             transcript = parts[0].strip() if len(parts) > 0 else text
+# [v7.1] Route moved to routers/*.py:             ai_summary = parts[1].strip() if len(parts) > 1 else ""
+# [v7.1] Route moved to routers/*.py:             # Build YAML frontmatter (Obsidian-compatible)
+# [v7.1] Route moved to routers/*.py:             tags_list = []
+# [v7.1] Route moved to routers/*.py:             if author:
+# [v7.1] Route moved to routers/*.py:                 tags_list.append(author)
+# [v7.1] Route moved to routers/*.py:             tags_str = "\n  - ".join(tags_list) if tags_list else "bilibili"
+# [v7.1] Route moved to routers/*.py:             if tags_list:
+# [v7.1] Route moved to routers/*.py:                 tags_str = "  - " + tags_str
+# [v7.1] Route moved to routers/*.py:             md = f"""---
+# [v7.1] Route moved to routers/*.py: title: "{title}"
+# [v7.1] Route moved to routers/*.py: bvid: "{bvid}"
+# [v7.1] Route moved to routers/*.py: author: "{author}"
+# [v7.1] Route moved to routers/*.py: saved_at: "{saved_at}"
+# [v7.1] Route moved to routers/*.py: source: "https://www.bilibili.com/video/{bvid}"
+# [v7.1] Route moved to routers/*.py: tags:
+# [v7.1] Route moved to routers/*.py:   - bilibili
+# [v7.1] Route moved to routers/*.py:   - video-notes
+# [v7.1] Route moved to routers/*.py: {('  - ' + author) if author else ''}
+# [v7.1] Route moved to routers/*.py: ---
+# [v7.1] Route moved to routers/*.py: # {title}
+# [v7.1] Route moved to routers/*.py: > **Author**: {author} | **BV**: [{bvid}](https://www.bilibili.com/video/{bvid})
+# [v7.1] Route moved to routers/*.py: > **Saved**: {saved_at}
+# [v7.1] Route moved to routers/*.py: ---
+# [v7.1] Route moved to routers/*.py: ## AI Summary
+# [v7.1] Route moved to routers/*.py: {ai_summary if ai_summary else '(No AI summary available - configure API key to generate)'}
+# [v7.1] Route moved to routers/*.py: ---
+# [v7.1] Route moved to routers/*.py: ## Full Transcript
+# [v7.1] Route moved to routers/*.py: {transcript}
+# [v7.1] Route moved to routers/*.py: ---
+# [v7.1] Route moved to routers/*.py: *Exported by BiliSum v5.0*
+# [v7.1] Route moved to routers/*.py: """
+# [v7.1] Route moved to routers/*.py:             with open(filepath, "w", encoding="utf-8") as f:
+# [v7.1] Route moved to routers/*.py:                 f.write(md)
+# [v7.1] Route moved to routers/*.py:             exported.append({"bvid": bvid, "title": title, "file": filename})
+# [v7.1] Route moved to routers/*.py:         # Also create an index file
+# [v7.1] Route moved to routers/*.py:         index_md = "# BiliSum Knowledge Base\n\n"
+# [v7.1] Route moved to routers/*.py:         index_md += f"*Exported: {datetime.now().strftime('%Y-%m-%d %H:%M')}*\n\n"
+# [v7.1] Route moved to routers/*.py:         index_md += "| # | Title | Author | BV |\n"
+# [v7.1] Route moved to routers/*.py:         index_md += "|---|---|---|---|\n"
+# [v7.1] Route moved to routers/*.py:         for i, e in enumerate(exported):
+# [v7.1] Route moved to routers/*.py:             safe_t = re.sub(r'[\\/:*?"<>|]', '-', e["title"])[:80]
+# [v7.1] Route moved to routers/*.py:             index_md += f"| {i+1} | [[{safe_t}]] | {entry.get('author','')} | {e['bvid']} |\n"
+# [v7.1] Route moved to routers/*.py:         with open(os.path.join(OBSIDIAN_VAULT, "00-Index.md"), "w", encoding="utf-8") as f:
+# [v7.1] Route moved to routers/*.py:             f.write(index_md)
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({
+# [v7.1] Route moved to routers/*.py:             "success": True,
+# [v7.1] Route moved to routers/*.py:             "data": {
+# [v7.1] Route moved to routers/*.py:                 "exported": len(exported),
+# [v7.1] Route moved to routers/*.py:                 "vault_path": OBSIDIAN_VAULT,
+# [v7.1] Route moved to routers/*.py:                 "files": [e["file"] for e in exported]
+# [v7.1] Route moved to routers/*.py:             }
+# [v7.1] Route moved to routers/*.py:         })
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.get("/api/kb/vault-path")
+# [v7.1] Route moved to routers/*.py: async def api_vault_path():
+# [v7.1] Route moved to routers/*.py:     """获取 Obsidian 库路径"""
+# [v7.1] Route moved to routers/*.py:     return JSONResponse({
+# [v7.1] Route moved to routers/*.py:         "success": True,
+# [v7.1] Route moved to routers/*.py:         "data": {
+# [v7.1] Route moved to routers/*.py:             "vault_path": OBSIDIAN_VAULT,
+# [v7.1] Route moved to routers/*.py:             "exists": os.path.exists(OBSIDIAN_VAULT)
+# [v7.1] Route moved to routers/*.py:         }
+# [v7.1] Route moved to routers/*.py:     })
+# [v7.1] Route moved to routers/*.py: @app.post("/api/kb/push-obsidian")
+# [v7.1] Route moved to routers/*.py: async def api_push_obsidian(request: Request):
+# [v7.1] Route moved to routers/*.py:     """通过 Obsidian Local REST API 直接写入笔记"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         body = await request.json()
+# [v7.1] Route moved to routers/*.py:         bvid = body.get("bvid", "").strip()
+# [v7.1] Route moved to routers/*.py:         obsidian_api_key = body.get("obsidian_key", "").strip()
+# [v7.1] Route moved to routers/*.py:         obsidian_port = body.get("port", 27123)
+# [v7.1] Route moved to routers/*.py:         if not bvid:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": "no bvid"})
+# [v7.1] Route moved to routers/*.py:         entry = db.get_kb_entry(bvid)
+# [v7.1] Route moved to routers/*.py:         if not entry:
+# [v7.1] Route moved to routers/*.py:             # Auto-create from video info
+# [v7.1] Route moved to routers/*.py:             try:
+# [v7.1] Route moved to routers/*.py:                 info = await get_video_info(bvid)
+# [v7.1] Route moved to routers/*.py:                 text = f"【视频信息】\n标题：{info.title}\nUP主：{info.owner_name}\n时长：{info.duration}秒\nBV号：{bvid}"
+# [v7.1] Route moved to routers/*.py:                 try:
+# [v7.1] Route moved to routers/*.py:                     sub = await get_full_subtitle(bvid)
+# [v7.1] Route moved to routers/*.py:                     if sub.body:
+# [v7.1] Route moved to routers/*.py:                         text += f"\n\n【完整文字稿】\n" + " ".join([x.content for x in sub.body])
+# [v7.1] Route moved to routers/*.py:                 except: pass
+# [v7.1] Route moved to routers/*.py:                 db.save_kb_entry(bvid=bvid, title=info.title, author=info.owner_name, pic=info.pic, text=text)
+# [v7.1] Route moved to routers/*.py:                 entry = db.get_kb_entry(bvid)
+# [v7.1] Route moved to routers/*.py:             except Exception as e:
+# [v7.1] Route moved to routers/*.py:                 return JSONResponse({"success": False, "error": f"视频获取失败: {str(e)}"})
+# [v7.1] Route moved to routers/*.py:         # Build markdown content
+# [v7.1] Route moved to routers/*.py:         title = entry.get("title", bvid)
+# [v7.1] Route moved to routers/*.py:         author = entry.get("author", "")
+# [v7.1] Route moved to routers/*.py:         text = entry.get("text", "")
+# [v7.1] Route moved to routers/*.py:         saved_at = entry.get("savedAt", "")
+# [v7.1] Route moved to routers/*.py:         parts = text.split("【AI详细总结】")
+# [v7.1] Route moved to routers/*.py:         transcript = parts[0].strip() if parts else text
+# [v7.1] Route moved to routers/*.py:         ai_summary = parts[1].strip() if len(parts) > 1 else ""
+# [v7.1] Route moved to routers/*.py:         md = f"""---
+# [v7.1] Route moved to routers/*.py: title: "{title}"
+# [v7.1] Route moved to routers/*.py: bvid: "{bvid}"
+# [v7.1] Route moved to routers/*.py: author: "{author}"
+# [v7.1] Route moved to routers/*.py: saved_at: "{saved_at}"
+# [v7.1] Route moved to routers/*.py: source: "https://www.bilibili.com/video/{bvid}"
+# [v7.1] Route moved to routers/*.py: tags:
+# [v7.1] Route moved to routers/*.py:   - bilibili
+# [v7.1] Route moved to routers/*.py:   - bilisum
+# [v7.1] Route moved to routers/*.py: ---
+# [v7.1] Route moved to routers/*.py: # {title}
+# [v7.1] Route moved to routers/*.py: > **Author**: {author} | **BV**: [{bvid}](https://www.bilibili.com/video/{bvid})
+# [v7.1] Route moved to routers/*.py: ## AI Summary
+# [v7.1] Route moved to routers/*.py: {ai_summary or '(No AI summary available)'}
+# [v7.1] Route moved to routers/*.py: ## Transcript
+# [v7.1] Route moved to routers/*.py: {transcript}
+# [v7.1] Route moved to routers/*.py: ---
+# [v7.1] Route moved to routers/*.py: *Synced by BiliSum*
+# [v7.1] Route moved to routers/*.py: """
+# [v7.1] Route moved to routers/*.py:         safe_title = re.sub(r'[\\/:*?"<>|]', '-', title)[:60]
+# [v7.1] Route moved to routers/*.py:         # Try Obsidian Local REST API first
+# [v7.1] Route moved to routers/*.py:         if obsidian_api_key:
+# [v7.1] Route moved to routers/*.py:             try:
+# [v7.1] Route moved to routers/*.py:                 async with httpx.AsyncClient(timeout=5) as client:
+# [v7.1] Route moved to routers/*.py:                     r = await client.put(
+# [v7.1] Route moved to routers/*.py:                         f"http://127.0.0.1:{obsidian_port}/vault/{safe_title}.md",
+# [v7.1] Route moved to routers/*.py:                         headers={
+# [v7.1] Route moved to routers/*.py:                             "Authorization": f"Bearer {obsidian_api_key}",
+# [v7.1] Route moved to routers/*.py:                             "Content-Type": "text/markdown"
+# [v7.1] Route moved to routers/*.py:                         },
+# [v7.1] Route moved to routers/*.py:                         content=md
+# [v7.1] Route moved to routers/*.py:                     )
+# [v7.1] Route moved to routers/*.py:                     if r.status_code in (200, 201, 204):
+# [v7.1] Route moved to routers/*.py:                         return JSONResponse({"success": True, "data": {"method": "rest_api", "file": f"{safe_title}.md"}})
+# [v7.1] Route moved to routers/*.py:             except Exception:
+# [v7.1] Route moved to routers/*.py:                 pass  # Fall back to file export
+# [v7.1] Route moved to routers/*.py:         # Fallback: write to vault folder
+# [v7.1] Route moved to routers/*.py:         filepath = os.path.join(OBSIDIAN_VAULT, f"{safe_title}.md")
+# [v7.1] Route moved to routers/*.py:         with open(filepath, "w", encoding="utf-8") as f:
+# [v7.1] Route moved to routers/*.py:             f.write(md)
+# [v7.1] Route moved to routers/*.py:         # Try to open Obsidian with the vault
+# [v7.1] Route moved to routers/*.py:         try:
+# [v7.1] Route moved to routers/*.py:             import subprocess, platform
+# [v7.1] Route moved to routers/*.py:             obsidian_paths = [
+# [v7.1] Route moved to routers/*.py:                 os.path.expanduser('~/AppData/Local/Programs/Obsidian/Obsidian.exe'),
+# [v7.1] Route moved to routers/*.py:                 os.path.expanduser('~/AppData/Local/Obsidian/Obsidian.exe'),
+# [v7.1] Route moved to routers/*.py:             ]
+# [v7.1] Route moved to routers/*.py:             for op in obsidian_paths:
+# [v7.1] Route moved to routers/*.py:                 if os.path.exists(op):
+# [v7.1] Route moved to routers/*.py:                     vault_uri = 'obsidian://open?path=' + OBSIDIAN_VAULT.replace('','/').replace(':','%3A').replace(' ','%20')
+# [v7.1] Route moved to routers/*.py:                     subprocess.Popen([op, vault_uri], shell=False)
+# [v7.1] Route moved to routers/*.py:                     break
+# [v7.1] Route moved to routers/*.py:         except Exception: pass
+# [v7.1] Route moved to routers/*.py:         # Try to open in Obsidian
+# [v7.1] Route moved to routers/*.py:         try:
+# [v7.1] Route moved to routers/*.py:             async with httpx.AsyncClient(timeout=3) as client:
+# [v7.1] Route moved to routers/*.py:                 await client.post(
+# [v7.1] Route moved to routers/*.py:                     f"http://127.0.0.1:{obsidian_port}/open/{safe_title}.md",
+# [v7.1] Route moved to routers/*.py:                     headers={"Authorization": f"Bearer {obsidian_api_key}"} if obsidian_api_key else {}
+# [v7.1] Route moved to routers/*.py:                 )
+# [v7.1] Route moved to routers/*.py:         except Exception: pass
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": True, "data": {"method": "file", "vault_path": str(OBSIDIAN_VAULT), "file": f"{safe_title}.md", "path": str(filepath)}})
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.get("/api/kb/obsidian-status")
+# [v7.1] Route moved to routers/*.py: async def api_obsidian_status(port: int = 27123):
+# [v7.1] Route moved to routers/*.py:     """检测 Obsidian Local REST API 是否可用"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         async with httpx.AsyncClient(timeout=3) as client:
+# [v7.1] Route moved to routers/*.py:             r = await client.get(f"http://127.0.0.1:{port}/")
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": True, "data": {"available": True, "port": port}})
+# [v7.1] Route moved to routers/*.py:     except Exception:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": True, "data": {"available": False, "port": port}})
+# [v7.1] Route moved to routers/*.py: @app.post("/api/favorites/clean-invalid")
+# [v7.1] Route moved to routers/*.py: async def api_clean_invalid(request: Request):
+# [v7.1] Route moved to routers/*.py:     """清理收藏夹失效视频"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         body = await request.json()
+# [v7.1] Route moved to routers/*.py:         media_id = body.get("mediaId", "")
+# [v7.1] Route moved to routers/*.py:         headers = _get_bili_headers()
+# [v7.1] Route moved to routers/*.py:         jct = ""
+# [v7.1] Route moved to routers/*.py:         for pair in headers.get("Cookie", "").split(";"):
+# [v7.1] Route moved to routers/*.py:             if "bili_jct=" in pair: jct = pair.split("bili_jct=",1)[1].strip(); break
+# [v7.1] Route moved to routers/*.py:         if not jct: return JSONResponse({"success":False,"error":"需要登录"})
+# [v7.1] Route moved to routers/*.py:         async with httpx.AsyncClient(timeout=15) as c:
+# [v7.1] Route moved to routers/*.py:             r = await c.post("https://api.bilibili.com/x/v3/fav/resource/clean",
+# [v7.1] Route moved to routers/*.py:                 headers={**headers,"Content-Type":"application/x-www-form-urlencoded"},
+# [v7.1] Route moved to routers/*.py:                 data={"media_id":media_id,"csrf":jct})
+# [v7.1] Route moved to routers/*.py:             d = r.json()
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success":d.get("code")==0,"data":d})
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success":False,"error":str(e)})
+# [v7.1] Route moved to routers/*.py: @app.post("/api/export/ai-notes")
+# [v7.1] Route moved to routers/*.py: async def api_export_ai_notes(request: Request):
+# [v7.1] Route moved to routers/*.py:     """AI 整理内容笔记导出（参考 bilibili-rag markdown_export）"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         body = await request.json()
+# [v7.1] Route moved to routers/*.py:         bvid = body.get("bvid", "").strip()
+# [v7.1] Route moved to routers/*.py:         if not bvid: return JSONResponse({"success":False,"error":"no bvid"})
+# [v7.1] Route moved to routers/*.py:         entry = db.get_kb_entry(bvid)
+# [v7.1] Route moved to routers/*.py:         if not entry:
+# [v7.1] Route moved to routers/*.py:             info = await get_video_info(bvid); text = info.title
+# [v7.1] Route moved to routers/*.py:             try:
+# [v7.1] Route moved to routers/*.py:                 sub = await get_full_subtitle(bvid)
+# [v7.1] Route moved to routers/*.py:                 if sub.body: text = " ".join([x.content for x in sub.body])
+# [v7.1] Route moved to routers/*.py:             except: pass
+# [v7.1] Route moved to routers/*.py:         else:
+# [v7.1] Route moved to routers/*.py:             text = entry.get("text", "")
+# [v7.1] Route moved to routers/*.py:             title = entry.get("title", bvid)
+# [v7.1] Route moved to routers/*.py:         if len(text) < 50: return JSONResponse({"success":False,"error":"内容不足"})
+# [v7.1] Route moved to routers/*.py:         api_key = db.get_setting("api_key","")
+# [v7.1] Route moved to routers/*.py:         api_url = db.get_setting("api_url","")
+# [v7.1] Route moved to routers/*.py:         model = db.get_setting("model","deepseek-chat")
+# [v7.1] Route moved to routers/*.py:         if not api_key: return JSONResponse({"success":False,"error":"请配置API密钥"})
+# [v7.1] Route moved to routers/*.py:         prompt = (
+# [v7.1] Route moved to routers/*.py:             "请输出以下Markdown小节(不要添加一级标题):\n"
+# [v7.1] Route moved to routers/*.py:             "### 内容摘要\n### 核心观点\n### 内容提纲\n### 行动建议\n\n"
+# [v7.1] Route moved to routers/*.py:             "要求忠于原文，不要编造信息。\n\n"
+# [v7.1] Route moved to routers/*.py:             f"视频标题:{title}\n原始内容:\n{text[:10000]}"
+# [v7.1] Route moved to routers/*.py:         )
+# [v7.1] Route moved to routers/*.py:         is_anth = "anthropic.com" in api_url
+# [v7.1] Route moved to routers/*.py:         async with httpx.AsyncClient(timeout=180) as c:
+# [v7.1] Route moved to routers/*.py:             if is_anth:
+# [v7.1] Route moved to routers/*.py:                 r = await c.post(api_url,
+# [v7.1] Route moved to routers/*.py:                     headers={"x-api-key":api_key,"anthropic-version":"2023-06-01","Content-Type":"application/json"},
+# [v7.1] Route moved to routers/*.py:                     json={"model":model,"max_tokens":4096,"messages":[{"role":"user","content":prompt}]})
+# [v7.1] Route moved to routers/*.py:                 notes = r.json()["content"][0]["text"] if r.status_code==200 else None
+# [v7.1] Route moved to routers/*.py:             else:
+# [v7.1] Route moved to routers/*.py:                 r = await c.post(f"{api_url}/chat/completions",
+# [v7.1] Route moved to routers/*.py:                     headers={"Authorization":f"Bearer {api_key}","Content-Type":"application/json"},
+# [v7.1] Route moved to routers/*.py:                     json={"model":model,"messages":[{"role":"user","content":prompt}],"max_tokens":4096})
+# [v7.1] Route moved to routers/*.py:                 notes = r.json()["choices"][0]["message"]["content"] if r.status_code==200 else None
+# [v7.1] Route moved to routers/*.py:         if not notes: return JSONResponse({"success":False,"error":"生成失败"})
+# [v7.1] Route moved to routers/*.py:         md = f"---\ntitle: \"{title}\"\nbvid: \"{bvid}\"\n---\n\n# {title}\n\n{notes}\n\n---\n*AI-organized by BiliSum*"
+# [v7.1] Route moved to routers/*.py:         return Response(content=md, media_type="text/markdown; charset=utf-8",
+# [v7.1] Route moved to routers/*.py:                        headers={"Content-Disposition":f"attachment; filename={bvid}_notes.md"})
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success":False,"error":str(e)})
+# [v7.1] Route moved to routers/*.py: # ==================== B站 Proxy ====================
+# [v7.1] Route moved to routers/*.py: @app.get("/bili/proxy")
+# [v7.1] Route moved to routers/*.py: async def bili_proxy(url: str = Query("https://www.bilibili.com/")):
+# [v7.1] Route moved to routers/*.py:     """B站网页代理，注入工具栏，支持内嵌浏览"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         headers = {
+# [v7.1] Route moved to routers/*.py:             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+# [v7.1] Route moved to routers/*.py:             "Referer": "https://www.bilibili.com/"
+# [v7.1] Route moved to routers/*.py:         }
+# [v7.1] Route moved to routers/*.py:         # Inject B站 cookies if available
+# [v7.1] Route moved to routers/*.py:         try:
+# [v7.1] Route moved to routers/*.py:             if os.path.exists(COOKIE_FILE):
+# [v7.1] Route moved to routers/*.py:                 ck = open(COOKIE_FILE, "r", encoding="utf-8").read().strip()
+# [v7.1] Route moved to routers/*.py:                 if ck:
+# [v7.1] Route moved to routers/*.py:                     headers["Cookie"] = ck
+# [v7.1] Route moved to routers/*.py:         except Exception:
+# [v7.1] Route moved to routers/*.py:             pass
+# [v7.1] Route moved to routers/*.py:         async with httpx.AsyncClient(timeout=20, follow_redirects=True) as client:
+# [v7.1] Route moved to routers/*.py:             resp = await client.get(url, headers=headers)
+# [v7.1] Route moved to routers/*.py:             html = resp.text
+# [v7.1] Route moved to routers/*.py:         # Extract BVID from URL
+# [v7.1] Route moved to routers/*.py:         bv_match = __import__("re").search(r"BV[a-zA-Z0-9]+", url)
+# [v7.1] Route moved to routers/*.py:         bvid = bv_match.group(0) if bv_match else ""
+# [v7.1] Route moved to routers/*.py:         # Fix relative URLs
+# [v7.1] Route moved to routers/*.py:         html = html.replace("<head>", '<head><base href="https://www.bilibili.com/">')
+# [v7.1] Route moved to routers/*.py:         # Inject toolbar for B站 pages
+# [v7.1] Route moved to routers/*.py:         inject_script = ""
+# [v7.1] Route moved to routers/*.py:         if "bilibili" in url:
+# [v7.1] Route moved to routers/*.py:             summary_btn = ""
+# [v7.1] Route moved to routers/*.py:             if bvid:
+# [v7.1] Route moved to routers/*.py:                 summary_btn = '<a href="/summary?bvid=' + bvid + '" style="padding:4px 14px;background:#fff;color:#e54980;border-radius:12px;text-decoration:none;font-weight:bold;font-size:12px">进入总结 →</a>'
+# [v7.1] Route moved to routers/*.py:             inject_script = (
+# [v7.1] Route moved to routers/*.py:                 '<script>(function(){'
+# [v7.1] Route moved to routers/*.py:                 'if(document.getElementById("bili-inject-bar"))return;'
+# [v7.1] Route moved to routers/*.py:                 'document.addEventListener("click",function(e){'
+# [v7.1] Route moved to routers/*.py:                 'var a=e.target.closest("a");if(!a)return;'
+# [v7.1] Route moved to routers/*.py:                 'var h=a.getAttribute("href");if(!h||h.indexOf("#")===0||h.indexOf("javascript:")===0)return;'
+# [v7.1] Route moved to routers/*.py:                 'if(h.indexOf("//")===0||h.indexOf("http")===0){'
+# [v7.1] Route moved to routers/*.py:                 'e.preventDefault();'
+# [v7.1] Route moved to routers/*.py:                 'var fullUrl=(h.indexOf("//")===0)?"https:"+h:h;'
+# [v7.1] Route moved to routers/*.py:                 'window.location.href="/bili/proxy?url="+encodeURIComponent(fullUrl);return false'
+# [v7.1] Route moved to routers/*.py:                 '}},true);'
+# [v7.1] Route moved to routers/*.py:                 'var bar=document.createElement("div");bar.id="bili-inject-bar";'
+# [v7.1] Route moved to routers/*.py:                 'bar.style.cssText="position:fixed;top:0;left:0;right:0;z-index:999999;background:linear-gradient(135deg,#fb7299,#e54980);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;color:#fff;font-size:13px;font-family:sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.3)";'
+# [v7.1] Route moved to routers/*.py:                 'bar.innerHTML=' + json.dumps(
+# [v7.1] Route moved to routers/*.py:                     '<span style="font-weight:bold;font-size:14px">📺 B站客户端</span><span style="display:flex;gap:6px;align-items:center">'
+# [v7.1] Route moved to routers/*.py:                     '<a href="/browse" style="padding:5px 12px;background:rgba(255,255,255,0.2);color:#fff;border-radius:16px;text-decoration:none;font-size:12px">🏠 返回BiliSum</a>'
+# [v7.1] Route moved to routers/*.py:                     '<a href="https://www.bilibili.com" target="_blank" style="padding:5px 12px;background:rgba(255,255,255,0.15);color:#fff;border-radius:16px;text-decoration:none;font-size:12px">🔗 备用网站</a>'
+# [v7.1] Route moved to routers/*.py:                     + summary_btn +
+# [v7.1] Route moved to routers/*.py:                     '</span>'
+# [v7.1] Route moved to routers/*.py:                 ) + ';'
+# [v7.1] Route moved to routers/*.py:                 'document.body.insertBefore(bar,document.body.firstChild);'
+# [v7.1] Route moved to routers/*.py:                 'document.body.style.marginTop="46px";'
+# [v7.1] Route moved to routers/*.py:                 '})();</script>'
+# [v7.1] Route moved to routers/*.py:             )
+# [v7.1] Route moved to routers/*.py:         html = html.replace("</body>", inject_script + "</body>")
+# [v7.1] Route moved to routers/*.py:         return Response(
+# [v7.1] Route moved to routers/*.py:             content=html,
+# [v7.1] Route moved to routers/*.py:             media_type="text/html; charset=utf-8",
+# [v7.1] Route moved to routers/*.py:             headers={
+# [v7.1] Route moved to routers/*.py:                 "X-Frame-Options": "SAMEORIGIN",
+# [v7.1] Route moved to routers/*.py:                 "Content-Security-Policy": "frame-ancestors 'self' http://localhost:8000 http://localhost:3000;"
+# [v7.1] Route moved to routers/*.py:             }
+# [v7.1] Route moved to routers/*.py:         )
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         raise HTTPException(status_code=500, detail=f"Proxy error: {str(e)}")
+# [v7.1] Route moved to routers/*.py: @app.get("/bili/cookies/save")
+# [v7.1] Route moved to routers/*.py: async def bili_cookies_save(c: str = Query("")):
+# [v7.1] Route moved to routers/*.py:     """从代理页面保存Cookie（兼容旧版路由）"""
+# [v7.1] Route moved to routers/*.py:     if c:
+# [v7.1] Route moved to routers/*.py:         try:
+# [v7.1] Route moved to routers/*.py:             with open(COOKIE_FILE, "w", encoding="utf-8") as f:
+# [v7.1] Route moved to routers/*.py:                 f.write(c)
+# [v7.1] Route moved to routers/*.py:             set_cookie(c)
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": True})
+# [v7.1] Route moved to routers/*.py:         except Exception as e:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py:     return JSONResponse({"success": False, "error": "no cookies"})
+
+
+# ==================== ZIP Export ====================
+
+# [v7.1] Deduplicated: /api/export/zip handled by routers/kb.py @router.post("/export/zip")
+# @app.post("/api/export/zip") removed — duplicate of kb.py:506
+
+# [v7.1] Route moved to routers/*.py: @app.get("/api/v2/multipart/{bvid}")
+# [v7.1] Route moved to routers/*.py: async def api_multipart_content(bvid: str):
+# [v7.1] Route moved to routers/*.py:     """获取多P视频所有分P的内容"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         bvid = extract_bvid(bvid)
+# [v7.1] Route moved to routers/*.py:         parts = await get_video_parts(bvid)
+# [v7.1] Route moved to routers/*.py:         if len(parts) <= 1:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": True, "data": {"is_multipart": False, "parts": []}})
+# [v7.1] Route moved to routers/*.py:         results = []
+# [v7.1] Route moved to routers/*.py:         for p in parts:
+# [v7.1] Route moved to routers/*.py:             cid = p.get("cid", 0)
+# [v7.1] Route moved to routers/*.py:             title = p.get("part", f"P{p.get('page', '?')}")
+# [v7.1] Route moved to routers/*.py:             text = ""
+# [v7.1] Route moved to routers/*.py:             try:
+# [v7.1] Route moved to routers/*.py:                 sub = await get_full_subtitle(bvid)
+# [v7.1] Route moved to routers/*.py:                 if sub.body:
+# [v7.1] Route moved to routers/*.py:                     text = " ".join([x.content for x in sub.body[:100]])
+# [v7.1] Route moved to routers/*.py:             except Exception: pass
+# [v7.1] Route moved to routers/*.py:             results.append({"cid": cid, "title": title, "duration": p.get("duration", 0), "has_content": len(text) > 10})
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": True, "data": {"is_multipart": True, "count": len(parts), "parts": results}})
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.get("/api/v2/count")
+# [v7.1] Route moved to routers/*.py: async def api_v2_count():
+# [v7.1] Route moved to routers/*.py:     """获取各资源数量统计"""
+# [v7.1] Route moved to routers/*.py:     kb = db.get_kb_stats()
+# [v7.1] Route moved to routers/*.py:     hist = db.get_history_list("", 1, 0)
+# [v7.1] Route moved to routers/*.py:     return JSONResponse({"success": True, "data": {"kb_videos": kb.get("totalVideos", 0), "kb_chunks": kb.get("totalChunks", 0)}})
+# [v7.1] Route moved to routers/*.py: # ==================== Startup ====================
+# [v7.1] Route moved to routers/*.py: # ==================== ASR & Content Safety ====================
+# [v7.1] Route moved to routers/*.py: @app.post("/api/asr/transcribe")
+# [v7.1] Route moved to routers/*.py: async def api_asr_transcribe(request: Request):
+# [v7.1] Route moved to routers/*.py:     """DashScope ASR 语音转写"""
+# [v7.1] Route moved to routers/*.py:     try:
+# [v7.1] Route moved to routers/*.py:         body = await request.json()
+# [v7.1] Route moved to routers/*.py:         bvid = body.get("bvid", "").strip()
+# [v7.1] Route moved to routers/*.py:         if not bvid:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": "no bvid"})
+# [v7.1] Route moved to routers/*.py:         from bilibili_client import get_video_info, get_audio_url
+# [v7.1] Route moved to routers/*.py:         info = await get_video_info(bvid)
+# [v7.1] Route moved to routers/*.py:         audio_data = await get_audio_url(bvid)
+# [v7.1] Route moved to routers/*.py:         if not audio_data.get("url"):
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": "无法获取音频URL"})
+# [v7.1] Route moved to routers/*.py:         try:
+# [v7.1] Route moved to routers/*.py:             import dashscope
+# [v7.1] Route moved to routers/*.py:             from dashscope.audio.asr import Transcription
+# [v7.1] Route moved to routers/*.py:             # Submit async transcription
+# [v7.1] Route moved to routers/*.py:             task = Transcription.async_call(
+# [v7.1] Route moved to routers/*.py:                 model="paraformer-v2",
+# [v7.1] Route moved to routers/*.py:                 file_urls=[audio_data["url"]],
+# [v7.1] Route moved to routers/*.py:                 language_hints=["zh", "en"]
+# [v7.1] Route moved to routers/*.py:             )
+# [v7.1] Route moved to routers/*.py:             # Poll for result
+# [v7.1] Route moved to routers/*.py:             for _ in range(30):
+# [v7.1] Route moved to routers/*.py:                 result = Transcription.fetch(task)
+# [v7.1] Route moved to routers/*.py:                 if result.status_code == 200:
+# [v7.1] Route moved to routers/*.py:                     output = result.output
+# [v7.1] Route moved to routers/*.py:                     if output and output.get("results"):
+# [v7.1] Route moved to routers/*.py:                         transcripts = output["results"][0].get("transcripts", [])
+# [v7.1] Route moved to routers/*.py:                         if transcripts:
+# [v7.1] Route moved to routers/*.py:                             text = transcripts[0].get("text", "")
+# [v7.1] Route moved to routers/*.py:                             return JSONResponse({"success": True, "data": {"text": text, "source": "dashscope_asr"}})
+# [v7.1] Route moved to routers/*.py:                     break
+# [v7.1] Route moved to routers/*.py:                 time.sleep(2)
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": "ASR processing timed out"})
+# [v7.1] Route moved to routers/*.py:         except ImportError:
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": "dashscope 未安装，请运行 pip install dashscope"})
+# [v7.1] Route moved to routers/*.py:         except Exception as e:
+# [v7.1] Route moved to routers/*.py:             # Content safety / other errors
+# [v7.1] Route moved to routers/*.py:             err = str(e)
+# [v7.1] Route moved to routers/*.py:             if "data_inspection" in err.lower():
+# [v7.1] Route moved to routers/*.py:                 return JSONResponse({"success": False, "error": "内容安全检查未通过，音频可能触发了安全过滤"})
+# [v7.1] Route moved to routers/*.py:             return JSONResponse({"success": False, "error": err[:200]})
+# [v7.1] Route moved to routers/*.py:     except Exception as e:
+# [v7.1] Route moved to routers/*.py:         return JSONResponse({"success": False, "error": str(e)})
+# [v7.1] Route moved to routers/*.py: @app.post("/api/asr/local")
+# [v7.1] Route moved to routers/*.py: async def api_asr_local(request: Request):
+# [v7.1] Route moved to routers/*.py:     """本地 Whisper ASR 转写（需安装 transformers.js 环境）"""
+# [v7.1] Route moved to routers/*.py:     return JSONResponse({"success": False, "error": "本地Whisper需要浏览器环境。请使用Chrome扩展 subbatch-local 或配置 DashScope API。"})

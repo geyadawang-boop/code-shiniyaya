@@ -1,6 +1,42 @@
-# Embedded source repos (submodules)
-autoagent-src/
-autodream-src/
-autonomous-coding-src/
-autoresearch-src/
-ponytail-src/
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.pnpm-store/
+
+# Sensitive data
+bili_cookies.txt
+.env
+
+# Runtime data
+data/
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+dist/
+
+# v7.1 — Sensitive/generated files
+bili_cookies.txt.enc
+bootstrap_success.json
+*.db-shm
+*.db-wal
+.optimization_log.txt
+.optimization_progress.json
+.progress
+progress.json
+progress.md
+round.txt
+research_topics.md
+test_agent.md
+.pytest_cache/
+*.pyc
+
+# v7.2 - Additional exclusions
+*.db
+whisper/models/
+whisper/node_modules/
+*.bak

@@ -1,0 +1,82 @@
+{
+    "name": "bili-summary-desktop",
+    "version": "2.0.0",
+    "private": true,
+    "description": "BiliSum - B站视频总结桌面软件",
+    "author": "BiliSum",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron .",
+        "backend": "python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000",
+        "build": "electron-builder",
+        "pack": "electron-builder --dir",
+        "dist": "electron-builder",
+        "postinstall": "electron-builder install-app-deps"
+    },
+    "build": {
+        "appId": "com.bilisum.desktop",
+        "productName": "BiliSum",
+        "directories": {
+            "output": "release"
+        },
+        "files": [
+            "main.js",
+            "preload.js",
+            "frontend/**/*",
+            "backend/**/*",
+            "node_modules/**/*",
+            "bootstrap.py"
+        ],
+        "extraResources": [
+            {
+                "from": "backend",
+                "to": "backend"
+            }
+        ],
+        "win": {
+            "target": [
+                {
+                    "target": "nsis",
+                    "arch": [
+                        "x64"
+                    ]
+                }
+            ],
+            "icon": "assets/icon.ico"
+        },
+        "mac": {
+            "target": [
+                {
+                    "target": "dmg",
+                    "arch": [
+                        "x64",
+                        "arm64"
+                    ]
+                }
+            ],
+            "icon": "assets/icon.icns",
+            "category": "public.app-category.utilities"
+        },
+        "linux": {
+            "target": [
+                {
+                    "target": "AppImage",
+                    "arch": [
+                        "x64"
+                    ]
+                }
+            ],
+            "icon": "assets/icon.png",
+            "category": "Utility"
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowToChangeInstallationDirectory": true,
+            "createDesktopShortcut": true
+        }
+    },
+    "devDependencies": {
+        "electron": "^33.0.0",
+        "electron-builder": "^26.0.0"
+    }
+}

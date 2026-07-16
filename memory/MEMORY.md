@@ -1,98 +1,65 @@
-# code-shiniyaya Memory Index
-
-本目录存储 code-shiniyaya Skill 的持久化记忆，独立于 bilisum 的记忆系统。
-
-**重要规则**: 此Skill对应的所有记忆和修改只能写入 `C:\Users\shiniyaya\Desktop\code-shiniyaya\memory\`，不得写入 bilisum 的记忆目录。
-
-## 规则文件 (.promptinclude.md -- 自动执行)
-
-- [记忆隔离规则](memory-isolation-rule.md) -- 重要: 所有记忆只写入 code-shiniyaya/memory/, 不得写入 bilisum 记忆目录
-
-## 记忆文件
-
-### 迭代与优化 (核心)
-
-- [优化计划](optimization-plan.md) — 7大优化方向(持续性/保真性/有意义性/稳定性/4源深度利用/自我迭代/报告规范) — **COMPLETE**
-- [迭代任务定义](iteration-task.md) — 完整迭代循环流程 + 4源已读/未读文件清单 + 优化7大方向 — **COMPLETE**
-- [4源全覆盖最终状态](4-source-complete.md) — ~95 files read, ~100 patterns extracted, 4 sources TRULY EXHAUSTED — **COMPLETE**
-- [全部新功能汇总](new-features-final.md) — v4.3.0至v4.5.2全部新功能发现 + 文件清单 — **COMPLETE**
-- [元迭代质量](meta-iteration-quality.md) — Iter#001评分: 5.1/10, 4大能力缺口, 下轮改进措施
-- [目标达成](goal-reached.md) — 2026-07-17: 12轮迭代完成, SKILL.md v3.9.28
-- [目标确认 v4.0.7](goal-confirmed-v4.0.7.md) — 2026-07-17: iter#20 zero-confirmed(0 bug+0发现), 20轮迭代完成, SKILL.md v4.1.3
-- [最终收敛确认 v4.5.2](goal-confirmed-v4.5.2.md) — 2026-07-16: 34轮迭代完成, ~95 files read, ~100 patterns, 4 sources TRULY EXHAUSTED, SKILL.md v4.5.2-final 1040 lines
-
-### 配置
-
-- [集中配置](config.json) — 80+ tunable constants in 9 sections (agent, silence, truncation, budget, reflection, agent_selection, convergence, git_branch, output, checkpointing)
-- [配置参考](config-REFERENCE.md) — 快速参考 + 常见调优表 + 新增常量指南
-
-### 参考源索引
-
-- [参考源索引 v2](reference-sources-v2.md) — 4个新增开源参考源，65个模式提取自 AutoAgent, autodream, autoresearch, autonomous-coding (2026-07-16)
-- [参考源清单](reference-sources.md) — 全部41个参考源清单 (桌面22 + GitHub 17 + ClawHub 2)
-- [高影响模式 Top-10](high-impact-patterns.md) — 跨源交叉验证的最高影响模式 + 集成优先级
-
-### AutoAgent 分析
-
-- [AutoAgent 差距分析](autoagent-gap-analysis.md)
-- [AutoAgent 安全模式](autoagent-security-patterns.md)
-- [AutoAgent 进度模式](autoagent-progress-patterns.md)
-- [AutoAgent 错误恢复模式](autoagent-error-recovery-patterns.md)
-- [事件驱动编排发现](staged-event-driven-patterns.md) — case_resolved 协议, transfer-back 交接, 流式分发, 声明式步骤依赖
-
-### autodream 分析
-
-- [AutoDream 归因溯源发现](autodream-grounding-attribution-findings.md) — 18 个模式来自 AutoDream: grounded vs inferred 溯源, source_context_ids 追踪, Rules vs Facts 分类法
-- [autodream 差距分析](autodream-gap-analysis.md)
-- [autodream 模式转移](autodream-pattern-transfer.md) — autodream记忆模式
-- [autodream 上下文模式](autodream-context-patterns.md) — autodream上下文上限
-- [autodream 配置驱动模式](autodream-config-driven-patterns.md)
-
-### autoresearch 分析
-
-- [autoresearch 差距分析](autoresearch-gap-analysis.md)
-- [autoresearch 崩溃分类哨兵](autoresearch-crash-taxonomy-sentinels.md)
-- [autoresearch 全自主缺口](autoresearch-full-autonomy-gaps.md)
-- [autoresearch Git状态机发现](autoresearch-git-state-machine-findings.md)
-- [autoresearch 结果追踪缺口](autoresearch-results-tracking-gap-analysis.md)
-- [autoresearch 简单性扫描](autoresearch-simplicity-scan.md)
-
-### autonomous-coding 分析
-
-- [autonomous-coding 差距分析](autonomous-coding-gap-analysis.md)
-- [autonomous-coding 深度扫描发现](autonomous-coding-deep-scan-findings.md)
-- [autonomous-coding 错误处理发现](autonomous-coding-error-handling-findings.md)
-- [autonomous-coding 安全发现](autonomous-coding-security-findings.md)
-- [autonomous-coding Step4-7模式](autonomous-coding-step4-7-patterns.md)
-- [autonomous-coding 工具模式发现](autonomous-coding-tool-patterns-findings.md)
-
-- [快照 2026-07-17](snapshot-20260717T013659.md) — v4.7.3上下文感知防饱和机制 + 5 Agent完整性门控
-- [会话最终状态](session-final-state.md) — v4.7.2压缩前最终状态
-- [优化全记录](code-shiniyaya-skill-optimization.md) — v4.1.3→v4.7.3完整迭代史
-
-### 会话与维护
-
-- [清理验证记录](cleanup-verification.md) — 2026-07-16 清理: bilisum记忆目录中已无孤立文件, 隔离验证通过
-- [清理确认记录](cleanup-confirmed.md)
-- [会话状态 2026-07-16](session-state-2026-07-16-compression.md)
-- [会话状态 2026-07-17](session-state-2026-07-17.md)
-- [迭代#1合并报告](iteration-1-merge-report.md)
-- [合并报告](MERGE_REPORT.md)
-
----
-
-## 最终状态摘要
-
-| 指标 | 值 |
-|------|-----|
-| SKILL.md版本 | v4.5.2-final |
-| SKILL.md行数 | 1040 |
-| 总迭代次数 | 34 |
-| 4源文件读取 | ~95 |
-| 模式提取 | ~100 |
-| 硬规则 | 25+ |
-| 反模式 | 23+ |
-| 自检项 | 16+ |
-| 集中配置常量 | 80+ (config.json) |
-| 记忆文件数 | 40+ |
-| 4源未读文件 | 0 (ALL EXHAUSTED) |
+- [私人仓库同步](bilisum-private-repo.md) — https://github.com/geyadawang-boop/BiliSum- (v9.0完整源码+记忆, 2 commits, 250文件)
+- [160Agent产出汇总](bilisum-160agent-results.md) — 🔴2026-07-16: 已应用content_filter+frame_text_service+多模态client; 待批准: 三级字幕回退+教学优先prompt
+- [v9.0 最终执行蓝图](bilisum-v9.0-execution-plan.md) — 🔴整合: 25 Bug + 8 Feature + 9移植, 4阶段15子Phase, ~34h, 50 Agent bilinote验证完成
+- [人工核验清单](manual-verification-checklist.md) — 当前8项待核验(v8.7修复), 每轮修复后自动生成
+- [v8.7 会话状态](bilisum-v8.7-session-state.md) — 200+Agent, ChromDB修复, 39源扫描, DOCX交付
+- [v8.7 ChromaDB修复验证](bilisum-v8.7-chromadb-fix-verified.md) — delete_kb_entry用get_rag_service()单例, AST+import+type通过
+- [wdkns-skills开源参考](wdkns-skills-open-source.md) — 🆕wdkns/wdkns-skills: B站→LaTeX PDF, 字幕三级回退, 画面关键帧+公式/代码/图表, 平台话术过滤, 字幕精修SRT清洗
+- [bilinote开源参考](bilinote-open-source.md) — 🆕PrideWood/bilinote: Node.js+React B站/YouTube笔记工具
+- [v9.0 bilinote集成计划](bilisum-v9.0-bilinote-integration-plan.md) — 5大功能(多平台/本地上传/思维导图v2/导出扩展/任务历史), 50 Agent执行中
+- [v8.7主Bug清单](bilisum-v8.7-master-bug-list.md) — 80+Agent交叉验证: 12 P0 + 8 P1 + 5 P2, 3层MVP路线图
+- [v8.7后续优化计划](bilisum-v8.7-optimization-plan.md) — AI问答质量(15 Agent) + kb_dir验证Bug + 人工核验清单
+- [v8.6 KB删除6Bug修复](bilisum-v8.6-kb-delete-fixes.md) — Bug 0-5已修复, 回退基线b8b333b
+- [v8.5最终状态](bilisum-v8.5-session-state.md) — 单文件EXE+源码+GitHub tag v8.5+后续任务
+- [v8.4状态](bilisum-v8.4-session-state.md) — 已完成
+- [待修复](bilisum-v8.4-pending-issues.md)
+- [思维导图参数](mindmap-working-params.md)
+- [禁止重复验证](no-redundant-verification.md)
+- [BiliSum v8.4 待修复问题](bilisum-v8.4-pending-issues.md) — 🔴 本轮5项+历史12项+延迟3项+待导入4项, 完整追踪
+- [BiliSum参考源导入注册表](bilisum-reference-import-registry.md) — 7项已导入+4项待导入函数追踪
+- [11参考源→BiliSum功能映射](reference-source-function-mapping.md) — 每个源的最优函数/BiliSum状态/可导入代码
+- [BiliSum全部参考源文件索引](bilisum-all-reference-sources.md) — 37来源完整索引(桌面18+GitHub 17+ClawHub 2)
+- [MediaCrawler参考架构](media-crawler-reference.md) — 多平台爬虫(52k Star), ABC工厂+CDP+6存储, 外部导入参考
+- [VPN代理配置](vpn-proxy-config.md) — 代理端口7897，每次网络操作后恢复默认，单次命令设置不全局export
+- [桌面版Claude Code完整交接验证](desktop-handoff-verification.md) — 一键检验脚本: 全局配置+记忆系统+Skills+项目文件+v8.3会话+规则合规，7大部分全覆盖
+- [BiliSum v8.1.0 发布](bilisum-v8.1-release.md) — v8.1.0: 12 commits, 17 files, +394/-144, tag v8.1.0, 18/19用户反馈修复
+- [BiliSum v8.1 会话状态](bilisum-v8.1-session-state.md) — v8.1: 7 commits, 18/19修复, 11文件, ~304行
+- [P0 每次回复前强制执行规则检查](p0-rule-checks-every-response.md) — 🔴最高: 每轮回复前检查18条规则, 违规追溯+纠正, 永不跳过
+- [BiliSum v8.1.0 压缩前状态](bilisum-v8.1-compression-state.md) — 15 commits, 21项验证, 7项待修复(已发Codex), 等待Codex回复
+- [P0 规则合规清单](p0-rule-compliance-checklist.md) — 🔴最高优先级: 每轮响应前检查所有18条规则执行状态，报告已执行/未执行
+- [报告输出到桌面文件夹](reports-output-to-desktop-folder.md) — 🔴最高优先级: 所有新文件/报告/DOCX/MD必须输出到桌面报告文件夹
+- [BiliSum 全面优化方案](bilisum-optimization-plan.md) — 120+ bugs, 7 phases, 42 agents, 10 rounds analysis
+- [BiliSum P0 关键 Bug 清单](bilisum-p0-bugs.md) — 23 P0 bugs ALL FIXED (18 original + 5 new), Codex+Claude dual verification 2026-07-09
+- [BiliSum 46 Skill 分析](bilisum-46-skills-analysis.md) — Complete skill verdicts, TOP 20 combinations
+- [BiliSum 开源参考项目](bilisum-open-source-references.md) — 6 projects, 15 copyable code blocks, 7 hidden synergies
+- [BiliSum UI 优化方案](bilisum-ui-optimization-plan.md) — Sky-blue whale theme, 30+ CSS fixes, accessibility
+- [BiliSum 剩余待办项](bilisum-remaining-deferred.md) — 3 deferred: route dedup, MCP mode, E2E tests
+- [BiliSum v6.0 最终计划](bilisum-v6-final-plan.md) — 18个Agent扫描汇总，180+Bug，52个可导入Skill
+- [BiliSum v6.0 30 Agent深度开发](bilisum-v6-30-agent-scan.md) — 30个Agent深度开发，250+Bug，30个Skill代码方案，7条交叉利用链，8个执行阶段
+- [BiliSum v7.0 50 Agent深度重开发](bilisum-v7-50-agent-scan.md) — 50个Agent全部重新深入开发，填补v6的12+缺口，累积500+Bug，100+可执行代码文件，100+交叉利用链
+- [BiliSum v7.1 修复报告](bilisum-v7.1-fix-report.md) — v7.1→v7.2: Codex+Claude 双重审计, 16 Agent修复, 32 项Bug修复, 99项安全测试, 全量语法验证
+- [BiliSum v7.1 Skill使用状态](bilisum-v7.1-skill-usage.md) — 🔴高优先级: 155 Skill表 + Agent产物集成追踪
+- [multi-agent-shiniyaya Skill 参考文档](multi-agent-shiniyaya-skill-reference.md) — 从80个Agent实战提炼的多Agent编排方法论Skill，32个参照Skill四级判定，A-G类触发词库，8 Phase工作流
+- [Codex 交叉验证规则](codex-cross-verification-rule.md) — 🔴最高优先级: 代码修改前强制Codex审查, Bug扫描不遗漏Codex视角, 编译代码必须Codex核对
+- [符号影响分析 + 变更映射规则](symbol-impact-analysis-and-change-mapping.md) — 🔴最高优先级: 改任何符号必须跑影响分析; 提交前必须跑变更映射. 防止sandbox/localStorage/CSRF类静默崩溃
+- [Caveman Token压缩已启用](caveman-token-compression-enabled.md) — 65% token节省, lite/full/ultra/极致4档
+- [逐任务反馈规则](task-feedback-per-item.md) — 🔴最高优先级: 每完成一个任务立即反馈用户, 确认后标记完成, 继续下一个
+- [Codex 修复验证规则](codex-fix-verification-rule.md) — 🔴最高优先级: Codex每次修复后Claude Code必须独立扫描验证, 不信任Codex自我验证, 每项修复必须附实际代码行号证据
+- [Codex 消息协议](codex-message-protocol.md) — 🔴最高优先级: 给Codex发信息时提供可复制文本，含文件路径+执行阶段+关键规则（Python utf-8/严禁PowerShell/ast.parse验证），Codex需自己启动子Agent独立验证后合并方案反馈CC确认
+- [P0 未经批准禁止修改代码](p0-no-auto-edit.md) — 🔴最高优先级: 修改前说明内容+原因+风险，获用户明确批准后执行。PowerShell曾导致大面积编码损坏
+- [P0 Codex双向验证](p0-codex-bidirectional-verification.md) — 🔴最高优先级: 修改前发方案给Codex确认，修改后发结果给Codex验证。不经过Codex验证不算完成
+- [P0 收到Codex指令先深度分析](p0-deep-analysis-before-execute.md) — 🔴最高优先级: 收到Codex指令后独立验证方案可行性，发现问题立即反馈，确认后执行+验证+反馈
+- [P0 可复制Codex文本规范](p0-copyable-codex-text.md) — 🔴最高优先级: 每次Codex交互附带可复制中文纯文本，含完整上下文+文档路径+下一步请求（规则4+5合并）
+- [P0 CC禁止独立修改代码](p0-cc-no-solo-edits.md) — 🔴最高优先级: CC不得在未获Codex确认的情况下修改源代码。修改前发方案→Codex确认→执行→发结果→Codex验证。唯一例外：记忆/规则文件和review文档
+- [P0 用户+Codex双重批准](p0-dual-approval-before-code-edit.md) — 🔴最高优先级(2026-07-13升级): CC修改源代码前必须同时获用户和Codex双方批准。单方同意不足以执行修改
+- [P0 Codex方案必须10 Agent验证](p0-codex-evaluation-must-verify.md) — 🔴最高优先级(2026-07-13新增): Codex任何方案/分析/修复不可直接信任。10 Agent验证发现14项中4项误判,6项复用中5项应拒绝
+- [国内API仅限规则](domestic-api-only.md) — 🔴最高优先级: 项目仅使用国内API(DeepSeek/B站 api.bilibili.com)，禁止使用国外端点
+- [BiliSum v8.0 会话状态](bilisum-v8-session-state.md) — 27项修复已推送GitHub, Codex方案10 Agent验证结论, 剩余待办清单, 4个新克隆源文件索引
+- [BiliSum 19项用户问题诊断](bilisum-19-user-issues-diagnosis.md) — P0-P2完整诊断: 文件:行号+根因+修复方向+状态追踪
+- [Codex v8.0方案验证结果](codex-bilisum-v8-verification-results.md) — 10 Agent交叉验证: 14 Bug(6正确/4误判/1夸大), 6复用(5拒绝/1部分采纳), 11遗漏
+- [BiliSum v8.0 最终状态](bilisum-v8-final-state.md) — 14 commits, ~50修复, 16 Agent扫描, 19项反馈~85%覆盖, P0规则体系, 剩余待办
+- [P0 三Skill同步工作流](p0-triple-skill-workflow.md) — 🔴最高优先级(2026-07-13新增): OpenSpec + multi-agent-shiniyaya + using-superpowers 三位一体，计划-执行-纪律全覆盖
+- [BiliSum v8.0 全量扫描报告](bilisum-v8-full-scan-report.md) — 4 Agent并行扫描: 57.py+12前端+194Skill+4参考源+15规则审计，Phase A-E执行计划
+- [BiliSum v8.3 会话状态](bilisum-v8.3-session-state.md) — 🔴 当前活动会话: 50 Agent扫描完成, Phase 1全部修复已暂存(25文件, ~+450/-290, AST OK), 等待用户测试和Codex验证。恢复时读取此文件
+- [动态总结长度计划](dynamic-summary-length.md) — 动态总结长度 + UP主内容单独提取计划
+- [BiliSum v8.2 计划](bilisum-v8.2-plan.md) — v8.2完整计划: 4 Bug修复+动态总结+分类优化+UP主提取

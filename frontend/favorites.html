@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BiliSum · 收藏夹知识库</title>
+<link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/enhancements.css">
+<style>
+    .fav-layout { display: flex; height: calc(100vh - 52px); background: linear-gradient(to bottom, var(--surface), var(--bg)); }
+
+    /* Left Panel - Folder List */
+    .fav-left { width: 380px; border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; min-height: 0; }
+    .fav-left-header { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; flex-shrink: 0; }
+    .fav-left-list { flex: 1; overflow-y: auto; padding: 8px; min-height: 0; }
+
+    /* Folder Card */
+    .folder-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; overflow: hidden; }
+    .folder-card-header { display: flex; align-items: center; gap: 10px; padding: 10px 12px; cursor: pointer; transition: background 0.15s; }
+    .folder-card-header:hover { background: #fff0f3; }
+    .folder-card-header .checkbox { width: 16px; height: 16px; border: 2px solid var(--border); border-radius: 3px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 10px; transition: all 0.2s; }
+    .folder-card-header .checkbox.checked { background: var(--pink); border-color: var(--pink); color: #fff; }
+    .folder-card-header .folder-info { flex: 1; min-width: 0; }
+    .folder-card-header .folder-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .folder-card-header .folder-meta { font-size: 11px; color: var(--muted); }
+    .folder-card-header .folder-arrow { font-size: 12px; color: var(--muted); transition: transform 0.2s; }
+    .folder-card-header .folder-arrow.open { transform: rotate(90deg); }
+
+    /* Status Badges */
+    .status-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; }
+    .status-indexed { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
+    .status-pending { background: #fffbe6; color: #faad14; border: 1px solid #ffe58f; }
+    .status-failed { background: #fff2f0; color: #ff4d4f; border: 1px solid #ffccc7; }
+
+    /* Video List inside Folder */
+    .folder-videos { display: none; max-height: 300px; overflow-y: auto; border-top: 1px solid var(--border); }
+    .folder-videos.show { display: block; }
+    .folder-video-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px 8px 38px; border-bottom: 1px solid var(--border); font-size: 12px; }
+    .folder-video-item:hover { background: var(--bg); }
+    .folder-video-item img { width: 40px; height: 22px; object-fit: cover; border-radius: 3px; flex-shrink: 0; }
+    .folder-video-item .vtitle { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .folder-video-item .vstatus { font-size: 10px; flex-shrink: 0; }
+    .import-btn { padding: 2px 8px; border: 1px solid var(--pink); border-radius: 10px; font-size: 10px; cursor: pointer; background: #fff; color: var(--pink); }
+    .import-btn:hover { background: var(--pink); color: #fff; }
+    .import-btn.imported { border-color: #52c41a; color: #52c41a; }
+
+    /* Right Panel - Chat */
+    .fav-right { flex: 1; display: flex; flex-direction: column; background: var(--bg); min-height: 0; }
+    .fav-right-header { padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+    .fav-right-header h3 { font-size: 15px; }
+
+    /* Build Progress */
+    .build-progress { display: none; margin: 8px 16px; background: var(--surface); border-radius: var(--radius); padding: 12px 16px; box-shadow: var(--shadow); flex-shrink: 0; }
+    .build-progress .prog-header { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; }
+    .build-progress .prog-bar-outer { background: var(--border); border-radius: 10px; height: 10px; overflow: hidden; }
+    .build-progress .prog-bar-inner { background: linear-gradient(135deg, var(--pink), var(--pink-dark)); height: 100%; border-radius: 10px; transition: width 0.3s; }
+    .build-progress .prog-detail { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+    /* Build Modal */
+    .build-modal-card { width: 480px; max-width: 95vw; }
+
+    /* Chat */
+    .fav-chat { flex: 1; display: flex; flex-direction: column; padding: 16px; overflow: hidden; min-height: 0; }
+    .fav-chat-msgs { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; min-height: 0; padding: 4px; }
+    .fav-chat-input-row { display: flex; gap: 8px; flex-shrink: 0; z-index: 10; position: relative; margin-bottom: 16px; margin-top: 8px; }
+    .fav-chat-input-row .input { flex: 1; }
+    .chat-bubble { max-width: 80%; padding: 10px 14px; border-radius: 16px; font-size: 13px; line-height: 1.6; white-space: pre-wrap; }
+    .chat-bubble.user { align-self: flex-end; background: linear-gradient(135deg, var(--pink), var(--pink-dark)); color: #fff; border-bottom-right-radius: 4px; }
+    .chat-bubble.assistant { align-self: flex-start; background: var(--surface); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+    .chat-sources { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .chat-sources a { color: var(--pink-dark); text-decoration: none; margin: 0 4px; }
+</style>
+
+<style>
+.folder-card { animation: fadeInUp 0.3s ease forwards; }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+    .folder-card { animation: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+    <header class="app-topbar">
+        <div style="display:flex;align-items:center;gap:10px;position:relative">
+            <button class="hamburger-btn" id="hamburgerBtn" title="菜单">☰</button>
+            <div class="brand" onclick="location.href='/browse'">
+                <span class="brand-mark">📺</span>
+                <span class="brand-title">BiliSum</span>
+                <span class="brand-subtitle">收藏夹知识库</span>
+            </div>
+            <div class="hamburger-menu" id="hamburgerMenu">
+                <a href="/browse">🏠 首页·B站浏览</a>
+                <a href="/summary">🤖 AI总结</a>
+                <a href="/kb">📚 知识库</a>
+                <a href="/favorites">📁 收藏夹同步</a>
+                <a href="/tools">🛠️ 工具页</a>
+                <a href="/categories">📂 智能分类</a>
+                <a href="/multi-platform">🌐 多平台导入</a>
+                <a href="/upload">📤 本地上传</a>
+                <div class="menu-divider"></div>
+                <a href="https://www.bilibili.com" target="_blank">🔗 备用网站</a>
+                <a href="#" onclick="openLogin();return false">🔑 B站登录</a>
+                <a href="#" onclick="openSettings();return false">⚙️ API设置</a>
+            </div>
+        </div>
+        <nav class="topbar-actions">
+            <span style="font-size:12px;color:var(--muted)" id="userInfo"></span>
+            <button class="btn btn-outline btn-sm" onclick="openLogin()">🔑 登录</button>
+            <button class="btn btn-outline btn-sm" onclick="openSettings()">⚙️ API设置</button>
+        </nav>
+    </header>
+
+    <div class="fav-layout">
+        <!-- Left Panel -->
+        <div class="fav-left">
+            <div class="fav-left-header">
+                <button class="btn btn-outline btn-sm" onclick="loadFolders()">🔄 刷新</button>
+                <button class="btn btn-primary btn-sm" id="buildBtn" onclick="startBuild()" disabled>📥 导入知识库</button>
+                <button class="btn btn-outline btn-sm" onclick="openManageModal()">📋 管理已导入</button>
+                <button class="btn btn-outline btn-sm" onclick="exportToObsidian()" title="导出全部知识库到桌面Obsidian库">📓 导出Obsidian</button>
+                <button class="btn btn-outline btn-sm" onclick="syncObsidianStatus()" title="扫描Obsidian库中已导出的笔记">🔍 扫描Obsidian</button>
+                <button class="btn btn-outline btn-sm" onclick="openVaultFolder()" title="打开桌面库文件夹">📂 打开库</button>
+                <span style="font-size:11px;color:var(--muted)" id="kbStats"></span>
+            </div>
+            <div class="fav-left-list" id="folderList">
+                <div class="empty-state"><div class="empty-state-icon">📁</div><div class="empty-state-text">请先登录B站</div></div>
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="fav-right">
+            <div class="fav-right-header">
+                <h3>💬 知识库问答</h3>
+                <span style="font-size:11px;color:var(--muted)" id="chatStats"></span>
+            </div>
+
+            <!-- Video Import Progress (inline, non-blocking) -->
+            <div id="videoImportProgress" style="display:none;margin:8px 16px;background:var(--surface);border-radius:var(--radius);padding:10px 14px;box-shadow:var(--shadow);flex-shrink:0">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px">
+                    <span style="font-weight:600;color:var(--pink-dark)" id="vipStep">准备导入...</span>
+                    <span style="color:var(--muted)" id="vipCount"></span>
+                </div>
+                <div style="background:var(--border);border-radius:8px;height:6px;overflow:hidden">
+                    <div id="vipBar" style="background:linear-gradient(135deg,var(--pink),var(--pink-dark));height:100%;width:0%;border-radius:8px;transition:width 0.3s"></div>
+                </div>
+            </div>
+
+            <!-- Build Progress -->
+            <div class="build-progress" id="buildProgress">
+                <div class="prog-header">
+                    <span id="progStep" style="color:var(--pink-dark);font-weight:600">准备中...</span>
+                    <span id="progPct">0%</span>
+                </div>
+                <div class="prog-bar-outer"><div class="prog-bar-inner" id="progBar" style="width:0%"></div></div>
+                <div class="prog-detail" id="progDetail"></div>
+            </div>
+
+            <!-- Chat -->
+            <div class="fav-chat">
+                <div class="fav-chat-msgs" id="chatMsgs">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">💡</div>
+                        <div class="empty-state-text">登录B站，选择收藏夹导入，然后在这里提问</div>
+                    </div>
+                </div>
+                <div id="suggestedQuestions" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;flex-shrink:0">
+                    <button class="btn btn-outline btn-sm" onclick="askSuggested('总结所有已导入视频的主要内容')">📝 总结全部</button>
+                    <button class="btn btn-outline btn-sm" onclick="askSuggested('这些视频共同涉及哪些主题？')">🔍 共同主题</button>
+                    <button class="btn btn-outline btn-sm" onclick="askSuggested('有哪些值得关注的关键信息？')">⭐ 关键信息</button>
+                </div>
+                <div class="fav-chat-input-row">
+                    <input class="input" id="chatInput" placeholder="基于知识库内容提问..." onkeydown="if(event.key==='Enter')sendChat()">
+                    <button class="btn btn-primary" onclick="sendChat()">发送</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Manage Imported Modal -->
+<div class="modal-backdrop" id="manageModal">
+    <div class="modal-card" style="width:600px;max-width:95vw;max-height:80vh;overflow-y:auto;text-align:left">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div class="modal-title">📋 管理已导入视频</div>
+            <button class="btn-icon" onclick="closeManageModal()" style="font-size:18px">✕</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+            <input class="input" id="manageSearch" placeholder="搜索已导入视频..." oninput="filterManageList()" style="font-size:12px">
+            <button class="btn btn-outline btn-sm" onclick="refreshManageList()">🔄 刷新</button>
+            <span style="font-size:11px;color:var(--muted);display:flex;align-items:center" id="manageCount"></span>
+        </div>
+        <div id="manageList" style="max-height:50vh;overflow-y:auto">
+            <div class="empty-state"><div class="empty-state-text">加载中...</div></div>
+        </div>
+    </div>
+</div>
+
+<!-- Build Confirm Modal -->
+<div class="modal-backdrop" id="buildModal">
+    <div class="modal-card build-modal-card" style="text-align:left">
+        <div class="modal-title">确认导入</div>
+        <div style="font-size:13px;margin:8px 0" id="buildConfirmText">即将导入 N 个收藏夹的视频到知识库</div>
+        <div style="max-height:200px;overflow-y:auto;font-size:12px;color:var(--muted)" id="buildFolderList"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+            <button class="btn btn-outline btn-sm" onclick="closeBuildModal()">取消</button>
+            <button class="btn btn-primary btn-sm" id="confirmBuildBtn" onclick="confirmBuild()">确认导入</button>
+        </div>
+    </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-backdrop" id="settingsModal">
+    <div class="modal-card" style="text-align:left">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+            <div class="modal-title">⚙️ AI API 设置</div>
+            <button class="btn-icon" onclick="closeSettings()" style="font-size:18px">✕</button>
+        </div>
+        <label class="modal-label">API 密钥</label>
+        <input class="modal-input" id="settingsApiKey" type="password" placeholder="sk-...">
+        <label class="modal-label">API 地址</label>
+        <input class="modal-input" id="settingsApiUrl" placeholder="https://api.deepseek.com/v1/chat/completions">
+        <label class="modal-label">模型</label>
+        <select class="modal-input" id="settingsModel" style="appearance:auto">
+            <option value="claude-opus-4-8">Claude Opus 4.8 (推荐)</option>
+            <option value="claude-sonnet-5">Claude Sonnet 5</option>
+            <option value="deepseek-v4-pro">DeepSeek V4 Pro</option>
+            <option value="deepseek-chat">DeepSeek V3</option>
+            <option value="deepseek-reasoner">DeepSeek R1</option>
+            <option value="gpt-5.5">ChatGPT 5.5</option>
+        </select>
+        <label class="modal-label">下载路径</label>
+        <div style="display:flex;gap:8px">
+            <input class="modal-input" id="settingsDownloadDir" placeholder="默认：下载文件夹" style="flex:1">
+            <button class="btn btn-outline btn-sm" onclick="selectDownloadDir()">📁 浏览</button>
+        </div>
+        <label class="modal-label">知识库存储路径</label>
+        <div style="display:flex;gap:8px">
+            <input class="modal-input" id="settingsKbDir" placeholder="默认：data/knowledge_base" style="flex:1">
+            <button class="btn btn-outline btn-sm" onclick="selectKbDir()">📁 浏览</button>
+        </div>
+        <label class="modal-label">Obsidian Vault 路径</label>
+        <div style="display:flex;gap:8px">
+            <input class="modal-input" id="settingsObsidianVault" placeholder="选择 Obsidian Vault 文件夹" style="flex:1">
+            <button class="btn btn-outline btn-sm" onclick="selectObsidianVault()">📁 浏览</button>
+        </div>
+        <label class="modal-label">Obsidian 密钥 (可选)</label>
+        <input class="modal-input" id="settingsObsidianKey" type="password" placeholder="Obsidian Local REST API 密钥">
+        <p style="font-size:11px;color:var(--muted);margin-bottom:10px">
+            <b>⚠️ 密钥格式与地址必须匹配：</b><br>
+            · sk-ant-api... → Claude地址<br>
+            · sk-... → DeepSeek/OpenAI地址<br>
+            <b style="color:var(--pink-dark)">设置后所有页面生效</b>
+        </p>
+        <button class="btn btn-primary" style="width:100%" onclick="saveSettings()">💾 保存设置</button>
+    </div>
+</div>
+
+<!-- Login Modal -->
+<div class="modal-backdrop" id="loginModal">
+    <div class="modal-card">
+        <div class="modal-title">🔑 扫码登录 B站</div>
+        <div class="modal-subtitle">使用哔哩哔哩 App 扫码</div>
+        <div class="qr-container" id="qrImage"><div class="spinner"></div></div>
+        <div class="qr-status" id="qrStatus">正在生成二维码...</div>
+        <button class="btn btn-outline btn-sm" onclick="closeLogin()">取消</button>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" style="display:none"></div>
+<div class="loading-overlay" id="loadingOverlay"><div class="loading-box"><div class="spinner"></div><div style="margin-top:12px;font-size:13px;color:var(--text-secondary)" id="loadingMsg">处理中...</div></div></div>
+
+<script src="/js/common.js"></script>
+    <script src="/js/enhancements.js"></script>
+<script src="/js/api.js"></script>
+<script>
+    let selectedFolders = new Set();
+    let folderData = {};
+    let userMid = null;
+    let buildTaskId = null;
+    let buildPollTimer = null;
+
+    document.addEventListener("DOMContentLoaded", () => { checkLogin(); });
+
+    // ==================== Login & Folders ====================
+
+    async function checkLogin() {
+        try {
+            const r = await API.fetchFavoritesNav();
+            if (r && r.success && r.data && r.data.isLogin) {
+                userMid = r.data.mid;
+                const unameEl = document.getElementById("userInfo");
+                if (unameEl && r.data.uname) unameEl.textContent = `👤 ${r.data.uname}`;
+                loadFolders();
+                loadKBStats();
+            } else {
+                document.getElementById("folderList").innerHTML =
+                    '<div class="empty-state"><div class="empty-state-icon">🔑</div><div class="empty-state-text">请先登录B站<br><button class="btn btn-primary btn-sm" onclick="openLogin()" style="margin-top:8px">扫码登录</button></div></div>';
+            }
+        } catch (e) {
+            document.getElementById("folderList").innerHTML =
+                '<div class="empty-state"><div class="empty-state-text">连接失败</div></div>';
+        }
+    }
+
+    async function loadFolders() {
+        if (!userMid) { await checkLogin(); if (!userMid) return; }
+        showSkeleton('folderList', 'list');
+        showLoading("加载收藏夹...");
+        try {
+            const r = await API.fetchFavoritesFolders(userMid);
+            hideLoading();
+            if (r.success && r.data.folders) {
+                hideSkeleton('folderList');
+                folderData = {};
+                const list = document.getElementById("folderList");
+                if (r.data.folders.length === 0) {
+                    list.innerHTML = '<div class="empty-state"><div class="empty-state-text">无收藏夹</div></div>';
+                    return;
+                }
+                list.innerHTML = r.data.folders.map((f, i) => {
+                    folderData[f.id] = f;
+                    const checked = selectedFolders.has(f.id);
+                    return `
+                    <div class="folder-card" id="folder-${f.id}">
+                      <div class="folder-card-header" onclick="toggleFolder(${f.id})">
+                        <div class="checkbox ${checked ? 'checked' : ''}" id="cb-${f.id}" onclick="event.stopPropagation();toggleSelect(${f.id})">${checked ? '✓' : ''}</div>
+                        <div class="folder-info">
+                          <div class="folder-title">📁 ${escapeHtml(f.title)}</div>
+                          <div class="folder-meta">${f.media_count || 0} 个视频 <span class="status-badge status-pending" id="badge-${f.id}">待导入</span></div>
+                        </div>
+                        <span class="folder-arrow" id="arrow-${f.id}">▶</span>
+                      </div>
+                      <div class="folder-videos" id="videos-${f.id}">
+                        <div style="padding:8px;text-align:center;color:var(--muted);font-size:12px">点击展开查看视频</div>
+                      </div>
+                    </div>`;
+                }).join("");
+                updateBuildBtn();
+            }
+        } catch (e) { hideLoading(); hideSkeleton('folderList'); renderErrorState('folderList', {message: '加载收藏夹失败', onRetry: loadFolders}); }
+    }
+
+
+    // Update all folder badges after any import
+    async function refreshFolderBadges() {
+        const badges = document.querySelectorAll("[id^='badge-']");
+        for (const badge of badges) {
+            const fid = badge.id.replace("badge-", "");
+            try {
+                const r = await fetch(`/api/favorites/folder-videos?mediaId=${fid}&all=true`);
+                const data = await r.json();
+                if (data.success && data.data.videos) {
+                    const total = data.data.videos.length;
+                    const imported = data.data.videos.filter(v => v.in_kb).length;
+                    if (imported === total && total > 0) {
+                        badge.textContent = "已同步 " + total + "个";
+                        badge.className = "status-badge status-indexed";
+                    } else if (imported > 0) {
+                        badge.textContent = "部分导入 " + imported + "/" + total;
+                        badge.className = "status-badge status-pending";
+                    }
+                }
+            } catch(e) {}
+        }
+    }
+
+
+    async function toggleFolder(fid) {
+        const videosEl = document.getElementById("videos-" + fid);
+        const arrowEl = document.getElementById("arrow-" + fid);
+        if (videosEl.classList.contains("show")) {
+            videosEl.classList.remove("show");
+            arrowEl.classList.remove("open");
+            return;
+        }
+        // Load ALL videos (all=true to bypass pagination limit)
+        videosEl.innerHTML = '<div style="padding:12px;text-align:center;color:var(--muted);font-size:12px">🔄 加载全部视频...</div>';
+        videosEl.classList.add("show");
+        arrowEl.classList.add("open");
+        try {
+            const r = await fetch(`/api/favorites/folder-videos?mediaId=${fid}&all=true`);
+            const data = await r.json();
+            if (data.success && data.data.videos) {
+                const total = data.data.videos.length;
+                const imported = data.data.videos.filter(v => v.in_kb).length;
+                const unimported = total - imported;
+                // Update folder badge
+                const badgeEl = document.getElementById("badge-" + fid);
+                if (badgeEl) {
+                    if (imported === total && total > 0) {
+                        badgeEl.textContent = "已同步 " + total + "个";
+                        badgeEl.className = "status-badge status-indexed";
+                    } else if (imported > 0) {
+                        badgeEl.textContent = `部分导入 ${imported}/${total}`;
+                        badgeEl.className = "status-badge status-pending";
+                    } else {
+                        badgeEl.textContent = "待导入";
+                        badgeEl.className = "status-badge status-pending";
+                    }
+                }
+                videosEl.innerHTML = `
+                  <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border-bottom:1px solid var(--border);font-size:11px">
+                    <label style="cursor:pointer;display:flex;align-items:center;gap:4px;color:var(--muted)">
+                      <input type="checkbox" onchange="toggleSelectAllVideos(${fid}, this.checked)" id="selectAll-${fid}"> 全选
+                    </label>
+                    <span style="flex:1;color:var(--muted)">${unimported > 0 ? unimported + " 个未导入" : "✅ 全部已导入"}</span>
+                    <button class="btn btn-primary btn-sm" onclick="importSelectedVideos(${fid})" id="importSelBtn-${fid}" ${unimported === 0 ? 'disabled' : ''}>📥 导入选中${unimported > 0 ? '('+unimported+')' : ''}</button>
+                  </div>
+                  ${data.data.videos.map(v => {
+                    return `
+                    <div class="folder-video-item" id="vid-${fid}-${v.bvid}">
+                      ${v.in_kb ? '' : `<input type="checkbox" class="vid-checkbox-${fid}" data-bvid="${v.bvid}" onchange="updateImportSelBtn(${fid})" style="flex-shrink:0">`}
+                      ${v.pic ? `<img src="${v.pic}" alt="" onerror="this.style.display='none'">` : '<span style="width:40px;text-align:center">🎬</span>'}
+                      <span class="vtitle" title="${escapeHtml(v.title)}">${escapeHtml(v.title)}</span>
+                      <span class="vstatus">${v.in_kb ? '<span class="status-badge status-indexed">已导入 ' + (v.textLen || v.textLength || '') + '字</span>' : `<button class="import-btn" onclick="event.stopPropagation();importVideo(\'${v.bvid}\', this, ${fid})">导入</button>`}</span>
+                    </div>`;
+                  }).join("")}`;
+                if (data.data.total > 20) {
+                    videosEl.insertAdjacentHTML("afterbegin", `<div style="padding:6px 12px;background:#fffbe6;font-size:11px;color:#ad8b00;border-bottom:1px solid #ffe58f">📋 已加载全部 ${data.data.total} 个视频</div>`);
+                }
+            } else {
+                videosEl.innerHTML = '<div style="padding:12px;text-align:center;color:#ff4d4f;font-size:12px">加载失败: ' + escapeHtml(data.error || "") + '</div>';
+            }
+        } catch (e) {
+            videosEl.innerHTML = '<div style="padding:12px;text-align:center;color:#ff4d4f;font-size:12px">网络错误</div>';
+        }
+    }
+
+    function toggleSelect(fid) {
+        if (selectedFolders.has(fid)) {
+            selectedFolders.delete(fid);
+        } else {
+            selectedFolders.add(fid);
+        }
+        const cb = document.getElementById("cb-" + fid);
+        cb.classList.toggle("checked", selectedFolders.has(fid));
+        cb.textContent = selectedFolders.has(fid) ? "✓" : "";
+        updateBuildBtn();
+    }
+
+    function updateBuildBtn() {
+        const btn = document.getElementById("buildBtn");
+        if (selectedFolders.size === 0) {
+            btn.disabled = true;
+            btn.textContent = "📥 导入知识库";
+        } else {
+            btn.disabled = false;
+            btn.textContent = `📥 导入 (${selectedFolders.size} 个收藏夹)`;
+        }
+    }
+
+    // ==================== Build / Import ====================
+
+    function startBuild() {
+        if (selectedFolders.size === 0) return;
+        const names = Array.from(selectedFolders).map(id => folderData[id]?.title || id).join("<br>");
+        document.getElementById("buildConfirmText").textContent = `即将导入 ${selectedFolders.size} 个收藏夹的视频到知识库`;
+        document.getElementById("buildFolderList").innerHTML = names;
+        document.getElementById("buildModal").style.display = "flex";
+    }
+
+    async function confirmBuild() {
+        document.getElementById("buildModal").style.display = "none";
+        const progressEl = document.getElementById("buildProgress");
+        progressEl.style.display = "block";
+
+        try {
+            const r = await fetch("/api/favorites/sync", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ folder_ids: Array.from(selectedFolders) })
+            });
+            const data = await r.json();
+            if (data.success) {
+                buildTaskId = data.data.task_id;
+                pollBuildProgress();
+            } else {
+                showToast(data.error || "启动失败", "error");
+            }
+        } catch (e) {
+            showToast("请求失败", "error");
+        }
+    }
+
+    function pollBuildProgress() {
+        if (buildPollTimer) clearInterval(buildPollTimer);
+        buildPollTimer = setInterval(async () => {
+            try {
+                const r = await fetch(`/api/favorites/sync/status/${buildTaskId}`);
+                const data = await r.json();
+                if (!data.success) return;
+                const t = data.data;
+                document.getElementById("progStep").textContent = t.current_step || "处理中...";
+                document.getElementById("progPct").textContent = (t.progress || 0) + "%";
+                document.getElementById("progBar").style.width = (t.progress || 0) + "%";
+                document.getElementById("progDetail").textContent =
+                    `已处理 ${t.processed_videos || 0}/${t.total_videos || 0} 个视频 · ${t.current_video_title || ""}`;
+
+                if (t.status === "completed") {
+                    clearInterval(buildPollTimer);
+                    showToast("导入完成! " + (t.message || ""), "success");
+                    setTimeout(() => { document.getElementById("buildProgress").style.display = "none"; }, 3000);
+                    loadFolders();
+                    loadKBStats();
+                } else if (t.status === "cancelled" || t.status === "failed") {
+                    clearInterval(buildPollTimer);
+                    showToast("导入中断", "error");
+                }
+            } catch (e) { /* ignore */ }
+        }, 1000);
+    }
+
+    function toggleSelectAllVideos(fid, checked) {
+        document.querySelectorAll(`.vid-checkbox-${fid}`).forEach(cb => { cb.checked = checked; });
+        updateImportSelBtn(fid);
+    }
+
+    function updateImportSelBtn(fid) {
+        const checked = document.querySelectorAll(`.vid-checkbox-${fid}:checked`).length;
+        const btn = document.getElementById("importSelBtn-" + fid);
+        if (btn) {
+            btn.disabled = checked === 0;
+            btn.textContent = checked > 0 ? `📥 导入选中(${checked})` : "📥 导入选中";
+        }
+    }
+
+    function showVideoImportProgress(pct, step, count) {
+        const el = document.getElementById("videoImportProgress");
+        el.style.display = "block";
+        document.getElementById("vipBar").style.width = pct + "%";
+        document.getElementById("vipStep").textContent = step;
+        document.getElementById("vipCount").textContent = count || "";
+    }
+
+    function hideVideoImportProgress() {
+        setTimeout(() => {
+            document.getElementById("videoImportProgress").style.display = "none";
+        }, 2000);
+    }
+
+    async function importSelectedVideos(fid) {
+        const checked = document.querySelectorAll(`.vid-checkbox-${fid}:checked`);
+        if (checked.length === 0) return;
+        const bvids = Array.from(checked).map(cb => cb.dataset.bvid);
+        const folderName = folderData[fid]?.title || `收藏夹${fid}`;
+        const total = bvids.length;
+        let done = 0;
+
+        for (let i = 0; i < bvids.length; i++) {
+            const bvid = bvids[i];
+            showVideoImportProgress(Math.round((i / total) * 100), `正在导入: ${bvid}`, `${i+1}/${total}`);
+            try {
+                const r = await fetch("/api/favorites/import-video", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ bvid, folder: folderName })
+                });
+                const data = await r.json();
+                if (data.success) {
+                    done++;
+                    document.querySelectorAll(`[id^="vid-"][id$="-${bvid}"]`).forEach(el => {
+                        el.querySelector(".vstatus").innerHTML = '<span class="status-badge status-indexed">已导入 ' + (data.data.textLen || '') + ' 字</span>';
+                        const cb = el.querySelector("input[type=checkbox]");
+                        if (cb) cb.remove();
+                    });
+                }
+            } catch (e) { /* continue */ }
+        }
+        showVideoImportProgress(100, `完成: ${done}/${total} 已导入`, "");
+        hideVideoImportProgress();
+        refreshFolderBadges(); showToast(`✅ ${done}/${total} 个视频已导入到「${folderName}」`, "success");
+        updateImportSelBtn(fid);
+        loadKBStats();
+    }
+
+    // Concurrent import guard
+    let _importing = new Set();
+
+    async function importVideo(bvid, btn, fid) {
+        if (_importing.has(bvid)) { showToast("该视频正在导入中...", "info"); return; }
+        _importing.add(bvid);
+        if (btn) { btn.textContent = "..."; btn.disabled = true; }
+        const folderName = folderData[fid]?.title || "";
+        showVideoImportProgress(30, `正在导入: ${bvid}`, "");
+        try {
+            const r = await fetch("/api/favorites/import-video", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ bvid, folder: folderName })
+            });
+            const data = await r.json();
+            showVideoImportProgress(100, data.success ? "导入完成" : "导入失败", "");
+            hideVideoImportProgress();
+            if (data.success) {
+                const wl = data.data.textLen || data.data.textLength || 0;
+                const badgeHtml = `<span class="status-badge status-indexed">已导入 ${wl}字</span>`;
+                document.querySelectorAll(`[id^="vid-"][id$="-${bvid}"]`).forEach(el => {
+                    el.querySelector(".vstatus").innerHTML = badgeHtml;
+                    const cb = el.querySelector("input[type=checkbox]");
+                    if (cb) cb.remove();
+                });
+                showToast(`${data.data.title} (${wl}字)`, "success");
+                loadKBStats();
+                if (fid) updateImportSelBtn(fid);
+            } else {
+                if (btn) { btn.textContent = "重试"; btn.disabled = false; }
+                showToast(data.error || "导入失败", "error");
+            }
+        } catch (e) {
+            hideVideoImportProgress();
+            if (btn) { btn.textContent = "重试"; btn.disabled = false; }
+            showToast("导入失败", "error");
+        } finally {
+            _importing.delete(bvid);
+        }
+    }
+
+    // ==================== KB Stats ====================
+
+    async function loadKBStats() {
+        try {
+            const r = await fetch("/api/rag/stats");
+            const data = await r.json();
+            if (data.success) {
+                document.getElementById("kbStats").textContent = `${data.data.totalVideos || 0}视频`;
+                document.getElementById("chatStats").textContent = `已索引 ${data.data.totalVideos || 0} 个视频`;
+            }
+        } catch (e) { /* ignore */ }
+    }
+
+    // ==================== Manage Imported ====================
+
+    let allImportedVideos = [];
+
+    
+function closeManageModal() {
+    const backdrop = document.getElementById("manageModal");
+    if (backdrop) {
+        backdrop.style.display = "none";
+        backdrop.classList.remove("open");
+    }
+}
+
+function openManageModal() {
+    const backdrop = document.getElementById("manageModal");
+    if (backdrop) {
+        backdrop.style.display = "flex";
+        backdrop.classList.add("open");
+    }
+    refreshManageList();
+}
+
+    async function refreshManageList() {
+        document.getElementById("manageList").innerHTML = '<div class="empty-state"><div class="empty-state-text">加载中...</div></div>';
+        try {
+            const r = await API.fetchKBList();
+            if (r.success && r.data.entries) {
+                allImportedVideos = r.data.entries;
+                renderManageList(allImportedVideos);
+            } else {
+                document.getElementById("manageList").innerHTML = '<div class="empty-state"><div class="empty-state-text">暂无已导入视频</div></div>';
+            }
+        } catch (e) {
+            document.getElementById("manageList").innerHTML = '<div class="empty-state"><div class="empty-state-text">加载失败</div></div>';
+        }
+    }
+
+    function renderManageList(videos) {
+        document.getElementById("manageCount").textContent = `共 ${videos.length} 个`;
+        const list = document.getElementById("manageList");
+        if (videos.length === 0) {
+            list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">暂无已导入视频</div></div>';
+            return;
+        }
+        list.innerHTML = videos.map((v, i) => `
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:12px;color:var(--muted);width:24px;flex-shrink:0">${i + 1}</span>
+          ${v.pic ? `<img src="${v.pic}" alt="" style="width:48px;height:27px;object-fit:cover;border-radius:4px;flex-shrink:0" onerror="this.style.display='none'">` : ""}
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(v.title)}</div>
+            <div style="font-size:11px;color:var(--muted)">${escapeHtml(v.author || "")} · ${v.textLength || v.textLen || 0}字 · BV: ${v.bvid}</div>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="pushToObsidian('${v.bvid}')" style="color:var(--pink);border-color:var(--pink);flex-shrink:0" title="推送到Obsidian">📓</button>
+          <button class="btn btn-outline btn-sm" onclick="reimportVideo('${v.bvid}', this)" style="color:#52c41a;border-color:#52c41a;flex-shrink:0" title="重新导入">🔄</button>
+          <button class="btn btn-outline btn-sm" onclick="exportVideoMarkdown('${v.bvid}')" style="color:var(--muted);border-color:var(--muted);flex-shrink:0" title="导出Markdown">📥</button>
+          <button class="btn btn-outline btn-sm" onclick="deleteImportedVideo('${v.bvid.replace(/'/g, "\\'")}', '${v.title.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')" style="color:#ff4d4f;border-color:#ff4d4f;flex-shrink:0" title="删除">🗑️</button>
+        </div>`).join("");
+    }
+
+    function filterManageList() {
+        const q = document.getElementById("manageSearch").value.trim().toLowerCase();
+        if (!q) { renderManageList(allImportedVideos); return; }
+        const filtered = allImportedVideos.filter(v =>
+            (v.title || "").toLowerCase().includes(q) ||
+            (v.bvid || "").toLowerCase().includes(q) ||
+            (v.author || "").toLowerCase().includes(q)
+        );
+        renderManageList(filtered);
+    }
+
+    function exportVideoMarkdown(bvid) {
+        API.downloadFile(`/api/v2/export/md?bvid=${bvid}`, `${bvid}.md`);
+        showToast("下载开始", "success");
+    }
+
+    async function pushToObsidian(bvid) {
+        showToast("正在推送到 Obsidian...", "info");
+        try {
+            const d = await API.post("/api/kb/push-obsidian", { bvid });
+            if (d.success) showToast(`已推送到 Obsidian: ${d.data.file}`, "success");
+            else showToast(d.error || "推送失败", "error");
+        } catch (e) { showToast("推送失败", "error"); }
+    }
+
+    function closeBuildModal() {
+    const backdrop = document.getElementById("buildModal");
+    backdrop.style.display = "none";
+}
+
+async function reimportVideo(bvid, btn) {
+    if (!confirm("确定要重新导入 " + bvid + " 吗？\n这将覆盖现有数据。")) return;
+    if (btn) { btn.textContent = "..."; btn.disabled = true; }
+    try {
+        const r = await fetch("/api/favorites/import-video", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ bvid: bvid, folder: "重新导入" })
+        });
+        const data = await r.json();
+        if (data.success) {
+            showToast(data.data.title + " 重新导入完成", "success");
+            refreshManageList();
+            loadKBStats();
+        } else {
+            showToast(data.error || "重新导入失败", "error");
+        }
+    } catch (e) {
+        showToast("重新导入失败", "error");
+    } finally {
+        if (btn) { btn.textContent = "🔄"; btn.disabled = false; }
+    }
+}
+
+async function deleteImportedVideo(bvid, title) {
+        if (!confirm(`确定要删除「${title}」吗？\n\n将同时删除：\n· 知识库条目与文本分块\n· 搜索索引与AI向量数据\n· ASR音频缓存文件\n· 已下载的视频文件夹\n\n此操作不可恢复，需重新导入。`)) return;
+        try {
+            const r = await API.fetchKBDelete(bvid);
+            if (r.success) {
+                showToast(`已删除: ${title}`, "success");
+                refreshManageList();
+                loadKBStats();
+                loadFolders();
+            } else {
+                showToast(r.error || "删除失败", "error");
+            }
+        } catch (e) { showToast("删除失败", "error"); }
+    }
+
+    // ==================== Obsidian Export ====================
+
+    
+    function openVaultFolder() {
+        fetch("/api/kb/vault-path").then(function(r) { return r.json(); }).then(function(d) {
+            if (d.success && d.data.exists) {
+                var vaultPath = d.data.vault_path;
+                // [v8.2] Use dedicated openFolder IPC for security-validated filesystem access
+                if (window.electronAPI && window.electronAPI.openFolder) {
+                    window.electronAPI.openFolder(vaultPath).then(function(result) {
+                        if (result && result.success) {
+                            showToast("Vault folder opened", "success");
+                        } else {
+                            showToast("Cannot open folder: " + (result ? result.error : "unknown"), "error");
+                        }
+                    }).catch(function(e) {
+                        showToast("Cannot open folder: " + (e.message || e), "error");
+                    });
+                } else if (window.electronAPI && window.electronAPI.openExternal) {
+                    // Fallback: openExternal with validated vault path (whitelisted in preload)
+                    window.electronAPI.openExternal("file:///" + vaultPath.replace(/\\/g, "/"));
+                    showToast("已打开库文件夹", "success");
+                } else if (typeof window.open === "function") {
+                    var w = window.open("file:///" + vaultPath.replace(/\\/g, "/"), "_blank");
+                    if (!w || w.closed) {
+                        showToast("浏览器阻止了文件夹访问，请手动打开: " + vaultPath, "error");
+                    } else {
+                        showToast("已打开库文件夹", "success");
+                    }
+                } else {
+                    showToast("请在文件管理器中打开: " + vaultPath, "info");
+                }
+            } else {
+                showToast("未找到库文件夹: " + (d.data ? d.data.vault_path : ""), "error");
+            }
+        }).catch(function(e) { showToast("无法打开文件夹: " + (e.message || e), "error"); });
+    }
+
+
+    async function exportToObsidian() {
+        showLoading("导出到 Obsidian...");
+        try {
+            // Get all bvids from KB list instead of empty {}
+            let bvids = [];
+            try {
+                const listResp = await API.fetchKBList();
+                if (listResp && listResp.data && listResp.data.entries) {
+                    bvids = listResp.data.entries.map(e => e.bvid).filter(Boolean);
+                }
+            } catch (e) { /* fallback - try empty */ }
+            const data = await API.post("/api/kb/export-obsidian", { bvids: bvids });
+            hideLoading();
+            if (data.success) {
+                showToast(`已导出 ${data.data.exported} 个文件到桌面 BiliSum-Knowledge 文件夹`, "success");
+                // Show vault path
+                setTimeout(() => {
+                    showToast(`库路径: ${data.data.vault_path}`, "info");
+                }, 3000);
+            } else {
+                showToast(data.error || "导出失败", "error");
+            }
+        } catch (e) { hideLoading(); showToast("导出失败", "error"); }
+    }
+
+    // ==================== Chat ====================
+
+    function askSuggested(q) {
+        document.getElementById("chatInput").value = q;
+        sendChat();
+    }
+
+    async function syncObsidianStatus() {
+        showLoading("扫描 Obsidian 库...");
+        try {
+            const data = await API.post("/api/kb/init-obsidian", {});
+            hideLoading();
+            if (data.success) {
+                const d = data.data;
+                let msg = `已扫描 ${d.scanned} 个文件，匹配 ${d.matched} 个BV号`;
+                if (d.matched > 0) {
+                    msg += `\n✅ 已同步: ${d.in_kb_count} | ⚠️ 未导入: ${d.matched - d.in_kb_count}`;
+                }
+                showToast(msg, "success");
+            } else {
+                showToast(data.error || "扫描失败", "error");
+            }
+        } catch (e) { hideLoading(); showToast("扫描失败", "error"); }
+    }
+
+    async function sendChat() {
+        const input = document.getElementById("chatInput");
+        const q = input.value.trim();
+        if (!q) return;
+        input.value = "";
+        const msgs = document.getElementById("chatMsgs");
+        await streamChat(q, msgs);
+    }
+
+    // Re-trigger checkLogin after successful B站 login (QR scan success)
+    window.addEventListener('bilisum:login-success', () => {
+        setTimeout(() => checkLogin(), 500);
+    });
+</script>
+</body>
+</html>
