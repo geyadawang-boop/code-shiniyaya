@@ -209,7 +209,7 @@ AI: 读最新snapshot → 恢复全部状态 → 继续执行
 | 70-90% | 同上 + 输出时不调用新Agent + 标注紧急 |
 | >90% | 仅保存snapshot+git push，输出"⚠️ >90% /compact 继"，不启动任何Agent |
 
-阈值估算: versionVector × ~12% (每轮20 Agent ≈ 10-15%上下文消耗)。Write密集型会话此估算准确；Read密集型会话严重低估（versionVector仅追踪写入次数，Read/Grep不产生versionVector递增>此为本机制的已知天花板）。压缩后恢复时versionVector清零。
+阈值估算: versionVector × ~12% (每轮20 Agent ≈ 10-15%上下文消耗)。Write密集型会话此估算准确；Read密集型会话严重低估（versionVector仅追踪写入次数，Read/Grep不产生versionVector递增 → 此为本机制的已知天花板）。压缩后恢复时versionVector清零。
 
 `# ponytail: 阈值估算是启发式的(无token计数API)，ceiling: versionVector × 12% (Read密集型会话低估~30-50%)，upgrade: CC公开token计数API时替换为精确百分比；或增加turn计数作为辅助估算信号`
 
@@ -370,7 +370,7 @@ CC必须在调用任何工具(Read/Grep/Bash/Write/Edit)前，对照调用栈缓
 **(b) Grep阻断**: 同一pattern+同一path→第2次调用前阻断。Grep结果已在上下文中→阻断。
 **(c) Bash wc -l阻断**: 同一file的wc -l→第2次调用前阻断。行数已知→阻断。
 **(d) 确认词输出阻断**: 上个turn输出含done/final/complete/verified/confirmed且无Write/Edit/Agent启动→本次turn开始前阻断全部操作。
-**(e) Write↔Read done循环阻断** (v4.7.5 降级为尽力而为): CC在同一个turn内跟踪done文件的Write/Read——若同一turn内出现Write done→Read done≥3次→阻断。跨turn的Write→Read→Write循环: 规则26无法检测（需要跨turn持久状态，CC架构不支持），由L2(PreToolUse hook)和L3(一字恢复)承接。
+**(e) Write↔Read done循环阻断** (v4.7.5 降级为尽力而为): CC在同一个turn内跟踪done文件的Write/Read——若同一turn内出现Write done→Read done≥3次→阻断。跨turn的Write→Read→Write循环: 规则26无法检测（需要跨turn持久状态，CC架构不支持），由L3(一字恢复)承接——用户"继"触发恢复时自然打断循环。
 `# ponytail: 规则26(e)跨turn部分无法执行(需要跨turn状态追踪 v4.6.10审计已确认)，ceiling: 同turn内检测，upgrade: CC支持跨turn状态时`
 
 **阻断结果**: 阻断=(a)-(d)项执行阻断检查→任一触发→不执行工具调用，本轮到此结束。输出:"⚡ 阻断: {触发项}。下一条消息时重置。"。用户可见阻断原因，非静默失败。
@@ -564,8 +564,9 @@ CC必须在调用任何工具(Read/Grep/Bash/Write/Edit)前，对照调用栈缓
 
 ```
 触发 → 路由 (短语匹配优先于状态匹配):
-  ├─ "继"/"继续执行"/"继续迭代"/"继续优化"/"继续修复" → 一字恢复: 读最新memory/snapshot-*.md → 运行4 Agent精简完整性扫描 → 从CHANGELOG.md续取任务。若snapshot不存在→"无活动快照可恢复。开始新诊断?(STEP 0)"
-  ├─ "resume"/"go on"/"pick up" → 同上(snapshot恢复)
+  ├─ "继"/"继续执行"/"继续迭代"/"继续优化" → 一字恢复: 读最新memory/snapshot-*.md → 运行4 Agent精简完整性扫描 → 从CHANGELOG.md续取任务。若snapshot不存在→"无活动快照可恢复。开始新诊断?(STEP 0)"
+  ├─ "继续修复" → session JSON恢复(读session JSON+mode→route to saved STEP)。若session JSON不存在→回退snapshot恢复。若两者都不存在→"无活动会话或快照可恢复。开始新诊断?(STEP 0)"
+  ├─ "resume"/"go on"/"pick up" → 先尝试session JSON恢复→不存在则snapshot恢复
   ├─ "继续等"/"继续等待"/"继续等Codex" → 保持静默等待(不触发恢复)
   ├─ "继续" (不以"等"/"等待"/"修复"/"执行"/"迭代"/"优化"结尾) → 不触发恢复, 提示用户明确意图("是说继续修复? 继续迭代? 继续等Codex? 还是继续其他操作?")
   ├─ stop/中断/CTRL+C → 停止线优先于所有路由
