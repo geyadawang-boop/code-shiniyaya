@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BiliSum · 本地上传</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/enhancements.css">
+<style>
+    /* ===== Page Layout ===== */
+    .upload-layout {
+        display: flex; flex-direction: column; height: calc(100vh - 56px);
+        max-width: 960px; margin: 0 auto; padding: 24px 16px;
+        gap: 16px; overflow-y: auto;
+    }
+
+    /* ===== Hero / Header ===== */
+    .upload-hero {
+        text-align: center; padding: 24px 24px 16px 24px;
+        background: linear-gradient(135deg, var(--coral-50), var(--sky-50));
+        border-radius: var(--radius-xl); border: 1px solid var(--border);
+        flex-shrink: 0;
+    }
+    .upload-hero h2 { font-size: var(--text-h2); color: var(--coral-700); margin-bottom: 4px; }
+    .upload-hero .hero-sub { font-size: var(--text-body-sm); color: var(--text-muted); }
+
+    /* ===== Drag & Drop Zone ===== */
+    .dropzone-container {
+        flex-shrink: 0;
+    }
+    .dropzone {
+        position: relative;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 12px;
+        padding: 40px 24px;
+        border: 2px dashed var(--neutral-300);
+        border-radius: var(--radius-xl);
+        background: var(--surface);
+        cursor: pointer;
+        transition: all var(--duration-base) var(--ease-out);
+        text-align: center;
+        min-height: 180px;
+    }
+    .dropzone:hover {
+        border-color: var(--sky-400);
+        background: var(--sky-50);
+    }
+    .dropzone.drag-over {
+        border-color: var(--brand-primary);
+        background: var(--bg-primary-soft);
+        box-shadow: var(--glow-sky);
+        transform: scale(1.01);
+    }
+    .dropzone.has-file {
+        border-style: solid;
+        border-color: var(--brand-primary);
+        background: var(--bg-primary-soft);
+    }
+    .dropzone.has-error {
+        border-style: solid;
+        border-color: var(--danger-border);
+        background: var(--danger-bg);
+    }
+
+    .dropzone-icon {
+        font-size: 48px; line-height: 1;
+        transition: transform var(--duration-base) var(--ease-out);
+    }
+    .dropzone.drag-over .dropzone-icon {
+        transform: scale(1.15);
+    }
+    .dropzone-title {
+        font-size: var(--text-body-lg); font-weight: var(--weight-semibold);
+        color: var(--text-primary);
+    }
+    .dropzone-hint {
+        font-size: var(--text-caption); color: var(--text-muted);
+        max-width: 360px; line-height: var(--leading-caption);
+    }
+    .dropzone-formats {
+        display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+    }
+    .format-tag {
+        display: inline-block; padding: 2px 10px; border-radius: var(--radius-pill);
+        font-size: var(--text-overline); font-weight: var(--weight-semibold);
+        background: var(--sky-100); color: var(--sky-700);
+        font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+        letter-spacing: 0;
+    }
+
+    /* File info bar (shown after selection) */
+    .file-info-bar {
+        display: none; align-items: center; gap: 8px;
+        margin-top: 12px; padding: 10px 14px;
+        background: var(--surface); border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: var(--text-body-sm);
+    }
+    .file-info-bar.active { display: flex; }
+    .file-info-icon { font-size: 20px; }
+    .file-info-details { flex: 1; min-width: 0; }
+    .file-info-name {
+        font-weight: var(--weight-semibold); color: var(--text-primary);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .file-info-meta {
+        font-size: var(--text-caption); color: var(--text-muted);
+    }
+    .file-info-remove {
+        flex-shrink: 0; background: none; border: none; cursor: pointer;
+        color: var(--text-muted); font-size: 16px; padding: 4px 8px;
+        border-radius: var(--radius-sm); min-width: 36px; min-height: 36px;
+        transition: all var(--duration-fast) var(--ease-out);
+    }
+    .file-info-remove:hover { color: var(--danger); background: var(--danger-bg); }
+
+    /* ===== Settings Row ===== */
+    .upload-settings {
+        display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+        justify-content: center; padding: 12px 16px;
+        background: var(--surface); border: 1px solid var(--border);
+        border-radius: var(--radius-lg); flex-shrink: 0;
+    }
+    .setting-group {
+        display: flex; align-items: center; gap: 6px;
+        font-size: var(--text-caption); color: var(--text-secondary);
+    }
+    .setting-group label {
+        display: flex; align-items: center; gap: 4px; cursor: pointer;
+        white-space: nowrap;
+    }
+    .setting-group input[type="checkbox"] {
+        width: 15px; height: 15px; accent-color: var(--brand-primary);
+    }
+    .setting-group input[type="number"] {
+        width: 72px; padding: 4px 8px; border: 1px solid var(--border);
+        border-radius: var(--radius-sm); font-size: var(--text-caption);
+        background: var(--surface); color: var(--text-primary); text-align: right;
+    }
+    .setting-group input[type="number"]:focus {
+        border-color: var(--sky-500); outline: none; box-shadow: var(--glow-sky);
+    }
+
+    /* ===== Action Bar ===== */
+    .upload-action-bar {
+        display: flex; gap: 8px; justify-content: center; flex-shrink: 0;
+    }
+    .upload-action-bar .btn-start {
+        padding: 10px 32px; font-size: var(--text-body); font-weight: var(--weight-semibold);
+        border-radius: var(--radius-pill); min-width: 160px;
+    }
+    .upload-action-bar .btn-cancel {
+        padding: 10px 20px; font-size: var(--text-body-sm);
+        border-radius: var(--radius-pill);
+    }
+
+    /* ===== Progress Section ===== */
+    .progress-section {
+        display: none; background: var(--surface); border: 1px solid var(--border);
+        border-radius: var(--radius-lg); padding: 18px 20px; flex-shrink: 0;
+    }
+    .progress-section.active { display: block; }
+
+    /* 5-step pipeline */
+    .progress-steps {
+        display: flex; gap: 0; align-items: flex-start; justify-content: space-between;
+        position: relative; padding: 0 4px;
+    }
+    .progress-steps::before {
+        content: ""; position: absolute; top: 14px; left: 28px; right: 28px;
+        height: 2px; background: var(--neutral-200); z-index: 0;
+    }
+    .progress-step {
+        display: flex; flex-direction: column; align-items: center; gap: 6px;
+        flex: 1; position: relative; z-index: 1;
+    }
+    .step-dot {
+        width: 28px; height: 28px; border-radius: 50%;
+        background: var(--surface); border: 2px solid var(--neutral-200);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 12px; font-weight: var(--weight-bold);
+        transition: all var(--duration-base) var(--ease-out);
+    }
+    .progress-step.completed .step-dot {
+        background: var(--brand-primary); border-color: var(--brand-primary); color: #fff;
+    }
+    .progress-step.active .step-dot {
+        background: var(--sky-50); border-color: var(--brand-primary); color: var(--brand-primary);
+        animation: stepPulse 1.5s ease-in-out infinite;
+    }
+    .progress-step.error .step-dot {
+        background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger);
+    }
+    @keyframes stepPulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(126, 184, 218, 0.4); }
+        50%      { box-shadow: 0 0 0 8px rgba(126, 184, 218, 0); }
+    }
+    .step-label {
+        font-size: var(--text-caption); color: var(--text-muted); text-align: center;
+        max-width: 85px; line-height: 1.3;
+    }
+    .progress-step.completed .step-label { color: var(--text-secondary); }
+    .progress-step.active .step-label     { color: var(--brand-primary); font-weight: var(--weight-semibold); }
+    .progress-step.error .step-label      { color: var(--danger); }
+
+    /* Progress bar for upload/sub-steps */
+    .progress-bar-wrap {
+        margin-top: 12px; background: var(--neutral-100);
+        border-radius: var(--radius-pill); height: 6px; overflow: hidden;
+    }
+    .progress-bar-fill {
+        height: 100%; border-radius: var(--radius-pill);
+        background: linear-gradient(90deg, var(--sky-500), var(--brand-primary-dark));
+        transition: width 0.3s var(--ease-out);
+        width: 0%;
+    }
+    .progress-bar-fill.indeterminate {
+        width: 30%; animation: barIndeterminate 1.4s ease-in-out infinite;
+    }
+    @keyframes barIndeterminate {
+        0%   { transform: translateX(-100%); }
+        100% { transform: translateX(400%); }
+    }
+
+    .progress-detail-row {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-top: 8px; font-size: var(--text-caption);
+    }
+    .progress-percent { font-weight: var(--weight-semibold); color: var(--brand-primary); }
+    .progress-eta { color: var(--text-muted); }
+
+    .progress-message {
+        text-align: center; font-size: var(--text-body-sm); color: var(--text-secondary);
+        margin-top: 8px; min-height: 20px;
+    }
+
+    /* ===== Result Section ===== */
+    .result-section {
+        display: none; flex: 1; min-height: 0; overflow: hidden;
+        background: var(--surface); border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+    }
+    .result-section.active { display: flex; flex-direction: column; }
+
+    .result-toolbar {
+        display: flex; gap: 0; border-bottom: 1px solid var(--border);
+        padding: 0 16px; flex-shrink: 0;
+    }
+    .result-tab {
+        padding: 10px 16px; font-size: var(--text-body-sm); font-weight: var(--weight-medium);
+        color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent;
+        background: none; border-top: none; border-left: none; border-right: none;
+        transition: all var(--duration-fast) var(--ease-out);
+        font-family: inherit;
+    }
+    .result-tab:hover { color: var(--text-primary); }
+    .result-tab.active { color: var(--brand-primary); border-bottom-color: var(--brand-primary); }
+
+    .result-body {
+        flex: 1; overflow-y: auto; padding: 20px; min-height: 0;
+    }
+    .result-meta {
+        display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+        margin-bottom: 16px; font-size: var(--text-caption); color: var(--text-muted);
+    }
+    .result-meta .video-title { font-size: var(--text-body); font-weight: var(--weight-semibold); color: var(--text-primary); }
+    .result-overview { line-height: var(--leading-relaxed); margin-bottom: 18px; color: var(--text-primary); }
+
+    .result-section-title {
+        font-size: var(--text-body); font-weight: var(--weight-semibold);
+        color: var(--brand-primary); margin: 18px 0 8px; padding-bottom: 4px;
+        border-bottom: 1px solid var(--border);
+    }
+    .result-section-title:first-child { margin-top: 0; }
+    .result-list { padding-left: 20px; margin: 0; }
+    .result-list li { margin-bottom: 6px; font-size: var(--text-body-sm); line-height: var(--leading-body); color: var(--text-primary); }
+
+    .result-actions {
+        display: flex; gap: 8px; flex-wrap: wrap; padding: 12px 16px;
+        border-top: 1px solid var(--border); flex-shrink: 0;
+    }
+
+    /* Transcript items */
+    .transcript-list { max-height: 100%; overflow-y: auto; }
+    .transcript-item {
+        display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--neutral-100);
+        font-size: var(--text-body-sm); line-height: var(--leading-body);
+    }
+    .transcript-time {
+        flex-shrink: 0; min-width: 58px; color: var(--text-muted);
+        font-variant-numeric: tabular-nums; font-size: var(--text-caption);
+    }
+    .transcript-text { flex: 1; color: var(--text-primary); }
+
+    /* Empty / error states */
+    .result-empty {
+        text-align: center; padding: 40px 20px; color: var(--text-muted);
+        font-size: var(--text-body);
+    }
+
+    /* ===== Time Estimate Card ===== */
+    .time-estimate {
+        display: none; align-items: center; gap: 12px; justify-content: center;
+        padding: 14px 20px; background: linear-gradient(135deg, var(--gold-50), var(--sky-50));
+        border: 1px solid var(--gold-200); border-radius: var(--radius-lg);
+        flex-shrink: 0;
+    }
+    .time-estimate.active { display: flex; }
+    .time-estimate .est-icon { font-size: 24px; }
+    .time-estimate .est-text { font-size: var(--text-body-sm); color: var(--text-primary); }
+    .time-estimate .est-duration { font-weight: var(--weight-bold); color: var(--coral-600); }
+    .time-estimate .est-eta { font-size: var(--text-caption); color: var(--text-muted); }
+
+    /* Hide dropzone during processing */
+    .dropzone-container.collapsed .dropzone { display: none; }
+    .dropzone-container.collapsed .file-info-bar { display: none; }
+    .upload-settings.collapsed { display: none; }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+        .upload-layout { padding: 12px 8px; }
+        .dropzone { padding: 28px 16px; min-height: 140px; }
+        .dropzone-icon { font-size: 36px; }
+        .progress-steps { gap: 2px; }
+        .step-label { font-size: 10px; max-width: 58px; }
+        .upload-settings { flex-direction: column; gap: 8px; align-items: flex-start; }
+        .upload-action-bar { flex-direction: column; align-items: stretch; }
+    }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+    <!-- Top Bar -->
+    <header class="app-topbar">
+        <div style="display:flex;align-items:center;gap:10px;position:relative">
+            <button class="hamburger-btn" id="hamburgerBtn" title="菜单">&#9776;</button>
+            <div class="brand" onclick="location.href='/browse'">
+                <span class="brand-mark">&#x1F4FA;</span>
+                <span class="brand-title">BiliSum</span>
+                <span class="brand-subtitle">本地上传</span>
+            </div>
+            <div class="hamburger-menu" id="hamburgerMenu">
+                <a href="/browse">&#x1F3E0; 首页&#xB7;B站浏览</a>
+                <a href="/summary">&#x1F916; AI总结</a>
+                <a href="/kb">&#x1F4DA; 知识库</a>
+                <a href="/favorites">&#x1F4C1; 收藏夹同步</a>
+                <a href="/tools">&#x1F6E0;&#xFE0F; 工具页</a>
+                <a href="/categories">&#x1F4C2; 智能分类</a>
+                <a href="/multi-platform">&#x1F310; 多平台导入</a>
+                <a href="/upload">&#x1F4E4; 本地上传</a>
+                <div class="menu-divider"></div>
+                <a href="https://www.bilibili.com" target="_blank">&#x1F517; 备用网站</a>
+                <a href="#" onclick="openLogin();return false">&#x1F511; B站登录</a>
+                <a href="#" onclick="openSettings();return false">&#x2699;&#xFE0F; API设置</a>
+            </div>
+        </div>
+        <nav class="topbar-actions">
+            <button class="btn btn-outline btn-sm" onclick="openLogin()">&#x1F511; 登录</button>
+            <button class="btn btn-outline btn-sm" onclick="openSettings()">&#x2699;&#xFE0F; API设置</button>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <div class="upload-layout">
+
+        <!-- Hero -->
+        <div class="upload-hero">
+            <h2>&#x1F4E4; 本地视频上传</h2>
+            <p class="hero-sub">拖放或选择本地视频文件，自动提取音频、语音转写、AI 总结并存入知识库</p>
+        </div>
+
+        <!-- Drag & Drop Zone -->
+        <div class="dropzone-container" id="dropzoneContainer">
+            <div class="dropzone" id="dropzone"
+                onclick="document.getElementById('fileInput').click()">
+                <div class="dropzone-icon">&#x1F4C2;</div>
+                <div class="dropzone-title">拖放视频文件到此处</div>
+                <div class="dropzone-hint">或点击此区域选择文件</div>
+                <div class="dropzone-formats">
+                    <span class="format-tag">.mp4</span>
+                    <span class="format-tag">.mov</span>
+                    <span class="format-tag">.mkv</span>
+                    <span class="format-tag">.webm</span>
+                    <span class="format-tag">.flv</span>
+                </div>
+            </div>
+
+            <!-- Hidden file input -->
+            <input type="file" id="fileInput" style="display:none"
+                accept=".mp4,.mov,.mkv,.webm,.flv,video/mp4,video/quicktime,video/x-matroska,video/webm,video/x-flv"
+                onchange="handleFileSelect(event)">
+
+            <!-- File info bar -->
+            <div class="file-info-bar" id="fileInfoBar">
+                <div class="file-info-icon">&#x1F3AC;</div>
+                <div class="file-info-details">
+                    <div class="file-info-name" id="fileName">-</div>
+                    <div class="file-info-meta" id="fileMeta">-</div>
+                </div>
+                <button class="file-info-remove" onclick="clearFile()" title="移除文件">&#x2715;</button>
+            </div>
+        </div>
+
+        <!-- Time Estimate -->
+        <div class="time-estimate" id="timeEstimate">
+            <span class="est-icon">&#x23F1;&#xFE0F;</span>
+            <span class="est-text">
+                视频时长 <span class="est-duration" id="estDuration">--</span>，
+                预计总处理时间 <span class="est-eta" id="estEta">--</span>
+            </span>
+        </div>
+
+        <!-- Settings -->
+        <div class="upload-settings" id="uploadSettings">
+            <div class="setting-group">
+                <label><input type="checkbox" id="optTranscribe" checked> 语音转写</label>
+            </div>
+            <div class="setting-group">
+                <label><input type="checkbox" id="optSummary" checked> AI 智能总结</label>
+            </div>
+            <div class="setting-group">
+                <label><input type="checkbox" id="optSaveKB" checked> 存入知识库</label>
+            </div>
+            <div class="setting-group">
+                <label>最大文件大小 (GB):</label>
+                <input type="number" id="maxSizeGb" value="2" min="0.1" max="100" step="0.1" onchange="validateFileSize()">
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="upload-action-bar" id="actionBar">
+            <button class="btn btn-primary btn-start" id="btnStart" onclick="startUpload()" disabled>
+                &#x25B6;&#xFE0F; 开始处理
+            </button>
+            <button class="btn btn-outline btn-cancel" id="btnCancel" onclick="cancelUpload()" style="display:none">
+                &#x23F9;&#xFE0F; 取消
+            </button>
+        </div>
+
+        <!-- Progress -->
+        <div class="progress-section" id="progressSection">
+            <div class="progress-steps" id="progressSteps">
+                <div class="progress-step" id="stepUpload">
+                    <div class="step-dot">1</div>
+                    <div class="step-label">上传文件</div>
+                </div>
+                <div class="progress-step" id="stepExtract">
+                    <div class="step-dot">2</div>
+                    <div class="step-label">提取音频</div>
+                </div>
+                <div class="progress-step" id="stepTranscribe">
+                    <div class="step-dot">3</div>
+                    <div class="step-label">语音转写</div>
+                </div>
+                <div class="progress-step" id="stepSummary">
+                    <div class="step-dot">4</div>
+                    <div class="step-label">AI 总结</div>
+                </div>
+                <div class="progress-step" id="stepSave">
+                    <div class="step-dot">5</div>
+                    <div class="step-label">存入知识库</div>
+                </div>
+            </div>
+            <div class="progress-bar-wrap" id="progressBarWrap" style="display:none">
+                <div class="progress-bar-fill" id="progressBarFill"></div>
+            </div>
+            <div class="progress-detail-row" id="progressDetail" style="display:none">
+                <span class="progress-percent" id="progressPercent">0%</span>
+                <span class="progress-eta" id="progressEta"></span>
+            </div>
+            <div class="progress-message" id="progressMsg"></div>
+        </div>
+
+        <!-- Result -->
+        <div class="result-section" id="resultSection">
+            <div class="result-toolbar">
+                <button class="result-tab active" data-tab="summary" onclick="switchResultTab('summary')">&#x1F4DD; AI 总结</button>
+                <button class="result-tab" data-tab="transcript" onclick="switchResultTab('transcript')">&#x1F4C4; 转录文本</button>
+                <button class="result-tab" data-tab="knowledge" onclick="switchResultTab('knowledge')">&#x1F9E0; 知识点</button>
+                <button class="result-tab" data-tab="raw" onclick="switchResultTab('raw')">&#x1F50D; 原始数据</button>
+            </div>
+            <div class="result-body" id="resultBody"></div>
+            <div class="result-actions" id="resultActions">
+                <button class="btn btn-primary btn-sm" onclick="viewInKB()">&#x1F4DA; 在知识库中查看</button>
+                <button class="btn btn-outline btn-sm" onclick="resetUpload()">&#x1F504; 上传新文件</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-box">
+        <div class="spinner"></div>
+        <div style="margin-top:12px;font-size:13px;color:var(--text-secondary)" id="loadingMsg">处理中...</div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" style="display:none"></div>
+
+<!-- Settings Modal -->
+<div class="modal-backdrop" id="settingsModal">
+    <div class="modal-card" style="text-align:left">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+            <div class="modal-title">&#x2699;&#xFE0F; AI API 设置</div>
+            <button class="btn-icon" onclick="closeSettings()" style="font-size:18px">&#x2715;</button>
+        </div>
+        <label class="modal-label">API 密钥</label>
+        <input class="modal-input" id="settingsApiKey" type="password" placeholder="sk-ant-api... 或 sk-...">
+        <label class="modal-label">API 地址</label>
+        <input class="modal-input" id="settingsApiUrl" placeholder="https://api.anthropic.com/v1/messages">
+        <label class="modal-label">模型</label>
+        <select class="modal-input" id="settingsModel" style="appearance:auto" onchange="detectProviderFromModel()">
+            <option value="claude-opus-4-8">Claude Opus 4.8 (推荐)</option>
+            <option value="claude-sonnet-5">Claude Sonnet 5</option>
+            <option value="deepseek-v4-pro">DeepSeek V4 Pro</option>
+            <option value="deepseek-chat">DeepSeek V3</option>
+            <option value="deepseek-reasoner">DeepSeek R1</option>
+            <option value="gpt-5.5">ChatGPT 5.5</option>
+        </select>
+        <p style="font-size:11px;color:var(--muted);margin-bottom:10px"><b>设置后所有页面生效</b></p>
+        <button class="btn btn-primary" style="width:100%" onclick="saveSettings()">&#x1F4BE; 保存设置</button>
+    </div>
+</div>
+
+<script src="/js/common.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/enhancements.js"></script>
+<script>
+// ==========================================================================
+// BiliSum Local Video Upload — Full Pipeline Controller
+// ==========================================================================
+
+var uploadState = {
+    file: null,
+    fileName: "",
+    fileSize: 0,
+    fileDuration: 0,       // seconds, populated after metadata probe
+    uploadId: "",
+    bvid: "",
+    title: "",
+    transcript: [],
+    summary: null,
+    activeTab: "summary",
+    activeStep: null,
+    abortController: null,
+    cancelled: false
+};
+
+// Format validation
+var ALLOWED_EXTENSIONS = [".mp4", ".mov", ".mkv", ".webm", ".flv"];
+var ALLOWED_MIMES = [
+    "video/mp4", "video/quicktime", "video/x-matroska",
+    "video/webm", "video/x-flv"
+];
+
+// ==================== Drag & Drop ====================
+
+function initDropzone() {
+    var dz = document.getElementById("dropzone");
+    if (!dz) return;
+
+    dz.addEventListener("dragover", function(e) {
+        e.preventDefault(); e.stopPropagation();
+        dz.classList.add("drag-over");
+    });
+    dz.addEventListener("dragleave", function(e) {
+        e.preventDefault(); e.stopPropagation();
+        dz.classList.remove("drag-over");
+    });
+    dz.addEventListener("drop", function(e) {
+        e.preventDefault(); e.stopPropagation();
+        dz.classList.remove("drag-over");
+        var files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+            setFile(files[0]);
+        }
+    });
+
+    // Also handle paste from clipboard (Ctrl+V)
+    document.addEventListener("paste", function(e) {
+        // Don't intercept paste in input fields
+        if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+        var items = e.clipboardData && e.clipboardData.items;
+        if (!items) return;
+        for (var i = 0; i < items.length; i++) {
+            if (items[i].kind === "file") {
+                var file = items[i].getAsFile();
+                if (file) {
+                    setFile(file);
+                    return;
+                }
+            }
+        }
+    });
+}
+
+// ==================== File Selection & Validation ====================
+
+function handleFileSelect(event) {
+    var files = event.target.files;
+    if (files && files.length > 0) {
+        setFile(files[0]);
+    }
+}
+
+function setFile(file) {
+    if (!file) return;
+
+    // Validate extension
+    var name = file.name || "";
+    var ext = name.toLowerCase().substring(name.lastIndexOf("."));
+    if (ALLOWED_EXTENSIONS.indexOf(ext) === -1) {
+        showDropzoneError("不支持的格式「" + (ext || "无扩展名") + "」，仅支持 " + ALLOWED_EXTENSIONS.join(", "));
+        return;
+    }
+
+    // Validate MIME (optional — some OS give empty MIME for .mkv/.flv)
+    if (file.type && ALLOWED_MIMES.indexOf(file.type) === -1) {
+        // Don't reject on unknown MIME — extension already validated
+    }
+
+    // Validate size
+    var maxGb = parseFloat(document.getElementById("maxSizeGb").value) || 2;
+    var maxBytes = maxGb * 1024 * 1024 * 1024;
+    if (file.size > maxBytes) {
+        showDropzoneError("文件过大（" + formatFileSize(file.size) + "），最大允许 " + maxGb.toFixed(1) + " GB");
+        return;
+    }
+
+    uploadState.file = file;
+    uploadState.fileName = name;
+    uploadState.fileSize = file.size;
+
+    // Update UI
+    document.getElementById("fileName").textContent = name;
+    document.getElementById("fileMeta").textContent = formatFileSize(file.size) + "  ·  " + ext.replace(".", "").toUpperCase();
+    document.getElementById("fileInfoBar").classList.add("active");
+    document.getElementById("btnStart").disabled = false;
+
+    var dz = document.getElementById("dropzone");
+    dz.classList.remove("has-error");
+    dz.classList.add("has-file");
+    dz.querySelector(".dropzone-title").textContent = "已选择文件";
+    dz.querySelector(".dropzone-hint").textContent = "点击此处重新选择文件";
+
+    // Probe video duration
+    probeVideoDuration(file);
+
+    // Reset result if showing
+    hideResult();
+}
+
+function clearFile() {
+    uploadState.file = null;
+    uploadState.fileName = "";
+    uploadState.fileSize = 0;
+    uploadState.fileDuration = 0;
+
+    document.getElementById("fileInfoBar").classList.remove("active");
+    document.getElementById("btnStart").disabled = true;
+    document.getElementById("fileInput").value = "";
+
+    var dz = document.getElementById("dropzone");
+    dz.classList.remove("has-file", "has-error");
+    dz.querySelector(".dropzone-title").textContent = "拖放视频文件到此处";
+    dz.querySelector(".dropzone-hint").textContent = "或点击此区域选择文件";
+
+    document.getElementById("timeEstimate").classList.remove("active");
+}
+
+function showDropzoneError(msg) {
+    var dz = document.getElementById("dropzone");
+    dz.classList.remove("has-file");
+    dz.classList.add("has-error");
+    dz.querySelector(".dropzone-title").textContent = "格式错误";
+    dz.querySelector(".dropzone-hint").textContent = msg;
+    setTimeout(function() {
+        if (dz.classList.contains("has-error") && !uploadState.file) {
+            dz.classList.remove("has-error");
+            dz.querySelector(".dropzone-title").textContent = "拖放视频文件到此处";
+            dz.querySelector(".dropzone-hint").textContent = "或点击此区域选择文件";
+        }
+    }, 4000);
+}
+
+function validateFileSize() {
+    if (uploadState.file) {
+        var maxGb = parseFloat(document.getElementById("maxSizeGb").value) || 2;
+        var maxBytes = maxGb * 1024 * 1024 * 1024;
+        if (uploadState.fileSize > maxBytes) {
+            showDropzoneError("当前文件 " + formatFileSize(uploadState.fileSize) + " 超过最大限制 " + maxGb.toFixed(1) + " GB");
+            document.getElementById("btnStart").disabled = true;
+        } else {
+            var dz = document.getElementById("dropzone");
+            dz.classList.remove("has-error");
+            if (uploadState.file) dz.classList.add("has-file");
+            document.getElementById("btnStart").disabled = false;
+        }
+    }
+}
+
+function formatFileSize(bytes) {
+    if (!bytes || bytes < 0) return "0 B";
+    var units = ["B", "KB", "MB", "GB", "TB"];
+    var i = 0;
+    var size = bytes;
+    while (size >= 1024 && i < units.length - 1) {
+        size /= 1024;
+        i++;
+    }
+    return size.toFixed(i === 0 ? 0 : 1) + " " + units[i];
+}
+
+// ==================== Video Duration Probe ====================
+
+function probeVideoDuration(file) {
+    var video = document.createElement("video");
+    video.preload = "metadata";
+    var url = URL.createObjectURL(file);
+    video.src = url;
+
+    video.onloadedmetadata = function() {
+        var duration = video.duration;
+        URL.revokeObjectURL(url);
+        if (duration && isFinite(duration)) {
+            uploadState.fileDuration = duration;
+            var durationStr = formatDuration(duration);
+            document.getElementById("estDuration").textContent = durationStr;
+
+            // Estimate processing time: ~1.5x for transcribe + 0.3x for summarize + overhead
+            var transcribeSec = duration * 1.5;
+            var summarySec = 30;  // fixed overhead
+            var totalSec = transcribeSec + summarySec + 10;
+            var etaStr = estimateTimeString(totalSec);
+            document.getElementById("estEta").textContent = "约 " + etaStr;
+            document.getElementById("timeEstimate").classList.add("active");
+        }
+    };
+
+    video.onerror = function() {
+        URL.revokeObjectURL(url);
+    };
+
+    // Timeout: if metadata doesn't load in 5s, give up
+    setTimeout(function() {
+        if (!uploadState.fileDuration && uploadState.file === file) {
+            URL.revokeObjectURL(url);
+        }
+    }, 5000);
+}
+
+function estimateTimeString(seconds) {
+    if (seconds < 60) return Math.ceil(seconds) + " 秒";
+    if (seconds < 3600) return Math.ceil(seconds / 60) + " 分钟";
+    var h = Math.floor(seconds / 3600);
+    var m = Math.ceil((seconds % 3600) / 60);
+    return h + " 小时 " + m + " 分钟";
+}
+
+// ==================== Upload Pipeline ====================
+
+function startUpload() {
+    if (!uploadState.file) {
+        showToast("请先选择视频文件", "error");
+        return;
+    }
+    if (!AppState.apiKey) {
+        showToast("请先设置 API 密钥", "error");
+        openSettings();
+        return;
+    }
+
+    uploadState.cancelled = false;
+    uploadState.abortController = new AbortController();
+    uploadState.transcript = [];
+    uploadState.summary = null;
+
+    // Collapse input area
+    document.getElementById("dropzoneContainer").classList.add("collapsed");
+    document.getElementById("uploadSettings").classList.add("collapsed");
+    document.getElementById("actionBar").querySelector(".btn-start").style.display = "none";
+    document.getElementById("btnCancel").style.display = "inline-flex";
+
+    // Show progress
+    resetProgress();
+    document.getElementById("progressSection").classList.add("active");
+    hideResult();
+
+    // Kick off pipeline
+    uploadFile();
+}
+
+function cancelUpload() {
+    uploadState.cancelled = true;
+    if (uploadState.abortController) {
+        uploadState.abortController.abort();
+    }
+    setProgressMsg("已取消");
+    if (uploadState.activeStep) {
+        setStepState("step" + uploadState.activeStep, "error");
+    }
+    document.getElementById("btnCancel").style.display = "none";
+    document.getElementById("actionBar").querySelector(".btn-start").style.display = "inline-flex";
+    document.getElementById("btnStart").textContent = "▶️ 开始处理";
+    document.getElementById("btnStart").disabled = false;
+
+    // Re-expand input
+    document.getElementById("dropzoneContainer").classList.remove("collapsed");
+    document.getElementById("uploadSettings").classList.remove("collapsed");
+
+    showToast("已取消上传", "info");
+}
+
+function uploadFile() {
+    if (uploadState.cancelled) return;
+
+    uploadState.activeStep = "Upload";
+    setStepState("stepUpload", "active");
+    setProgressMsg("正在上传文件...");
+    showProgressBar(true, false);
+
+    var formData = new FormData();
+    formData.append("file", uploadState.file);
+    formData.append("transcribe", document.getElementById("optTranscribe").checked);
+    formData.append("summarize", document.getElementById("optSummary").checked);
+    formData.append("save_kb", document.getElementById("optSaveKB").checked);
+    formData.append("api_key", AppState.apiKey);
+    formData.append("api_url", AppState.apiUrl);
+    formData.append("model", AppState.model);
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/upload/video");
+
+    // Upload progress
+    xhr.upload.onprogress = function(e) {
+        if (e.lengthComputable) {
+            var pct = Math.round((e.loaded / e.total) * 100);
+            updateProgressBar(pct, false);
+            document.getElementById("progressPercent").textContent = pct + "%";
+        }
+    };
+
+    xhr.onload = function() {
+        if (uploadState.cancelled) return;
+        try {
+            var resp = JSON.parse(xhr.responseText);
+            if (resp.success) {
+                uploadState.uploadId = resp.upload_id || resp.data.upload_id || "";
+                setStepState("stepUpload", "completed");
+                updateProgressBar(100, false);
+                extractAudio(resp);
+            } else {
+                setStepState("stepUpload", "error");
+                setProgressMsg("上传失败: " + (resp.error || "未知错误"));
+                finishFailed(resp.error);
+            }
+        } catch (e) {
+            setStepState("stepUpload", "error");
+            setProgressMsg("上传响应解析失败");
+            finishFailed(e.message);
+        }
+    };
+
+    xhr.onerror = function() {
+        if (uploadState.cancelled) return;
+        setStepState("stepUpload", "error");
+        setProgressMsg("网络错误，上传中断");
+        finishFailed("网络错误");
+    };
+
+    xhr.onabort = function() {
+        // cancelled
+    };
+
+    xhr.send(formData);
+}
+
+function extractAudio(uploadResp) {
+    if (uploadState.cancelled) return;
+    uploadState.activeStep = "Extract";
+
+    setStepState("stepExtract", "active");
+    setProgressMsg("正在提取音频轨道...");
+    showProgressBar(true, true);
+
+    // Poll for audio extraction progress via SSE
+    var uploadId = uploadState.uploadId;
+    listenSSE("/api/upload/progress/" + uploadId, {
+        onExtractStart: function() {
+            setProgressMsg("正在使用 ffmpeg 提取音频...");
+        },
+        onExtractProgress: function(pct) {
+            updateProgressBar(pct, false);
+            document.getElementById("progressPercent").textContent = pct + "%";
+        },
+        onExtractComplete: function(data) {
+            updateProgressBar(100, false);
+            setStepState("stepExtract", "completed");
+            if (document.getElementById("optTranscribe").checked) {
+                transcribe(data);
+            } else {
+                setStepState("stepTranscribe", "completed");
+                if (document.getElementById("optSummary").checked) {
+                    summarize(data);
+                } else {
+                    setStepState("stepSummary", "completed");
+                    if (document.getElementById("optSaveKB").checked) {
+                        saveToKB();
+                    } else {
+                        finishSuccess();
+                    }
+                }
+            }
+        },
+        onExtractError: function(err) {
+            setStepState("stepExtract", "error");
+            setProgressMsg("音频提取失败: " + (err || "未知错误"));
+            finishFailed(err);
+        }
+    });
+}
+
+function transcribe(data) {
+    if (uploadState.cancelled) return;
+    uploadState.activeStep = "Transcribe";
+
+    setStepState("stepTranscribe", "active");
+
+    var duration = uploadState.fileDuration || 0;
+    var etaStr = duration > 0 ? estimateTimeString(duration * 1.5) : "";
+    setProgressMsg("正在语音转写..." + (etaStr ? " 预计耗时 " + etaStr : ""));
+    showProgressBar(true, true);
+
+    var uploadId = uploadState.uploadId;
+    listenSSE("/api/upload/progress/" + uploadId, {
+        onTranscribeStart: function(info) {
+            var lang = (info && info.language) ? " (" + info.language + ")" : "";
+            setProgressMsg("正在 Whisper 语音转写中..." + lang);
+        },
+        onTranscribeProgress: function(pct) {
+            updateProgressBar(pct, false);
+            document.getElementById("progressPercent").textContent = pct + "%";
+        },
+        onTranscribeComplete: function(data) {
+            updateProgressBar(100, false);
+            if (data && data.transcript && data.transcript.length) {
+                uploadState.transcript = data.transcript;
+            }
+            if (data && data.title) {
+                uploadState.title = data.title;
+            }
+            setStepState("stepTranscribe", "completed");
+
+            if (document.getElementById("optSummary").checked) {
+                summarize(data);
+            } else {
+                setStepState("stepSummary", "completed");
+                if (document.getElementById("optSaveKB").checked) {
+                    saveToKB();
+                } else {
+                    finishSuccess();
+                }
+            }
+        },
+        onTranscribeError: function(err) {
+            setStepState("stepTranscribe", "error");
+            setProgressMsg("转写失败: " + (err || "未知错误"));
+            // Continue anyway — try summary without transcript
+            if (document.getElementById("optSummary").checked) {
+                summarize(null);
+            } else {
+                finishSuccess();
+            }
+        }
+    });
+}
+
+function summarize(data) {
+    if (uploadState.cancelled) return;
+    uploadState.activeStep = "Summary";
+
+    setStepState("stepSummary", "active");
+    setProgressMsg("正在 AI 智能总结...");
+    showProgressBar(true, true);
+
+    var uploadId = uploadState.uploadId;
+    listenSSE("/api/upload/progress/" + uploadId, {
+        onSummaryStart: function() {
+            setProgressMsg("AI 正在分析视频内容...");
+        },
+        onSummaryComplete: function(data) {
+            if (data && data.summary) {
+                uploadState.summary = data.summary;
+            }
+            setStepState("stepSummary", "completed");
+            if (document.getElementById("optSaveKB").checked) {
+                saveToKB();
+            } else {
+                finishSuccess();
+            }
+        },
+        onSummaryError: function(err) {
+            setStepState("stepSummary", "error");
+            setProgressMsg("总结失败: " + (err || "未知错误") + "，已保存现有结果");
+            if (document.getElementById("optSaveKB").checked) {
+                saveToKB();
+            } else {
+                finishSuccess();
+            }
+        }
+    });
+}
+
+function saveToKB() {
+    if (uploadState.cancelled) return;
+    uploadState.activeStep = "Save";
+
+    setStepState("stepSave", "active");
+    setProgressMsg("正在存入知识库...");
+    showProgressBar(true, true);
+
+    var uploadId = uploadState.uploadId;
+    listenSSE("/api/upload/progress/" + uploadId, {
+        onSaveComplete: function(data) {
+            if (data && data.bvid) {
+                uploadState.bvid = data.bvid;
+            }
+            setStepState("stepSave", "completed");
+            updateProgressBar(100, false);
+            setProgressMsg("完成！视频已存入知识库");
+            finishSuccess();
+        },
+        onSaveError: function(err) {
+            setStepState("stepSave", "error");
+            setProgressMsg("知识库保存失败: " + (err || "未知错误"));
+            finishSuccess(); // Still show results even if KB save fails
+        }
+    });
+}
+
+// ==================== SSE Listener ====================
+
+function listenSSE(url, handlers) {
+    // Build URL with query params
+    var fullUrl = url;
+    if (uploadState.abortController) {
+        fullUrl += (url.indexOf("?") === -1 ? "?" : "&") + "_t=" + Date.now();
+    }
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", fullUrl);
+    xhr.setRequestHeader("Accept", "text/event-stream");
+    if (uploadState.abortController) {
+        uploadState.abortController.signal.addEventListener("abort", function() {
+            xhr.abort();
+        });
+    }
+
+    var lastIndex = 0;
+
+    xhr.onprogress = function() {
+        if (uploadState.cancelled) {
+            xhr.abort();
+            return;
+        }
+        var newText = xhr.responseText.substring(lastIndex);
+        lastIndex = xhr.responseText.length;
+
+        var lines = newText.split("\n");
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i].trim();
+            if (!line || line.indexOf("data: ") !== 0) continue;
+            var jsonStr = line.substring(6);
+            try {
+                var evt = JSON.parse(jsonStr);
+                dispatchSSEEvent(evt, handlers);
+            } catch (e) {
+                // ignore malformed JSON
+            }
+        }
+    };
+
+    xhr.onerror = function() {
+        if (!uploadState.cancelled) {
+            showToast("SSE 连接中断", "error");
+        }
+    };
+
+    xhr.send();
+}
+
+function dispatchSSEEvent(evt, handlers) {
+    if (!evt || !evt.type) return;
+    var handler = handlers["on" + evt.type.charAt(0).toUpperCase() + evt.type.slice(1)];
+    if (handler) {
+        handler(evt.data, evt);
+    }
+}
+
+// ==================== Progress UI ====================
+
+function resetProgress() {
+    var steps = document.querySelectorAll(".progress-step");
+    for (var i = 0; i < steps.length; i++) {
+        steps[i].classList.remove("completed", "active", "error");
+    }
+    updateProgressBar(0, false);
+    document.getElementById("progressPercent").textContent = "";
+    document.getElementById("progressEta").textContent = "";
+    document.getElementById("progressMsg").textContent = "";
+    document.getElementById("progressDetail").style.display = "none";
+    showProgressBar(false, false);
+}
+
+function setStepState(stepId, state) {
+    var el = document.getElementById(stepId);
+    if (!el) return;
+    el.classList.remove("completed", "active", "error");
+    if (state) el.classList.add(state);
+}
+
+function setProgressMsg(msg) {
+    document.getElementById("progressMsg").textContent = msg;
+}
+
+function showProgressBar(show, indeterminate) {
+    var wrap = document.getElementById("progressBarWrap");
+    var fill = document.getElementById("progressBarFill");
+    var detail = document.getElementById("progressDetail");
+    wrap.style.display = show ? "block" : "none";
+    detail.style.display = show ? "flex" : "none";
+    if (show) {
+        fill.style.width = "0%";
+        if (indeterminate) {
+            fill.classList.add("indeterminate");
+        } else {
+            fill.classList.remove("indeterminate");
+        }
+    }
+}
+
+function updateProgressBar(pct, indeterminate) {
+    var fill = document.getElementById("progressBarFill");
+    var detail = document.getElementById("progressDetail");
+    fill.classList.toggle("indeterminate", !!indeterminate);
+    if (!indeterminate) {
+        fill.style.width = Math.min(100, Math.max(0, pct)) + "%";
+    }
+    detail.style.display = "flex";
+    document.getElementById("progressPercent").textContent = indeterminate ? "" : (Math.round(pct) + "%");
+}
+
+// ==================== Finish & Result ====================
+
+function finishSuccess() {
+    document.getElementById("btnCancel").style.display = "none";
+    document.getElementById("actionBar").querySelector(".btn-start").style.display = "none";
+    setProgressMsg("");
+    showProgressBar(false, false);
+    showResult();
+    if (uploadState.summary || uploadState.transcript.length > 0) {
+        showToast("处理完成！", "success");
+    }
+}
+
+function finishFailed(err) {
+    document.getElementById("btnCancel").style.display = "none";
+    var btnStart = document.getElementById("actionBar").querySelector(".btn-start");
+    btnStart.style.display = "inline-flex";
+    document.getElementById("btnStart").textContent = "🔄 重试";
+    document.getElementById("btnStart").disabled = false;
+    document.getElementById("dropzoneContainer").classList.remove("collapsed");
+    document.getElementById("uploadSettings").classList.remove("collapsed");
+    showToast("处理失败: " + (err || "未知错误"), "error", 6000);
+}
+
+function hideResult() {
+    document.getElementById("resultSection").classList.remove("active");
+}
+
+function showResult() {
+    document.getElementById("resultSection").classList.add("active");
+    switchResultTab(uploadState.activeTab);
+}
+
+function switchResultTab(tab) {
+    uploadState.activeTab = tab;
+
+    // Update tab buttons
+    var tabs = document.querySelectorAll(".result-tab");
+    for (var i = 0; i < tabs.length; i++) {
+        tabs[i].classList.toggle("active", tabs[i].dataset.tab === tab);
+    }
+
+    var body = document.getElementById("resultBody");
+    var summary = uploadState.summary;
+    var transcript = uploadState.transcript;
+    var title = uploadState.title || uploadState.fileName || "本地视频";
+
+    switch (tab) {
+        case "summary":
+            if (summary) {
+                var overview = summary.overview || summary.ai_summary || summary.content || "";
+                var keyPoints = summary.key_points || summary.keypoints || summary.points || [];
+                var topics = summary.topics || summary.categories || [];
+
+                var html = '<div class="result-meta">' +
+                    '<span class="video-title">' + escapeHtml(title) + '</span>' +
+                    (uploadState.fileDuration ? '<span>&#x23F1; ' + formatDuration(uploadState.fileDuration) + '</span>' : '') +
+                    '</div>';
+
+                if (overview) {
+                    html += '<div class="result-overview">' + escapeHtml(overview) + '</div>';
+                }
+
+                if (topics && topics.length) {
+                    html += '<div class="result-section-title">&#x1F3F7;&#xFE0F; 主题分类</div>';
+                    html += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">';
+                    for (var i = 0; i < topics.length; i++) {
+                        html += '<span style="background:var(--sky-100);color:var(--sky-700);padding:2px 10px;border-radius:var(--radius-pill);font-size:var(--text-caption)">' + escapeHtml(String(topics[i])) + '</span>';
+                    }
+                    html += '</div>';
+                }
+
+                if (keyPoints && keyPoints.length) {
+                    html += '<div class="result-section-title">&#x1F4CC; 关键要点</div>';
+                    html += '<ul class="result-list">';
+                    for (var j = 0; j < keyPoints.length; j++) {
+                        html += '<li>' + escapeHtml(String(keyPoints[j])) + '</li>';
+                    }
+                    html += '</ul>';
+                }
+
+                body.innerHTML = html;
+            } else {
+                body.innerHTML = '<div class="result-empty">&#x1F4DD; 暂无 AI 总结结果</div>';
+            }
+            break;
+
+        case "transcript":
+            if (transcript && transcript.length) {
+                var tHtml = '<div class="transcript-list">';
+                for (var k = 0; k < transcript.length; k++) {
+                    var seg = transcript[k];
+                    var time = seg.start !== undefined ? formatDuration(seg.start) : (seg.time || "");
+                    var text = seg.text || seg.content || String(seg);
+                    tHtml += '<div class="transcript-item">' +
+                        '<div class="transcript-time">' + escapeHtml(time) + '</div>' +
+                        '<div class="transcript-text">' + escapeHtml(text) + '</div>' +
+                        '</div>';
+                }
+                tHtml += '</div>';
+                body.innerHTML = tHtml;
+            } else {
+                body.innerHTML = '<div class="result-empty">&#x1F4C4; 暂无转录文本（可能未启用语音转写或转写失败）</div>';
+            }
+            break;
+
+        case "knowledge":
+            if (summary && summary.bvid) {
+                body.innerHTML = '<div class="result-meta">' +
+                    '<span class="video-title">' + escapeHtml(title) + '</span>' +
+                    '</div>' +
+                    '<div style="text-align:center;padding:20px">' +
+                    '<p style="color:var(--text-secondary);margin-bottom:12px">&#x2705; 已成功存入知识库</p>' +
+                    '<p style="color:var(--text-muted);font-size:var(--text-caption)">BV: ' + escapeHtml(summary.bvid || uploadState.bvid || "-") + '</p>' +
+                    '</div>';
+            } else {
+                body.innerHTML = '<div class="result-empty">&#x1F9E0; 知识库数据暂不可用</div>';
+            }
+            break;
+
+        case "raw":
+            var raw = {
+                title: title,
+                file_name: uploadState.fileName,
+                file_size: uploadState.fileSize,
+                duration: uploadState.fileDuration,
+                upload_id: uploadState.uploadId,
+                bvid: uploadState.bvid,
+                transcript_count: transcript ? transcript.length : 0,
+                has_summary: !!summary
+            };
+            body.innerHTML = '<pre style="font-size:var(--text-caption);white-space:pre-wrap;font-family:monospace;background:var(--bg-subtle);padding:16px;border-radius:var(--radius-md)">' +
+                escapeHtml(JSON.stringify(raw, null, 2)) +
+                '</pre>';
+            break;
+    }
+}
+
+function viewInKB() {
+    if (uploadState.bvid) {
+        window.location.href = "/kb?bvid=" + encodeURIComponent(uploadState.bvid);
+    } else {
+        window.location.href = "/kb";
+    }
+}
+
+function resetUpload() {
+    hideResult();
+    document.getElementById("progressSection").classList.remove("active");
+    resetProgress();
+    document.getElementById("dropzoneContainer").classList.remove("collapsed");
+    document.getElementById("uploadSettings").classList.remove("collapsed");
+    document.getElementById("actionBar").querySelector(".btn-start").style.display = "inline-flex";
+    document.getElementById("btnStart").textContent = "▶️ 开始处理";
+    document.getElementById("btnStart").disabled = false;
+    document.getElementById("btnCancel").style.display = "none";
+    clearFile();
+}
+
+// ==================== Init ====================
+
+document.addEventListener("DOMContentLoaded", function() {
+    AppState.init();
+    initDropzone();
+    setupHamburger();
+
+    // Load persisted max size from localStorage
+    try {
+        var saved = JSON.parse(localStorage.getItem("bilisum_settings") || "{}");
+        if (saved.upload_max_gb) {
+            document.getElementById("maxSizeGb").value = saved.upload_max_gb;
+        }
+    } catch (e) {}
+
+    // Persist max size on change
+    document.getElementById("maxSizeGb").addEventListener("change", function() {
+        try {
+            var s = JSON.parse(localStorage.getItem("bilisum_settings") || "{}");
+            s.upload_max_gb = parseFloat(this.value) || 2;
+            localStorage.setItem("bilisum_settings", JSON.stringify(s));
+        } catch (e) {}
+    });
+
+    // Close modals on backdrop click
+    document.querySelectorAll(".modal-backdrop").forEach(function(bd) {
+        bd.addEventListener("click", function(e) {
+            if (e.target === bd) bd.style.display = "none";
+        });
+    });
+});
+</script>
+
+</body>
+</html>

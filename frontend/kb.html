@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BiliSum · 知识库</title>
+<link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/enhancements.css">
+</head>
+<body>
+
+<div class="app-shell">
+    <header class="app-topbar">
+        <div style="display:flex;align-items:center;gap:10px;position:relative">
+            <button class="hamburger-btn" id="hamburgerBtn" title="菜单">☰</button>
+            <div class="brand" onclick="location.href='/browse'">
+                <span class="brand-mark">📺</span>
+                <span class="brand-title">BiliSum</span>
+                <span class="brand-subtitle">知识库</span>
+            </div>
+            <div class="hamburger-menu" id="hamburgerMenu">
+                <a href="/browse">🏠 首页·B站浏览</a>
+                <a href="/summary">🤖 AI总结</a>
+                <a href="/favorites">📁 收藏夹同步</a>
+                <a href="/tools">🛠️ 工具页</a>
+                <a href="/categories">📂 智能分类</a>
+                <a href="/multi-platform">🌐 多平台导入</a>
+                <a href="/upload">📤 本地上传</a>
+                <div class="menu-divider"></div>
+                <a href="#" onclick="openSettings();return false">⚙️ AI API设置</a>
+                <a href="https://www.bilibili.com" target="_blank">🔗 备用网站</a>
+                <a href="#" onclick="openLogin();return false">🔑 B站登录</a>
+            </div>
+        </div>
+        <nav class="topbar-actions">
+            <button class="btn btn-outline btn-sm" onclick="openSettings()">⚙️ API设置</button>
+            <button class="btn btn-outline btn-sm" onclick="openLogin()">🔑 登录</button>
+        </nav>
+    </header>
+
+    <div class="kb-layout" style="height:calc(100vh - 52px)">
+        <!-- Left: Video List -->
+        <div class="kb-sidebar">
+            <div style="padding:12px;border-bottom:1px solid var(--border);display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                <button class="btn btn-outline btn-sm" onclick="searchKB()">🔍 搜索</button>
+                <button class="btn btn-sm" id="kbSelectAllBtn" onclick="toggleSelectAllKB()">☐ 全选</button>
+                <button class="btn btn-sm" id="kbDeleteSelectedBtn" onclick="deleteSelectedKB()" disabled>🗑️ 删除选中</button>
+                <button class="btn btn-outline btn-sm" onclick="loadKBList()">🔄 刷新</button>
+                <span style="font-size:11px;color:var(--muted);flex:1" id="kbStats"></span>
+            </div>
+            <div class="kb-list" id="kbList">
+                <div class="empty-state"><div class="empty-state-icon">📚</div><div class="empty-state-text">加载中...</div></div>
+            </div>
+        </div>
+
+        <!-- Right: Chat -->
+        <div class="kb-chat">
+            <div style="margin-bottom:8px;font-size:13px;font-weight:600">💬 知识库问答</div>
+            <div class="chat-messages" id="ragMessages" style="background:var(--bg);border-radius:var(--radius);padding:12px">
+                <div class="empty-state">
+                    <div class="empty-state-icon">💡</div>
+                    <div class="empty-state-text">基于你收藏的B站视频内容回答问题</div>
+                </div>
+            </div>
+            <div class="chat-input-row">
+                <input class="input" id="ragInput" placeholder="输入问题..." onkeydown="if(event.key==='Enter')sendRAG()">
+                <button class="btn btn-primary" onclick="sendRAG()">发送</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-backdrop" id="settingsModal">
+    <div class="modal-card" style="text-align:left">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+            <div class="modal-title">⚙️ AI API 设置</div>
+            <button class="btn-icon" onclick="closeSettings()" style="font-size:18px">✕</button>
+        </div>
+        <label class="modal-label">API 密钥</label>
+        <input class="modal-input" id="settingsApiKey" type="password" placeholder="sk-ant-api... 或 sk-...">
+        <label class="modal-label">API 地址</label>
+        <input class="modal-input" id="settingsApiUrl" placeholder="https://api.anthropic.com/v1/messages">
+        <label class="modal-label">模型</label>
+        <select class="modal-input" id="settingsModel" style="appearance:auto">
+            <option value="claude-opus-4-8">Claude Opus 4.8 (推荐)</option>
+            <option value="claude-sonnet-5">Claude Sonnet 5</option>
+            <option value="deepseek-v4-pro">DeepSeek V4 Pro</option>
+            <option value="deepseek-chat">DeepSeek V3</option>
+            <option value="deepseek-reasoner">DeepSeek R1</option>
+            <option value="gpt-5.5">ChatGPT 5.5</option>
+        </select>
+        <label class="modal-label">下载路径</label>
+        <div style="display:flex;gap:8px">
+            <input class="modal-input" id="settingsDownloadDir" placeholder="默认：下载文件夹" style="flex:1">
+            <button class="btn btn-outline btn-sm" onclick="selectDownloadDir()">📁 浏览</button>
+        </div>
+        <label class="modal-label">知识库存储路径</label>
+        <div style="display:flex;gap:8px">
+            <input class="modal-input" id="settingsKbDir" placeholder="默认：data/knowledge_base" style="flex:1">
+            <button class="btn btn-outline btn-sm" onclick="selectKbDir()">📁 浏览</button>
+        </div>
+        <label class="modal-label">Obsidian Vault 路径</label>
+        <div style="display:flex;gap:8px">
+            <input class="modal-input" id="settingsObsidianVault" placeholder="选择 Obsidian Vault 文件夹" style="flex:1">
+            <button class="btn btn-outline btn-sm" onclick="selectObsidianVault()">📁 浏览</button>
+        </div>
+        <label class="modal-label">Obsidian 密钥 (可选)</label>
+        <input class="modal-input" id="settingsObsidianKey" type="password" placeholder="Obsidian Local REST API 密钥">
+        <p style="font-size:11px;color:var(--muted);margin-bottom:10px"><b>设置后所有页面生效</b></p>
+        <button class="btn btn-primary" style="width:100%" onclick="saveSettings()">💾 保存设置</button>
+    </div>
+</div>
+
+<!-- Login Modal -->
+<div class="modal-backdrop" id="loginModal">
+    <div class="modal-card">
+        <div class="modal-title">🔑 扫码登录 B站</div>
+        <div class="modal-subtitle">使用哔哩哔哩 App 扫码</div>
+        <div class="qr-container" id="qrImage"><div class="spinner"></div></div>
+        <div class="qr-status" id="qrStatus">正在生成二维码...</div>
+        <button class="btn btn-outline btn-sm" onclick="closeLogin()">取消</button>
+    </div>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-box"><div class="spinner"></div><div style="margin-top:12px;font-size:13px;color:var(--text-secondary)" id="loadingMsg">处理中...</div></div>
+</div>
+
+<div class="toast" id="toast" style="display:none"></div>
+
+<script src="/js/common.js"></script>
+    <script src="/js/enhancements.js"></script>
+<script src="/js/api.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => { loadKBList(); loadKBStats(); });
+
+    async function loadKBList() {
+        showSkeleton('kbList', 'list');
+        try {
+            const r = await API.fetchKBList();
+            const list = document.getElementById("kbList");
+            if (r.success && r.data.entries && r.data.entries.length > 0) {
+                hideSkeleton('kbList');
+                list.innerHTML = r.data.entries.map(e => {
+    var kchecked = kbSelectedSet.has(e.bvid);
+    return `
+                <div class="kb-item"><label style="display:flex;align-items:center;gap:6px;cursor:pointer;flex:1" onclick="event.stopPropagation()"><input type="checkbox" ${kchecked ? "checked" : ""} onchange="toggleKBItem('${e.bvid}', this.checked)" style="flex-shrink:0"><div onclick="loadKBEntry('${e.bvid}')">
+                  ${e.pic ? `<img src="${e.pic}" alt="" onerror="this.style.display='none'">` : ""}
+                  <div class="info">
+                    <div class="title">${escapeHtml(e.title)}</div>
+                    <div class="meta">${escapeHtml(e.author)} · ${e.textLength || 0}字</div>
+                  </div>
+                  <button class="btn-icon" onclick="event.stopPropagation();deleteKB('${e.bvid}')" title="删除">🗑️</button>
+                </div></label></div>`;
+}).join("");
+updateKBBatchUI();
+            } else {
+                hideSkeleton('kbList');
+                renderEmptyState('kbList', {title: '知识库为空', text: '前往收藏夹导入你的第一个视频', icon: '📚', actionHTML: '<a href="/favorites" class="btn btn-primary btn-sm">前往收藏夹</a>'});
+            }
+        } catch (e) { hideSkeleton('kbList'); renderErrorState('kbList', {message: '加载知识库列表失败: ' + (e.message || e), onRetry: loadKBList, icon: '📡'}); }
+    }
+
+    async function loadKBStats() {
+        try {
+            const r = await API.fetchRAGStats();
+            if (r.success) document.getElementById("kbStats").textContent = `${r.data.totalVideos || 0}视频 / ${r.data.totalChunks || 0}分块`;
+        } catch (e) { /* ignore */ }
+    }
+
+    async function loadKBEntry(bvid) {
+        showLoading("加载中...");
+        try {
+            const r = await fetch(`/api/kb/entry?bvid=${encodeURIComponent(bvid)}`);
+            const d = await r.json();
+            hideLoading();
+            if (d.success && d.data) {
+                const entry = d.data;
+                const msg = document.getElementById("ragMessages");
+                if (msg) {
+                    // Clear initial empty-state on first load
+                    const empty = msg.querySelector(".empty-state");
+                    if (empty) empty.remove();
+                    const div = document.createElement("div");
+                    div.className = "chat-bubble assistant";
+                    div.innerHTML = `<b>${escapeHtml(entry.title || bvid)}</b><br><br>${escapeHtml((entry.text || entry.content || "无内容").substring(0, 2000))}
+                    <br><br><a href="https://www.bilibili.com/video/${escapeHtml(bvid)}" target="_blank" style="color:var(--primary-dark);font-size:12px">查看B站原视频 →</a>`;
+                    msg.appendChild(div);
+                    msg.scrollTop = msg.scrollHeight;
+                }
+            } else {
+                showToast("未找到该视频的知识库条目", "info");
+            }
+        } catch (e) { hideLoading(); showToast("加载失败: " + e.message, "error"); }
+    }
+
+    async function deleteKB(bvid) {
+        if (!confirm("确定要删除该视频吗？\n\n将同时删除：\n· 知识库条目与文本分块\n· 搜索索引与AI向量数据\n· ASR音频缓存文件\n· 已下载的视频文件夹\n\n此操作不可恢复，需重新导入。")) return;
+        try {
+            const r = await API.fetchKBDelete(bvid);
+            if (r.success) { showToast("已删除", "success"); loadKBList(); loadKBStats(); }
+            else showToast(r.error || "删除失败", "error");
+        } catch (e) { showToast("删除失败", "error"); }
+    }
+
+    function searchKB() {
+        // Use a modal-style inline prompt instead of blocking prompt()
+        const existing = document.getElementById("kbSearchOverlay");
+        if (existing) { existing.remove(); return; }
+        const overlay = document.createElement("div");
+        overlay.id = "kbSearchOverlay";
+        overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:400;display:flex;align-items:center;justify-content:center";
+        overlay.innerHTML = `<div style="background:var(--surface);border-radius:14px;padding:24px;width:360px;max-width:90vw;box-shadow:0 12px 40px rgba(0,0,0,0.2)">
+            <div style="font-size:16px;font-weight:600;margin-bottom:12px">搜索知识库</div>
+            <input id="kbSearchInput" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;outline:none;margin-bottom:12px" placeholder="输入关键词..." autofocus>
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+                <button class="btn btn-outline btn-sm" id="kbSearchCancel">取消</button>
+                <button class="btn btn-primary btn-sm" id="kbSearchGo">搜索</button>
+            </div></div>`;
+        document.body.appendChild(overlay);
+        overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
+        document.getElementById("kbSearchCancel").onclick = () => overlay.remove();
+        document.getElementById("kbSearchInput").onkeydown = e => { if (e.key === "Enter") { const q = document.getElementById("kbSearchInput").value; overlay.remove(); doKBSearch(q); } };
+        document.getElementById("kbSearchGo").onclick = () => { const q = document.getElementById("kbSearchInput").value; overlay.remove(); doKBSearch(q); };
+        document.getElementById("kbSearchInput").focus();
+    }
+
+    function doKBSearch(q) {
+        if (!q || !q.trim()) return;
+        showLoading("搜索知识库...");
+        API.fetchKBSearch(q.trim()).then(r => {
+            hideLoading();
+            const list = document.getElementById("kbList");
+            if (r.success && r.data.results && r.data.results.length > 0) {
+                list.innerHTML = r.data.results.map((d, i) => `
+                <div class="kb-item">
+                  <div class="info">
+                    <div class="title">${escapeHtml(d.title || d.bvid)}</div>
+                    <div class="meta">相关度: ${(d.score || 0).toFixed(2)} · ${escapeHtml((d.content || "").substring(0, 60))}</div>
+                  </div>
+                </div>`).join("");
+            } else {
+                list.innerHTML = '<div class="empty-state"><div class="empty-state-text">无匹配结果</div></div>';
+            }
+        }).catch(() => { hideLoading(); showToast("搜索失败", "error"); });
+    }
+
+    async function sendRAG() {
+        const input = document.getElementById("ragInput");
+        const q = input.value.trim();
+        if (!q) return;
+        input.value = "";
+        const msgs = document.getElementById("ragMessages");
+        await streamChat(q, msgs);
+    }
+
+    let kbSelectedSet = new Set();
+    let kbSelectAllMode = false;
+    function toggleKBItem(bvid, checked) {
+        if (checked) kbSelectedSet.add(bvid); else kbSelectedSet.delete(bvid);
+        updateKBBatchUI();
+    }
+    function toggleSelectAllKB() {
+        kbSelectAllMode = !kbSelectAllMode;
+        document.getElementById("kbSelectAllBtn").textContent = kbSelectAllMode ? "☑ 取消全选" : "☐ 全选";
+        if (kbSelectAllMode) {
+            API.fetchKBList().then(r => { if (r.success && r.data.entries) { r.data.entries.forEach(e => kbSelectedSet.add(e.bvid)); loadKBList(); } });
+        } else { kbSelectedSet.clear(); loadKBList(); }
+    }
+    function updateKBBatchUI() {
+        var btn = document.getElementById("kbDeleteSelectedBtn");
+        btn.disabled = kbSelectedSet.size === 0;
+        btn.textContent = kbSelectedSet.size > 0 ? ("🗑️ 删除选中(" + kbSelectedSet.size + ")") : "🗑️ 删除选中";
+    }
+    async function deleteSelectedKB() {
+        if (kbSelectedSet.size === 0) return;
+        if (!confirm("确定删除选中的 " + kbSelectedSet.size + " 个视频吗？\n\n每个视频将同时删除：知识库条目、文本分块、搜索索引、AI向量数据、ASR音频缓存、已下载的视频文件夹。\n\n此操作不可恢复，需重新导入。")) return;
+        var deleted = 0;
+        for (var bvid of kbSelectedSet) { try { var r = await API.fetchKBDelete(bvid); if (r.success) deleted++; } catch (e) {} }
+        showToast("已删除 " + deleted + " 条记录", "success");
+        kbSelectedSet.clear(); kbSelectAllMode = false;
+        loadKBList(); loadKBStats();
+    }
+</script>
+</body>
+</html>

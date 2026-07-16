@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BiliSum · 工具</title>
+<link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/enhancements.css">
+</head>
+<body>
+
+<div class="app-shell">
+    <header class="app-topbar">
+        <div style="display:flex;align-items:center;gap:10px;position:relative">
+            <button class="hamburger-btn" id="hamburgerBtn" title="菜单">☰</button>
+            <div class="brand" onclick="location.href='/browse'">
+                <span class="brand-mark">📺</span>
+                <span class="brand-title">BiliSum</span>
+                <span class="brand-subtitle">工具</span>
+            </div>
+            <div class="hamburger-menu" id="hamburgerMenu">
+                <a href="/browse">🏠 首页·B站浏览</a>
+                <a href="/summary">🤖 AI总结</a>
+                <a href="/kb">📚 知识库</a>
+                <a href="/favorites">📁 收藏夹同步</a>
+                <a href="/tools">🛠️ 工具页</a>
+                <a href="/categories">📂 智能分类</a>
+                <a href="/multi-platform">🌐 多平台导入</a>
+                <a href="/upload">📤 本地上传</a>
+                <div class="menu-divider"></div>
+                <a href="https://www.bilibili.com" target="_blank">🔗 备用网站</a>
+                <a href="#" onclick="openLogin();return false">🔑 B站登录</a>
+                <a href="#" onclick="openSettings();return false">⚙️ API设置</a>
+            </div>
+        </div>
+        <nav class="topbar-actions">
+            <button class="btn btn-outline btn-sm" onclick="openSettings()">⚙️ API设置</button>
+            <button class="btn btn-outline btn-sm" onclick="openLogin()">🔑 登录</button>
+        </nav>
+    </header>
+
+    <div class="content-area">
+        <h2 style="margin-bottom:16px">🛠️ 工具集</h2>
+
+        <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">
+
+            <!-- Tool: Subtitle Fetch -->
+            <div class="card" style="padding:16px;cursor:default">
+                <h3>📝 字幕提取</h3>
+                <p style="font-size:12px;color:var(--muted);margin:8px 0">提取B站视频字幕，支持多通道自动回退</p>
+                <div style="display:flex;gap:8px;margin-top:8px">
+                    <input class="input" id="subtitleBvid" placeholder="输入BV号" style="font-size:12px">
+                    <button class="btn btn-primary btn-sm" onclick="fetchSubtitle()">提取</button>
+                </div>
+                <div id="subtitleResult" style="font-size:12px;margin-top:8px;max-height:200px;overflow-y:auto"></div>
+            </div>
+
+            <!-- Tool: Audio URL -->
+            <div class="card" style="padding:16px;cursor:default">
+                <h3>🎵 音频提取</h3>
+                <p style="font-size:12px;color:var(--muted);margin:8px 0">获取视频DASH音频流URL（可用于语音转写）</p>
+                <div style="display:flex;gap:8px;margin-top:8px">
+                    <input class="input" id="audioBvid" placeholder="输入BV号" style="font-size:12px">
+                    <button class="btn btn-primary btn-sm" onclick="fetchAudio()">获取</button>
+                </div>
+                <div id="audioResult" style="font-size:12px;margin-top:8px;max-height:200px;overflow-y:auto"></div>
+            </div>
+
+            <!-- Tool: Subtitle Detection -->
+            <div class="card" style="padding:16px;cursor:default">
+                <h3>🔍 字幕检测</h3>
+                <p style="font-size:12px;color:var(--muted);margin:8px 0">检测视频可用字幕格式和语言</p>
+                <div style="display:flex;gap:8px;margin-top:8px">
+                    <input class="input" id="detectBvid" placeholder="输入BV号" style="font-size:12px">
+                    <button class="btn btn-primary btn-sm" onclick="detectSub()">检测</button>
+                </div>
+                <div id="detectResult" style="font-size:12px;margin-top:8px"></div>
+            </div>
+
+            <!-- Tool: Export -->
+            <div class="card" style="padding:16px;cursor:default">
+                <h3>📥 快速导出</h3>
+                <p style="font-size:12px;color:var(--muted);margin:8px 0">导出字幕/笔记为多种格式</p>
+                <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+                    <input class="input" id="exportBvid" placeholder="输入BV号" style="font-size:12px">
+                    <select id="exportFormat" style="padding:4px 8px;border:1px solid var(--border);border-radius:var(--radius-pill);font-size:12px">
+                        <option value="txt">TXT</option>
+                        <option value="md">Markdown</option>
+                        <option value="srt">SRT</option>
+                        <option value="vtt">VTT</option>
+                        <option value="docx">DOCX 学霸笔记</option>
+                    </select>
+                    <button class="btn btn-primary btn-sm" onclick="doExport()">导出</button>
+                </div>
+            </div>
+
+            <!-- Tool: Video Download -->
+            <div class="card" style="padding:16px;cursor:default">
+                <h3>🎬 视频下载</h3>
+                <p style="font-size:12px;color:var(--muted);margin:8px 0">下载B站视频（需要yt-dlp）</p>
+                <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+                    <input class="input" id="downloadBvid" placeholder="输入BV号" style="font-size:12px">
+                    <button class="btn btn-outline btn-sm" onclick="downloadVideo()">下载视频</button>
+                </div>
+                <div id="downloadResult" style="font-size:12px;margin-top:8px"></div>
+            </div>
+
+            <!-- Tool: Favorites -->
+            <div class="card" style="padding:16px;cursor:default">
+                <h3>⭐ 收藏夹</h3>
+                <p style="font-size:12px;color:var(--muted);margin:8px 0">查看已登录账号的收藏夹（需先扫码登录）</p>
+                <button class="btn btn-outline btn-sm" onclick="loadFavorites()">加载收藏夹</button>
+                <div id="favResult" style="font-size:12px;margin-top:8px;max-height:200px;overflow-y:auto"></div>
+            </div>
+
+        </div>
+
+        <!-- System Status -->
+        <div class="hero-section" style="margin-top:16px">
+            <h2>📊 系统状态</h2>
+            <div id="sysStats" style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:8px">
+                <div class="stat-card"><span class="stat-num" id="statVids">-</span><span class="stat-label">知识库视频</span></div>
+                <div class="stat-card"><span class="stat-num" id="statChunks">-</span><span class="stat-label">分块数</span></div>
+            </div>
+        </div>
+        <style>
+        .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 24px; text-align: center; min-width: 120px; box-shadow: var(--shadow); }
+        .stat-num { font-size: 28px; font-weight: 700; color: var(--pink-dark); display: block; }
+        .stat-label { font-size: 12px; color: var(--muted); }
+        </style>
+        <script>
+        (async function(){try{const r=await fetch('/api/v2/count');const d=await r.json();if(d.success){document.getElementById('statVids').textContent=d.data.kb_videos;document.getElementById('statChunks').textContent=d.data.kb_chunks}}catch(e){}})();
+        </script>
+    </div>
+</div>
+<div class="modal-backdrop" id="settingsModal">
+    <div class="modal-card" style="text-align:left">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+            <div class="modal-title">⚙️ AI API 设置</div>
+            <button class="btn-icon" onclick="closeSettings()" style="font-size:18px">✕</button>
+        </div>
+        <label class="modal-label">API 密钥</label>
+        <input class="modal-input" id="settingsApiKey" type="password" placeholder="sk-ant-api... 或 sk-...">
+        <label class="modal-label">API 地址</label>
+        <input class="modal-input" id="settingsApiUrl" placeholder="https://api.anthropic.com/v1/messages">
+        <label class="modal-label">模型</label>
+        <select class="modal-input" id="settingsModel" style="appearance:auto">
+            <option value="claude-opus-4-8">Claude Opus 4.8 (推荐)</option>
+            <option value="claude-sonnet-5">Claude Sonnet 5</option>
+            <option value="deepseek-v4-pro">DeepSeek V4 Pro</option>
+            <option value="deepseek-chat">DeepSeek V3</option>
+            <option value="deepseek-reasoner">DeepSeek R1</option>
+            <option value="gpt-5.5">ChatGPT 5.5</option>
+        </select>
+        <p style="font-size:11px;color:var(--muted);margin-bottom:10px"><b>设置后所有页面生效</b></p>
+        <label class="modal-label">下载路径</label>
+        <div style="display:flex;gap:8px">
+            <input class="modal-input" id="settingsDownloadDir" placeholder="默认：下载文件夹" style="flex:1">
+            <button class="btn btn-outline btn-sm" onclick="selectDownloadDir()">📁 浏览</button>
+        </div>
+        <label class="modal-label">知识库存储路径</label>
+        <div style="display:flex;gap:8px">
+            <input class="modal-input" id="settingsKbDir" placeholder="默认：data/knowledge_base" style="flex:1">
+            <button class="btn btn-outline btn-sm" onclick="selectKbDir()">📁 浏览</button>
+        </div>
+        <label class="modal-label">Obsidian Vault 路径</label>
+        <div style="display:flex;gap:8px">
+            <input class="modal-input" id="settingsObsidianVault" placeholder="选择 Obsidian Vault 文件夹" style="flex:1">
+            <button class="btn btn-outline btn-sm" onclick="selectObsidianVault()">📁 浏览</button>
+        </div>
+        <label class="modal-label">Obsidian 密钥 (可选)</label>
+        <input class="modal-input" id="settingsObsidianKey" type="password" placeholder="Obsidian Local REST API 密钥">
+        <p style="font-size:11px;color:var(--muted);margin-bottom:10px"><b>设置后所有页面生效</b></p>
+        <button class="btn btn-primary" style="width:100%" onclick="saveSettings()">💾 保存设置</button>
+    </div>
+</div>
+
+<!-- Login Modal -->
+<div class="modal-backdrop" id="loginModal">
+    <div class="modal-card">
+        <div class="modal-title">🔑 扫码登录 B站</div>
+        <div class="modal-subtitle">使用哔哩哔哩 App 扫码</div>
+        <div class="qr-container" id="qrImage"><div class="spinner"></div></div>
+        <div class="qr-status" id="qrStatus">正在生成二维码...</div>
+        <button class="btn btn-outline btn-sm" onclick="closeLogin()">取消</button>
+    </div>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-box"><div class="spinner"></div><div style="margin-top:12px;font-size:13px;color:var(--text-secondary)" id="loadingMsg">处理中...</div></div>
+</div>
+
+<div class="toast" id="toast" style="display:none"></div>
+
+<script src="/js/common.js"></script>
+    <script src="/js/enhancements.js"></script>
+<script src="/js/api.js"></script>
+<script>
+    async function fetchSubtitle() {
+        const bvid = document.getElementById("subtitleBvid").value.trim();
+        if (!bvid) return;
+        const el = document.getElementById("subtitleResult");
+        el.textContent = "提取中...";
+        try {
+            const r = await API.fetchTranscript(bvid);
+            if (r.success) el.textContent = `✅ ${r.data.count} 条字幕已提取 · 来源: ${r.data.source}`;
+            else el.textContent = `❌ ${r.error}`;
+        } catch (e) { el.textContent = "❌ 失败"; }
+    }
+
+    async function fetchAudio() {
+        const bvid = document.getElementById("audioBvid").value.trim();
+        if (!bvid) return;
+        const el = document.getElementById("audioResult");
+        el.textContent = "获取中...";
+        try {
+            const r = await API.fetchAudio(bvid);
+            if (r.success) el.innerHTML = `<pre style="font-size:11px;white-space:pre-wrap">${escapeHtml(JSON.stringify(r.data, null, 2))}</pre>`;
+            else el.textContent = `❌ ${r.error}`;
+        } catch (e) { el.textContent = "❌ 失败"; }
+    }
+
+    async function detectSub() {
+        const bvid = document.getElementById("detectBvid").value.trim();
+        if (!bvid) return;
+        const el = document.getElementById("detectResult");
+        el.textContent = "检测中...";
+        try {
+            const r = await API.fetchSubtitleDetect(bvid);
+            if (r.success) el.innerHTML = `<pre style="font-size:11px">${escapeHtml(JSON.stringify(r.data, null, 2))}</pre>`;
+            else el.textContent = `❌ ${r.error}`;
+        } catch (e) { el.textContent = "❌ 失败"; }
+    }
+
+    function doExport() {
+        const bvid = document.getElementById("exportBvid").value.trim();
+        if (!bvid) return;
+        const format = document.getElementById("exportFormat").value;
+        const url = API.getExportUrl(format, bvid);
+        API.downloadFile(url, `${bvid}.${format}`);
+        showToast("✅ 下载开始", "success");
+    }
+
+    async function downloadVideo() {
+        const bvid = document.getElementById("downloadBvid").value.trim();
+        if (!bvid) return;
+        const el = document.getElementById("downloadResult");
+        el.textContent = "准备下载...（需要yt-dlp，较大视频可能需要较长时间）";
+        try {
+            const r = await fetch(`/api/video/download/${bvid}`);
+            const d = await r.json();
+            if (d.success) el.textContent = "✅ 下载已开始，请检查下载文件夹";
+            else el.textContent = `❌ ${d.error || "下载失败"}`;
+        } catch (e) { el.textContent = "❌ 下载失败，请确认yt-dlp已安装"; }
+    }
+
+    async function loadFavorites() {
+        const el = document.getElementById("favResult");
+        el.textContent = "加载中...";
+        try {
+            const nav = await API.fetchFavoritesNav();
+            if (!nav.success || !nav.data.isLogin) { el.textContent = "❌ 请先登录B站"; return; }
+            const folders = await API.fetchFavoritesFolders(nav.data.mid);
+            if (folders.success && folders.data.folders) {
+                el.innerHTML = folders.data.folders.map(f =>
+                    `<div style="padding:4px 0">📁 ${escapeHtml(f.title)} <span style="color:var(--muted)">(${f.media_count})</span></div>`
+                ).join("");
+            } else { el.textContent = "❌ 获取失败"; }
+        } catch (e) { el.textContent = "❌ 失败"; }
+    }
+</script>
+
+</body>
+</html>

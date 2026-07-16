@@ -1,0 +1,90 @@
+{
+  "dimension": "architecture",
+  "findings": [
+    {
+      "title": "Thread-Per-Worker Model (QThread) vs Missing Async Task Lifecycle",
+      "description": "Bili23 uses a QThread-per-worker model (AsyncTask.run in script/util/thread/async_.py:19-40) where each worker object is moved to its own QThread and connected via Qt signals. Worker lifecycle is explicitly tracked in thread_queue for safe_quit (line 7, 43-53). BiliSum uses FastAPI async/await with no explicit task lifecycle management -- cancelled streaming tasks have no cleanup and no grace period. The cancellation.py module only provides a token pattern (lines 9-17) without actual background-task tracking or safe shutdown. Adopt Bili23's thread_queue pattern as an asyncio Task registry with graceful shutdown.",
+      "priority": "P0",
+      "file": "backend/main.py",
+      "lineRange": "493-496"
+    },
+    {
+      "title": "SignalBus Event Architecture vs Scattered FastAPI Routes",
+      "description": "Bili23 centralises all cross-component communication through a single SignalBus (script/util/common/signal_bus.py:8-106) with typed sub-objects (toast, parse, download, login, update, interface) each carrying explicit Qt Signal signatures with typed arguments. A pending_signals queue with double-checked locking (lines 85-106) ensures signals emitted before the main window is ready are queued and replayed. BiliSum has no equivalent -- routers call functions directly and error handling is per-endpoint try/except. There is no typed event bus for cross-cutting concerns like progress updates, error aggregation, or status changes. Create an async EventBus with subscribe/publish for BiliSum.",
+      "priority": "P0",
+      "file": "backend/routers/bilibili.py",
+      "lineRange": "16-23"
+    },
+    {
+      "title": "Parser Factory Dispatch Pattern (Clean Strategy Pattern)",
+      "description": "Bili23 uses a clean factory dispatch pattern in WorkerBase.get_parser (script/util/parse/worker.py:15-58): URL pattern matching via regex iterates url_patterns to determine parser_type, then Python 3.10 match/case instantiates the correct parser class with lazy imports inside each branch. WorkerBase.get_parser_type (lines 60-65) iterates url_patterns list to match. BiliSum uses a monolithic bilibili_client.py with no parser abstraction -- get_video_info, get_full_subtitle, get_danmaku, get_comments are all flat functions in one 851-line file with no dispatch layer. Adding a new content type requires modifying the core client module directly.",
+      "priority": "P0",
+      "file": "backend/bilibili_client.py",
+      "lineRange": "1-10"
+    },
+    {
+      "title": "Granular IntFlag-Based Attribute System vs String Comparison",
+      "description": "Bili23 uses Python IntFlag (script/util/parse/episode/tree.py:27-51) with 17-bit attributes (Attribute class) for content type discrimination: VIDEO_BIT, BANGUMI_BIT, CHEESE_BIT, SPACE_BIT, etc. These flags compose via bitwise OR and are checked with bitwise AND. DownloadType in script/util/common/enum.py:129-135 similarly uses IntFlag for VIDEO|AUDIO|DANMAKU|SUBTITLE|COVER|METADATA. BiliSum uses ad-hoc string comparisons and None checks to determine content characteristics with no unified type taxonomy. Adopting IntFlags would enable clean multiplexed processing pipelines.",
+      "priority": "P1",
+      "file": "backend/models.py",
+      "lineRange": "1-12"
+    },
+    {
+      "title": "Config Versioning and Auto-Patching for Schema Evolution",
+      "description": "Bili23 implements config schema evolution: APPConfig stores app_config_version (script/util/common/config.py:296), check_need_patch() compares JSON config_version against code version (lines 444-463), and patch_config() applies migrations (lines 465-470). BiliSum has no config versioning -- any DB schema or settings change risks silent corruption on existing user installations since database.py writes settings directly with no migration framework.",
+      "priority": "P1",
+      "file": "backend/database.py",
+      "lineRange": "1-13"
+    },
+    {
+      "title": "Token Bucket Rate Limiter (Generalised for LLM API Throttling)",
+      "description": "Bili23 implements TokenBucket (script/util/download/downloader/downloader.py:33-75) -- a thread-safe token bucket with Lock, consume(amount, stop_event), and set_rate() methods. It runs per-downloader for bandwidth throttling with stop_event integration for graceful pause. The consume() method (lines 44-69) uses floating-point sleep segmentation (0.1s chunks) to remain responsive to stop signals. BiliSum should adopt this pattern for LLM API rate limiting: token bucket per API provider, per-minute/per-day token budget managed by a central limiter, integrated with the AbortController in unified_llm_client.py.",
+      "priority": "P1",
+      "file": "backend/unified_llm_client.py",
+      "lineRange": "999-1043"
+    },
+    {
+      "title": "DownloadStatus State Machine (12 States) for AI Pipeline Orchestration",
+      "description": "Bili23 defines a 12-state DownloadStatus IntEnum (script/util/common/enum.py:110-127): QUEUED -> PARSING -> DOWNLOADING -> ADDITIONAL_PROCESSING -> FFMPEG_QUEUED -> MERGING -> CONVERTING -> COMPLETED, with PAUSED and FAILED/FFMPEG_FAILED/INVALID as terminal/error states. The Downloader class (script/util/download/downloader/downloader.py:258-658) follows this state machine rigorously: start() checks progress (lines 298-313), on_parse_finished() transitions PARSING->DOWNLOADING (line 322), on_download_completed() transitions to ADDITIONAL_PROCESSING or FFMPEG_QUEUED (lines 556-580), wait_merge() sets FFMPEG_QUEUED (line 583). BiliSum has no explicit pipeline state machine for its multi-stage AI processing (subtitle fetch -> OCR -> summarise -> classify -> RAG index). Adopting a similar IntEnum state machine would make the processing pipeline observable and testable.",
+      "priority": "P1",
+      "file": "backend/summarizer.py",
+      "lineRange": "1-15"
+    },
+    {
+      "title": "BFS Graph Traversal Pattern (Generalised as Dependency/Knowledge Graph Walker)",
+      "description": "Bili23 InteractiveVideoParser (script/util/parse/parser/video.py:43-198) uses BFS with visited states to traverse the interactive video graph. The pattern uses deque of pending nodes (line 170), visited set of (cid, edge_id) tuples (line 174-175), and stop_event for cancellation (line 172). This is generalisable to any graph walk. BiliSum could reuse this for: crawling related videos via recommendation API, building knowledge graphs from comment reply trees, or dependency resolution in multi-step AI processing pipelines.",
+      "priority": "P2",
+      "file": "backend/summarizer.py",
+      "lineRange": "1-15"
+    },
+    {
+      "title": "Dual Database Architecture (Persistent SQLite + In-Memory Index)",
+      "description": "Bili23 TaskManager (script/util/download/task/manager.py:29-346) maintains a persistent SQLite database for download tasks alongside runtime state. The db_manager handles add/update/delete/query (lines 191-216), while the DownloaderManager in-memory downloaders dict (script/util/download/downloader/manager.py:8-64) provides O(1) lookup of active downloaders. BiliSum database.py has a similar dual-layer approach with _kb_index (lines 60-80) but lacks the systematic bidirectional sync between layers that Bili23 achieves via signal_bus.download.update_downloading_item emissions after every state change.",
+      "priority": "P2",
+      "file": "backend/database.py",
+      "lineRange": "60-80"
+    },
+    {
+      "title": "Lazy Import + Deferred Module Loading for Cold-Start Optimisation",
+      "description": "Bili23 uses lazy imports inside match/case branches (script/util/parse/worker.py:17-58): each parser module (video, bangumi, cheese, space, etc.) is imported only when its parser type is matched at runtime, not at module load time. This reduces import graph weight. BiliSum main.py eagerly imports all modules at startup (lines 38-42) and loads all routers via try/except blocks (lines 113-184). The 9 router modules and 20+ backend modules are all loaded before the first request. Adopting lazy loading would reduce cold-start memory and improve time-to-first-byte.",
+      "priority": "P2",
+      "file": "backend/main.py",
+      "lineRange": "113-184"
+    },
+    {
+      "title": "Single-Instance Enforcement (Port Conflict Prevention)",
+      "description": "Bili23 implements QLockFile-based single-instance enforcement with IPC wake-up via QLocalServer (script/main.py:86-198). On Windows it additionally creates a named mutex via kernel32.CreateMutexW (lines 107, 233-244). The lock has a stale-lock timeout (line 115) to handle crash recovery. BiliSum has no equivalent for preventing duplicate server instances on port 8000, which can cause silent port-conflict errors on startup. A simple file-lock or port-check pattern would prevent this.",
+      "priority": "P2",
+      "file": "backend/main.py",
+      "lineRange": "493-496"
+    },
+    {
+      "title": "Translator Pattern for Full I18n Support",
+      "description": "Bili23 Translator class (script/util/common/translator.py:20-401) uses a @get_map_method decorator pattern: each static method defines a key-value mapping dict; the decorator wraps it so calling with a key returns the mapped value, while calling without returns the full map. All strings use QCoreApplication.translate with context+text for Qt Linguist compatibility. The mapping covers CDN providers, video/audio qualities, codecs, episode types, error messages (30+ entries), tip messages (20+ entries), and naming rule variables (40+ entries). BiliSum has no i18n support -- all strings are hardcoded Chinese in source files. A lightweight Translator class would enable future English UI.",
+      "priority": "P2",
+      "file": "backend/main.py",
+      "lineRange": "1-2"
+    }
+  ],
+  "topRecommendation": "Adopt a signal-bus event architecture for BiliSum modeled on Bili23 SignalBus (script/util/common/signal_bus.py). Create a typed async EventBus with subscribe/publish for cross-cutting events (LLM progress, error aggregation, subtitle fetch status, pipeline stage transitions). This would eliminate the current per-route try/except pattern and enable clean background-task lifecycle management. Additionally, refactor bilibili_client.py into a parser-factory dispatch pattern like Bili23 WorkerBase.get_parser() to enable future content types without monolithic code growth, and implement an IntFlag-based pipeline state machine for the multi-stage AI processing flow."
+}

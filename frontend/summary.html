@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BiliSum · AI总结</title>
+<link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/enhancements.css">
+<style>
+    .summary-layout { display: flex; height: calc(100vh - 52px); }
+    .summary-main { flex: 1; overflow-y: auto; padding: 20px; max-width: 800px; }
+    .input-row { display: flex; gap: 10px; margin-bottom: 10px; }
+    .input-row .input { flex: 1; font-size: 14px; }
+    .mindmap-container { width: 100%; height: 70vh; border: 1px solid var(--border); border-radius: var(--radius); overflow: auto; background: #fff; }
+    .mindmap-container svg { min-width: 100%; min-height: 500px; }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+    <!-- Top Bar -->
+    <header class="app-topbar">
+        <div style="display:flex;align-items:center;gap:10px;position:relative">
+            <button class="hamburger-btn" id="hamburgerBtn" title="菜单">☰</button>
+            <div class="brand" onclick="location.href='/browse'">
+                <span class="brand-mark">📺</span>
+                <span class="brand-title">BiliSum</span>
+                <span class="brand-subtitle">AI总结</span>
+            </div>
+            <!-- Hamburger Menu -->
+            <div class="hamburger-menu" id="hamburgerMenu">
+                <a href="/browse">🏠 首页·B站浏览</a>
+                <a href="/summary">🤖 AI总结</a>
+                <a href="/kb">📚 知识库</a>
+                <a href="/favorites">📁 收藏夹同步</a>
+                <a href="/tools">🛠️ 工具页</a>
+                <a href="/categories">📂 智能分类</a>
+                <a href="/multi-platform">🌐 多平台导入</a>
+                <a href="/upload">📤 本地上传</a>
+                <div class="menu-divider"></div>
+                <a href="https://www.bilibili.com" target="_blank">🔗 备用网站</a>
+                <a href="#" onclick="openLogin();return false">🔑 B站登录</a>
+                <a href="#" onclick="openSettings();return false">⚙️ API设置</a>
+            </div>
+        </div>
+        <nav class="topbar-actions">
+            <button class="btn btn-outline btn-sm" onclick="openSettings()">⚙️ API设置</button>
+            <button class="btn btn-outline btn-sm" onclick="openLogin()">🔑 登录</button>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <div class="summary-layout">
+        <div class="summary-main">
+            <!-- Input -->
+            <div class="input-row">
+                <input class="input" id="urlInput" placeholder="粘贴B站视频链接或BV号，按 Ctrl+Enter 总结..." autofocus>
+                <button class="btn btn-primary btn-lg" id="summarizeBtn" onclick="handleSummarize()">🤖 总结此视频</button>
+            </div>
+
+            <!-- Inline Progress Bar (non-blocking) -->
+            <div id="progressBar" style="display:none;margin:10px 0;background:var(--surface);border-radius:var(--radius);padding:12px 16px;box-shadow:var(--shadow)">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                    <span style="font-size:13px;font-weight:600;color:var(--pink-dark)" id="progressStep">准备中...</span>
+                    <span style="font-size:11px;color:var(--muted)" id="progressPct">0%</span>
+                </div>
+                <div style="background:var(--border);border-radius:10px;height:8px;overflow:hidden">
+                    <div id="progressFill" style="background:linear-gradient(135deg,var(--pink),var(--pink-dark));height:100%;width:0%;border-radius:10px;transition:width 0.4s ease"></div>
+                </div>
+            </div>
+
+            <!-- Mode Selector -->
+            <div class="mode-selector">
+                <span class="mode-chip active" data-mode="detailed" onclick="setMode('detailed')">📝 详细总结</span>
+                <span class="mode-chip" data-mode="brief" onclick="setMode('brief')">📋 简要总结</span>
+                <span class="mode-chip" data-mode="keypoints" onclick="setMode('keypoints')">🔑 关键要点</span>
+                <span class="mode-chip" data-mode="mindmap" onclick="setMode('mindmap')">🧠 思维导图</span>
+            </div>
+
+            <!-- Video Info -->
+            <div class="video-info-card" id="videoInfo" style="display:none"></div>
+
+            <!-- Summary Result -->
+            <div class="result-card" id="summaryResult" style="display:none">
+                <div id="summaryContent"></div>
+                <div class="result-actions">
+                    <button class="btn btn-outline btn-sm" onclick="copySummary()">📋 复制</button>
+                    <button class="btn btn-outline btn-sm" onclick="saveToKB()">📚 保存到知识库</button>
+                    <button class="btn btn-outline btn-sm" onclick="exportSummaryDocx()">📥 导出学霸笔记 (.docx)</button>
+                    <button class="btn btn-outline btn-sm" onclick="pushSummaryToObsidian()">📓 推送Obsidian</button>
+                </div>
+            </div>
+
+            <!-- Quick Tools -->
+            <div style="margin-top:16px">
+                <div class="section-title">🔧 快捷工具</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                    <button class="btn btn-outline btn-sm" onclick="handleTranscript()">📝 获取完整文字稿</button>
+                    <button class="btn btn-outline btn-sm" onclick="handleTimedText()">⏱️ 时间戳文字</button>
+                    <button class="btn btn-outline btn-sm" onclick="handleSegments()">📊 分段概况</button>
+                    <button class="btn btn-outline btn-sm" onclick="handleComments()">💬 AI分析评论</button>
+                    <button class="btn btn-outline btn-sm" onclick="handleChapters()">📑 章节检测</button>
+                    <button class="btn btn-outline btn-sm" onclick="handleOutline()">📋 视频大纲</button>
+                    <button class="btn btn-outline btn-sm" onclick="handleSubtitleDetect()">🔍 字幕检测</button>
+                    <button class="btn btn-outline btn-sm" onclick="handleDanmaku()">💬 弹幕</button>
+                </div>
+            </div>
+
+            <!-- Export -->
+            <div style="margin-top:12px">
+                <div class="section-title">📥 导出字幕</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                    <button class="btn btn-outline btn-sm" onclick="handleExport('md')">Markdown</button>
+                    <button class="btn btn-outline btn-sm" onclick="handleExport('txt')">纯文本</button>
+                    <button class="btn btn-outline btn-sm" onclick="handleExport('srt')">SRT字幕</button>
+                    <button class="btn btn-outline btn-sm" onclick="handleExport('vtt')">VTT字幕</button>
+                    <button class="btn btn-outline btn-sm" onclick="handleExport('comments_md')">评论MD</button>
+                </div>
+            </div>
+
+            <!-- Generic Result Display -->
+            <div class="result-card" id="genericResult" style="display:none">
+                <div id="genericContent"></div>
+            </div>
+
+            <!-- Comments Display -->
+            <div class="result-card" id="commentsResult" style="display:none">
+                <div id="commentsContent"></div>
+            </div>
+        </div>
+
+        <!-- History Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <span>📋 历史记录</span>
+                <span style="display:flex;gap:4px">
+                    <button class="btn btn-sm" style="background:transparent;border:none;cursor:pointer;font-size:11px;color:var(--muted);min-height:44px;min-width:44px" onclick="toggleSelectAll()" id="selectAllBtn">☐ 全选</button>
+                    <button class="btn btn-sm" style="background:transparent;border:none;cursor:pointer;font-size:11px;color:#ff4d4f;min-height:44px;min-width:44px" onclick="deleteSelected()" id="deleteSelectedBtn" disabled>🗑️ 删除选中</button>
+                    <button class="btn btn-sm" style="background:transparent;border:none;cursor:pointer;font-size:11px;color:#ff4d4f;min-height:44px;min-width:44px" onclick="deleteAllHistory()">🗑️ 清空全部</button>
+                </span>
+            </div>
+            <div class="sidebar-search">
+                <input placeholder="搜索历史..." oninput="searchHistory(this.value)">
+            </div>
+            <div class="sidebar-body" id="historyList">
+                <div class="empty-state"><div class="empty-state-text" style="font-size:12px">暂无总结记录。输入BV号并点击总结，AI将自动分析<br><small>输入 BV 号并点击总结，记录会自动出现在这里</small></div></div>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-backdrop" id="settingsModal">
+    <div class="modal-card" style="text-align:left">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+            <div class="modal-title">⚙️ AI API 设置</div>
+            <button class="btn-icon" onclick="closeSettings()" style="font-size:18px">✕</button>
+        </div>
+        <label class="modal-label">API 密钥</label>
+        <input class="modal-input" id="settingsApiKey" type="password" placeholder="sk-ant-api... 或 sk-...">
+        <label class="modal-label">API 地址</label>
+        <input class="modal-input" id="settingsApiUrl" placeholder="https://api.anthropic.com/v1/messages">
+        <label class="modal-label">模型</label>
+        <select class="modal-input" id="settingsModel" style="appearance:auto" onchange="detectProviderFromModel()">
+            <option value="claude-opus-4-8">Claude Opus 4.8 (推荐)</option>
+            <option value="claude-sonnet-5">Claude Sonnet 5</option>
+            <option value="deepseek-v4-pro">DeepSeek V4 Pro</option>
+            <option value="deepseek-chat">DeepSeek V3</option>
+            <option value="deepseek-reasoner">DeepSeek R1</option>
+            <option value="gpt-5.5">ChatGPT 5.5</option>
+        </select>
+        <label class="modal-label">下载路径</label>
+        <div style="display:flex;gap:8px">
+            <input class="modal-input" id="settingsDownloadDir" placeholder="默认：下载文件夹" style="flex:1">
+            <button class="btn btn-outline btn-sm" onclick="selectDownloadDir()">📁 浏览</button>
+        </div>
+        <label class="modal-label">知识库存储路径</label>
+        <div style="display:flex;gap:8px">
+            <input class="modal-input" id="settingsKbDir" placeholder="默认：data/knowledge_base" style="flex:1">
+            <button class="btn btn-outline btn-sm" onclick="selectKbDir()">📁 浏览</button>
+        </div>
+        <label class="modal-label">Obsidian Vault 路径</label>
+        <div style="display:flex;gap:8px">
+            <input class="modal-input" id="settingsObsidianVault" placeholder="选择 Obsidian Vault 文件夹" style="flex:1">
+            <button class="btn btn-outline btn-sm" onclick="selectObsidianVault()">📁 浏览</button>
+        </div>
+        <label class="modal-label">Obsidian 密钥 (可选)</label>
+        <input class="modal-input" id="settingsObsidianKey" type="password" placeholder="Obsidian Local REST API 密钥">
+        <p style="font-size:11px;color:var(--muted);margin-bottom:10px">
+            <b>⚠️ 密钥格式与地址必须匹配：</b><br>
+            · sk-ant-api... 开头 → 地址填 https://api.anthropic.com/v1/messages<br>
+            · sk-... 开头 → 地址填 https://api.deepseek.com/v1/chat/completions<br>
+            · Claude模型选上方Claude选项，DeepSeek模型选上方DeepSeek选项<br>
+            · 选择模型后API地址会自动切换匹配的提供商<br>
+            <b style="color:var(--primary-dark)">设置后所有页面生效</b>
+        </p>
+        <button class="btn btn-primary" style="width:100%" onclick="saveSettings()">💾 保存设置</button>
+    </div>
+</div>
+
+<!-- Login Modal -->
+<div class="modal-backdrop" id="loginModal">
+    <div class="modal-card">
+        <div class="modal-title">🔑 扫码登录 B站</div>
+        <div class="modal-subtitle">使用哔哩哔哩 App 扫码</div>
+        <div class="qr-container" id="qrImage"><div class="spinner"></div></div>
+        <div class="qr-status" id="qrStatus">正在生成二维码...</div>
+        <button class="btn btn-outline btn-sm" onclick="closeLogin()">取消</button>
+    </div>
+</div>
+
+<!-- Loading -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-box">
+        <div class="spinner"></div>
+        <div style="margin-top:12px;font-size:13px;color:var(--text-secondary)" id="loadingMsg">处理中...</div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" style="display:none"></div>
+
+<script src="/js/common.js"></script>
+    <script src="/js/enhancements.js"></script>
+<script src="/js/api.js"></script>
+<script>
+    let currentMode = "detailed";
+    let currentBvid = "";
+    let currentVideoTitle = "";
+    let currentVideoAuthor = "";
+    let currentTranscript = "";
+
+    // Get BVID from URL or input — user input takes priority over URL param
+    function getBvid() {
+        // Priority: URL input > URL params > currentBvid
+        const urlInput = document.getElementById('urlInput');
+        if (urlInput && urlInput.value) {
+            const match = urlInput.value.match(/BV[a-zA-Z0-9]{10}/);
+            if (match) return match[0];
+        }
+        // Check URL params
+        const params = new URLSearchParams(window.location.search);
+        const bvid = params.get('bvid');
+        if (bvid) return bvid;
+        return currentBvid || '';
+    }
+
+    function setMode(mode) {
+        currentMode = mode;
+        document.querySelectorAll(".mode-chip").forEach(c => c.classList.toggle("active", c.dataset.mode === mode));
+        // Visual feedback
+        const names = {detailed:"详细总结", brief:"简要总结", keypoints:"关键要点", mindmap:"思维导图"};
+        document.getElementById("summarizeBtn").textContent = "🤖 " + (names[mode] || "总结");
+    }
+
+    // Ctrl+Enter shortcut
+    document.addEventListener("keydown", function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+            e.preventDefault();
+            handleSummarize();
+        }
+    });
+
+    async function handleSummarize() {
+        const bvid = getBvid();
+        if (!bvid || bvid.length < 10) { showToast("请输入有效的B站视频链接或BV号", "error"); return; }
+        currentBvid = bvid;
+
+        if (!AppState.apiKey) { showToast("请先设置API密钥（点击右上角⚙️）", "error"); openSettings(); return; }
+
+        // Use inline progress bar (not blocking overlay)
+        const progressBar = document.getElementById("progressBar");
+        const progressFill = document.getElementById("progressFill");
+        const progressStep = document.getElementById("progressStep");
+        const progressPct = document.getElementById("progressPct");
+        const summarizeBtn = document.getElementById("summarizeBtn");
+
+        function setProgress(pct, step) {
+            progressBar.style.display = "block";
+            progressFill.style.width = pct + "%";
+            progressPct.textContent = pct + "%";
+            progressStep.textContent = step;
+        }
+
+        summarizeBtn.disabled = true;
+        summarizeBtn.textContent = "⏳ 处理中...";
+        setProgress(10, "正在获取视频信息...");
+
+        try {
+            const infoData = await API.fetchVideoInfo(bvid);
+            if (!infoData.success) {
+                setProgress(0, "失败");
+                summarizeBtn.disabled = false;
+                summarizeBtn.textContent = "🤖 总结";
+                showToast(infoData.error || "获取失败", "error");
+                return;
+            }
+            displayVideoInfo(infoData.data);
+            currentVideoTitle = (infoData.data && infoData.data.title) ? infoData.data.title : bvid;
+            currentVideoAuthor = (infoData.data && infoData.data.author) ? infoData.data.author : "";
+
+            setProgress(30, "正在提取字幕和评论...");
+
+            setProgress(50, "AI 正在分析视频内容...");
+
+            const result = await API.fetchSummarize(bvid, currentMode);
+
+            if (result.success) {
+                setProgress(100, "✅ 总结完成！");
+                displaySummary(result.data);
+                showToast("总结完成", "success");
+                loadHistory();
+            } else {
+                const raw = result.error;
+                const errMsg = (raw && typeof raw === 'string') ? raw : String(raw || "总结失败");
+                setProgress(0, "❌ " + errMsg.substring(0, 40));
+                const errEl = document.getElementById("summaryResult");
+                errEl.style.display = "block";
+                renderErrorState('summaryContent', {message: errMsg, onRetry: handleSummarize});
+                showToast(errMsg.substring(0, 60), "error");
+            }
+
+            // Hide progress after 2s
+            setTimeout(() => { progressBar.style.display = "none"; }, 2000);
+
+        } catch (e) {
+            setProgress(0, "网络错误");
+            const errEl = document.getElementById("summaryResult");
+            errEl.style.display = "block";
+            renderErrorState('summaryContent', {message: e.message || "网络错误", onRetry: handleSummarize});
+            showToast("网络错误: " + e.message, "error");
+            setTimeout(function(){ progressBar.style.display = "none"; }, 3000);
+        } finally {
+            summarizeBtn.disabled = false;
+            summarizeBtn.textContent = "🤖 总结";
+        }
+    }
+
+    function displayVideoInfo(info) {
+        const el = document.getElementById("videoInfo");
+        el.style.display = "flex";
+        el.innerHTML = `
+          ${info.pic ? `<img src="${info.pic}" alt="" onerror="this.style.display='none'">` : ""}
+          <div>
+            <h3>${escapeHtml(info.title)}</h3>
+            <div class="meta">👤 ${escapeHtml(info.author)} · ⏱️ ${formatDuration(info.duration)} · BV: ${info.bvid}${info.videos_count > 1 ? ` · ${info.videos_count}P` : ""}</div>
+            ${info.desc ? `<div class="meta" style="margin-top:4px">${escapeHtml(info.desc).substring(0, 120)}</div>` : ""}
+          </div>`;
+    }
+
+    function displaySummary(data) {
+        const el = document.getElementById("summaryResult");
+        el.style.display = "block";
+        if (currentMode === "mindmap") {
+            renderMindmap(data.summary || "");
+        } else {
+            document.getElementById("summaryContent").innerHTML =
+                `<div style="white-space:pre-wrap;line-height:1.8">${escapeHtml(data.summary || "")}</div>`;
+        }
+    }
+
+    // ---- Mindmap rendering (markmap) ----
+    let _mindmapView = "map"; // "map" | "outline"
+    let _mindmapRaw = "";
+
+    function renderMindmap(mdText) {
+        _mindmapRaw = mdText;
+        const container = document.getElementById("summaryContent");
+        container.innerHTML = `
+          <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+            <button class="btn btn-outline btn-sm" id="mindmapToggleBtn" onclick="toggleMindmapView()">
+              🧠 思维导图 ↔ 📋 文本大纲
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="exportMindmapSVG()" style="margin-left:4px" title="导出为SVG图片">📥 导出SVG</button>
+            <button class="btn btn-outline btn-sm" onclick="exportMindmapObsidian()" style="margin-left:4px" title="导出Markdown文本大纲到Obsidian">📓 导出Obsidian</button>
+          </div>
+          <div id="mindmapContainer" class="mindmap-container"></div>
+          <div id="mindmapFallback" style="display:none;white-space:pre-wrap;line-height:1.8;font-size:14px"></div>`;
+
+        // Load markmap via autoloader (IIFE, works with CSP script-src jsdelivr)
+        // Uses MutationObserver to handle async dependency loading
+        if (typeof window.markmap === 'undefined' || !window.markmap.autoLoader) {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/markmap-autoloader@0.17.0/dist/index.js';
+            const fallbackTimer = setTimeout(() => {
+                _fallbackToText(mdText);
+            }, 15000);
+            script.onload = () => {
+                // autoloader asynchronously loads markmap-lib/view — observe DOM for rendering
+                const container = document.getElementById("mindmapContainer");
+                const fallback = document.getElementById("mindmapFallback");
+                if (!container) { clearTimeout(fallbackTimer); return; }
+                container.innerHTML = '';
+                const el = document.createElement('div');
+                el.className = 'markmap';
+                el.textContent = mdText;
+                container.appendChild(el);
+                // MutationObserver: wait for autoloader to inject its own elements
+                let renderAttempts = 0;
+                const maxAttempts = 30; // 30 * 200ms = 6s max wait
+                const checkRender = setInterval(() => {
+                    renderAttempts++;
+                    const svg = container.querySelector('svg');
+                    if (svg && svg.getBoundingClientRect().width > 0) {
+                        // Successfully rendered
+                        clearTimeout(fallbackTimer);
+                        clearInterval(checkRender);
+                        fallback.style.display = "none";
+                        fallback.innerText = mdText;
+                    } else if (renderAttempts >= maxAttempts) {
+                        clearInterval(checkRender);
+                        // Try manual render via autoLoader
+                        try {
+                            if (window.markmap && window.markmap.autoLoader) {
+                                window.markmap.autoLoader.renderAll();
+                            }
+                        } catch(e) { console.error("Markmap manual render error:", e); }
+                        // Give one more chance
+                        setTimeout(() => {
+                            const svg2 = container.querySelector('svg');
+                            if (!svg2 || svg2.getBoundingClientRect().width === 0) {
+                                clearTimeout(fallbackTimer);
+                                _fallbackToText(mdText);
+                            } else {
+                                clearTimeout(fallbackTimer);
+                                fallback.style.display = "none";
+                                fallback.innerText = mdText;
+                            }
+                        }, 3000);
+                    }
+                }, 200);
+            };
+            script.onerror = () => {
+                clearTimeout(fallbackTimer);
+                _fallbackToText(mdText);
+            };
+            document.head.appendChild(script);
+        } else {
+            _renderMarkmapSvg(mdText);
+        }
+    }
+
+    function _renderMarkmapSvg(mdText) {
+        const container = document.getElementById("mindmapContainer");
+        const fallback = document.getElementById("mindmapFallback");
+        if (!container) return;
+        try {
+            const { Markmap, Transformer } = window.markmap;
+            const transformer = new Transformer();
+            const { root: data } = transformer.transform(mdText);
+            // Create SVG element for Markmap.create (requires SVGElement, not div)
+            container.innerHTML = '';
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("id", "mindmapSvg");
+            svg.style.width = "100%";
+            svg.style.minHeight = "500px";
+            container.appendChild(svg);
+            const mm = Markmap.create(svg, {}, data);
+            // Store for toggle
+            container._markmap = mm;
+            fallback.style.display = "none";
+            fallback.innerText = mdText;
+        } catch (e) {
+            console.error("Markmap render error:", e);
+            _fallbackToText(mdText);
+        }
+    }
+
+    function _fallbackToText(mdText) {
+        const container = document.getElementById("mindmapContainer");
+        const fallback = document.getElementById("mindmapFallback");
+        if (container) container.style.display = "none";
+        if (fallback) {
+            fallback.style.display = "block";
+            fallback.innerHTML = `<div style="color:var(--muted);font-size:12px;margin-bottom:8px">⚠️ 思维导图加载失败，显示文本大纲</div><pre style="white-space:pre-wrap;font-size:13px;line-height:1.7">${escapeHtml(mdText)}</pre>`;
+        }
+    }
+
+    function toggleMindmapView() {
+        _mindmapView = _mindmapView === "map" ? "outline" : "map";
+        const container = document.getElementById("mindmapContainer");
+        const fallback = document.getElementById("mindmapFallback");
+        const btn = document.getElementById("mindmapToggleBtn");
+        if (_mindmapView === "outline") {
+            if (container) container.style.display = "none";
+            if (fallback) {
+                fallback.style.display = "block";
+                fallback.innerHTML = `<pre style="white-space:pre-wrap;font-size:13px;line-height:1.7">${escapeHtml(_mindmapRaw)}</pre>`;
+            }
+            if (btn) btn.textContent = "📋 文本大纲 ↔ 🧠 思维导图";
+        } else {
+            if (container) {
+                container.style.display = "";
+                if (container._markmap) container._markmap.fit();
+                else _renderMarkmapSvg(_mindmapRaw);
+            }
+            if (fallback) fallback.style.display = "none";
+            if (btn) btn.textContent = "🧠 思维导图 ↔ 📋 文本大纲";
+        }
+    }
+
+    function exportMindmapSVG() {
+        const svg = document.getElementById("mindmapSvg") || document.querySelector("#mindmapContainer svg");
+        if (!svg) { showToast("思维导图尚未渲染完成，请稍后重试", "error"); return; }
+        try {
+            const clone = svg.cloneNode(true);
+            clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+            const data = '<?xml version="1.0" encoding="UTF-8"?>\n' + clone.outerHTML;
+            const blob = new Blob([data], { type: "image/svg+xml;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = (currentVideoTitle || currentBvid || "mindmap") + "_思维导图.svg";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("SVG已导出", "success");
+        } catch (e) {
+            console.error("SVG export error:", e);
+            showToast("导出失败", "error");
+        }
+    }
+
+    function exportMindmapObsidian() {
+        if (!currentBvid) { showToast("请先总结视频", "error"); return; }
+        const title = currentVideoTitle || currentBvid;
+        const safeTitle = title.replace(/[\\/:*?"<>|]/g, '-').substring(0, 60);
+        const mdContent = _mindmapRaw || document.getElementById("mindmapFallback")?.innerText || "";
+        if (!mdContent) { showToast("无可导出的内容", "error"); return; }
+        // Push via existing Obsidian endpoint with mindmap markdown
+        showLoading("推送到 Obsidian...");
+        API.post("/api/kb/push-obsidian", {
+            bvid: currentBvid,
+            content: `# ${title} - 思维导图\n\n${mdContent}\n\n> 由 BiliSum AI 生成`,
+            filename: safeTitle + "_思维导图.md"
+        }).then(r => {
+            hideLoading();
+            if (r.success) showToast("已推送到 Obsidian: " + (r.data?.file || safeTitle), "success");
+            else showToast(r.error || "推送失败", "error");
+        }).catch(e => { hideLoading(); showToast("推送失败", "error"); });
+    }
+
+    function copySummary() {
+        const text = document.getElementById("summaryContent").innerText;
+        navigator.clipboard.writeText(text).then(() => showToast("已复制", "success")).catch(() => showToast("复制失败", "error"));
+    }
+
+    async function saveToKB() {
+        const bvid = getBvid();
+        if (!bvid) { showToast("请先输入BV号", "error"); return; }
+        showLoading("保存到知识库...");
+        try {
+            const r = await API.fetchKBSave(bvid);
+            hideLoading();
+            if (r.success) {
+                const d = r.data || {};
+                if (d.partsTotal > 1) {
+                    const allOk = d.partsOk === d.partsTotal;
+                    showToast(`✅ 已导入 ${d.partsOk}/${d.partsTotal} 页 (${d.chunks} 个分块)`, allOk ? "success" : "warning");
+                } else {
+                    showToast(`✅ 已保存 (${d.chunks} 个分块)`, "success");
+                }
+            }
+            else showToast(r.error || "保存失败", "error");
+        } catch (e) { hideLoading(); showToast("保存失败", "error"); }
+    }
+
+    function exportSummaryDoc() {
+        if (!currentBvid) return;
+        API.downloadFile(API.getExportDocUrl(currentBvid), currentBvid + "_总结.doc");
+    }
+
+    function exportSummaryDocx() {
+        if (!currentBvid) { showToast("请先总结视频", "error"); return; }
+        const title = currentVideoTitle || currentBvid;
+        const safeTitle = title.replace(/[\\/:*?"<>|]/g, '-').substring(0, 60);
+        showLoading("正在导出学霸笔记...");
+        // Fetch transcript first for complete text (not stored during summarize)
+        API.fetchTranscript(currentBvid).then(tr => {
+            const transcriptText = (tr && tr.success && tr.data && tr.data.text) ? tr.data.text : "";
+            return fetch("/api/export/docx", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    bvid: currentBvid,
+                    title: title,
+                    author: currentVideoAuthor || "",
+                    summary: document.getElementById("summaryContent")?.innerText || "",
+                    transcript: transcriptText
+                })
+            });
+        }).then(async r => {
+            hideLoading();
+            if (!r.ok) {
+                const err = await r.json().catch(() => ({}));
+                showToast(err.error || err.detail || "导出失败", "error");
+                return;
+            }
+            const blob = await r.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = safeTitle + "_学霸笔记.docx";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("学霸笔记已导出到桌面", "success");
+        }).catch(e => { hideLoading(); showToast("导出失败", "error"); });
+    }
+
+    async function pushSummaryToObsidian() {
+        if (!currentBvid) return;
+        showLoading("推送到 Obsidian...");
+        try {
+            const d = await API.post("/api/kb/push-obsidian", { bvid: currentBvid });
+            hideLoading();
+            if (d.success) showToast("已推送到 Obsidian: " + d.data.file, "success");
+            else showToast(d.error || "推送失败", "error");
+        } catch (e) { hideLoading(); showToast("推送失败", "error"); }
+    }
+
+    // ==================== Quick Tools ====================
+
+    async function handleTranscript() {
+        const bvid = getBvid(); if (!bvid) { showToast("请先输入BV号", "error"); return; }
+        showLoading("获取文字稿...");
+        try { const r = await API.fetchTranscript(bvid); hideLoading();
+        showGenericResult("📝 完整文字稿", r.success ? `<pre style="white-space:pre-wrap;font-size:13px;line-height:1.8">${escapeHtml(r.data.text || "")}</pre>` : escapeHtml(r.error)); }
+        catch (e) { hideLoading(); showToast("获取文字稿失败", "error"); }
+    }
+
+    async function handleTimedText() {
+        const bvid = getBvid(); if (!bvid) { showToast("请先输入BV号", "error"); return; }
+        showLoading("获取时间戳...");
+        try { const r = await API.fetchTimedText(bvid); hideLoading();
+        if (r.success && r.data.entries && r.data.entries.length > 0) {
+            const html = r.data.entries.map(e => `<div style="margin:2px 0"><span style="color:var(--pink);font-size:11px;margin-right:8px">${e.time}</span>${escapeHtml(e.content)}</div>`).join("");
+            showGenericResult(`⏱️ 时间戳文字 · ${escapeHtml(r.data.title)}`, html);
+        } else { showGenericResult("⏱️ 时间戳文字", escapeHtml(r.error || "无数据")); } }
+        catch (e) { hideLoading(); showToast("获取时间戳失败", "error"); }
+    }
+
+    async function handleSegments() {
+        const bvid = getBvid(); if (!bvid) { showToast("请先输入BV号", "error"); return; }
+        if (!AppState.apiKey) { showToast("请先设置API密钥", "error"); return; }
+        showLoading("分段总结中...");
+        try { const r = await API.fetchSegments(bvid); hideLoading();
+        showGenericResult("📊 分段概况", r.success ? `<pre style="white-space:pre-wrap">${escapeHtml(r.data.summary || JSON.stringify(r.data, null, 2))}</pre>` : escapeHtml(r.error)); }
+        catch (e) { hideLoading(); showToast("分段总结失败", "error"); }
+    }
+
+    async function handleComments() {
+        const bvid = getBvid(); if (!bvid) { showToast("请先输入BV号", "error"); return; }
+
+        const progressBar = document.getElementById("progressBar");
+        const progressFill = document.getElementById("progressFill");
+        const progressStep = document.getElementById("progressStep");
+        const progressPct = document.getElementById("progressPct");
+        progressBar.style.display = "block";
+        progressFill.style.width = "30%";
+        progressPct.textContent = "30%";
+        progressStep.textContent = "正在获取全部评论...";
+
+        try {
+            const r = await fetch(`/api/v2/comments/ai?bvid=${bvid}`, { signal: AbortSignal.timeout(120000) });
+            const data = await r.json();
+            progressFill.style.width = "100%";
+            progressPct.textContent = "100%";
+            progressStep.textContent = data.success ? "✅ 分析完成" : "❌ 失败";
+            setTimeout(() => { progressBar.style.display = "none"; }, 2000);
+
+            if (data.success) {
+                const d = data.data;
+                let html = `<div style="margin-bottom:10px;font-size:13px;color:var(--muted)">
+                    📋 已读取全部 <b>${d.total}</b> 条评论 (去重后 ${d.deduped || d.total} 条) · AI筛选了最有信息量的内容</div>`;
+
+                // Use structured JSON if available, otherwise fallback to raw text
+                if (d.structured && d.structured.topics) {
+                    const s = d.structured;
+                    html += `<div style="margin-bottom:8px;font-size:12px;color:var(--muted)">
+                        整体情感: ${s.overall_sentiment || 'N/A'} | 热点: ${(s.hot_topics||[]).join(', ')}</div>`;
+                    for (const topic of (s.topics || [])) {
+                        const sentEmoji = {positive:'😊',neutral:'😐',negative:'😟',mixed:'🤔'}[topic.sentiment]||'';
+                        html += `<div style="margin:12px 0;padding:10px;background:var(--primary-bg);border-radius:8px">
+                            <div style="font-weight:600;font-size:14px;margin-bottom:4px">${sentEmoji} ${escapeHtml(topic.name)}</div>
+                            <div style="font-size:12px;color:var(--muted);margin-bottom:6px">${escapeHtml(topic.summary||'')}</div>`;
+                        for (const cmt of (topic.comments||[])) {
+                            const sEm = {positive:'+',neutral:'~',negative:'-'}[cmt.sentiment]||'';
+                            const isUp = cmt.user && (cmt.user.includes('[UP主]') || cmt.content.includes('[UP主]'));
+                            const upStyle = isUp ? 'background:#fff0f0;border-left:3px solid #e74c3c;padding:4px 8px;border-radius:4px' : '';
+                            html += `<div style="margin:4px 0;font-size:13px;line-height:1.6;${upStyle}">
+                                <span style="color:var(--pink)">${sEm}</span> <b style="${isUp ? 'color:#e74c3c' : ''}">${escapeHtml(cmt.user)}</b>: ${escapeHtml(cmt.content)}
+                                ${isUp ? '<span style="color:#e74c3c;font-size:11px;font-weight:600"> UP主</span>' : ''}
+                                ${cmt.reason ? `<span style="color:var(--muted);font-size:11px">(${escapeHtml(cmt.reason)})</span>` : ''}</div>`;
+                        }
+                        html += `</div>`;
+                    }
+                } else {
+                    html += `<div style="white-space:pre-wrap;line-height:1.8;font-size:14px;max-height:60vh;overflow-y:auto">${escapeHtml(d.ai_analysis)}</div>`;
+                }
+
+                showCommentsResult(`💬 ${d.title} · AI评论分析`, html);
+            } else {
+                showToast(data.error || "分析失败", "error");
+            }
+        } catch (e) {
+            progressFill.style.width = "0%";
+            progressPct.textContent = "0%";
+            progressStep.textContent = "网络错误";
+            setTimeout(() => { progressBar.style.display = "none"; }, 2500);
+            showToast("分析失败: " + e.message, "error");
+        }
+    }
+
+    async function handleChapters() {
+        const bvid = getBvid(); if (!bvid) { showToast("请先输入BV号", "error"); return; }
+        showLoading("检测章节...");
+        try { const r = await API.fetchChapters(bvid); hideLoading();
+        if (r.success && r.data.chapters) {
+            const html = r.data.chapters.map(c => `<div style="padding:6px 0"><span style="color:var(--pink);font-weight:600">${c.title}</span> <span style="color:var(--muted);font-size:11px">${formatDuration(c.startTime)}-${formatDuration(c.endTime)}</span><br><span style="font-size:12px">${escapeHtml(c.preview)}</span></div>`).join("");
+            showGenericResult(`📑 ${r.data.count} 个章节`, html);
+        } else { showGenericResult("📑 章节检测", escapeHtml(r.error || "无数据")); } }
+        catch (e) { hideLoading(); showToast("章节检测失败", "error"); }
+    }
+
+    async function handleOutline() {
+        const bvid = getBvid(); if (!bvid) { showToast("请先输入BV号", "error"); return; }
+        showLoading("获取大纲...");
+        try { const r = await API.fetchOutline(bvid); hideLoading();
+        if (r.success && r.data.outline) {
+            const html = r.data.outline.map(o => `<div style="padding:4px 0">📌 ${o.type === "part" ? `P${o.index}` : ""} ${escapeHtml(o.title)} · ${formatDuration(o.duration)}</div>`).join("");
+            showGenericResult("📋 视频大纲", html);
+        } else { showGenericResult("📋 视频大纲", escapeHtml(r.error || "单P视频")); } }
+        catch (e) { hideLoading(); showToast("获取大纲失败", "error"); }
+    }
+
+    async function handleSubtitleDetect() {
+        const bvid = getBvid(); if (!bvid) { showToast("请先输入BV号", "error"); return; }
+        showLoading("检测字幕...");
+        try { const r = await API.fetchSubtitleDetect(bvid); hideLoading();
+        showGenericResult("🔍 字幕检测", `<pre style="font-size:12px">${escapeHtml(JSON.stringify(r.data || r, null, 2))}</pre>`); }
+        catch (e) { hideLoading(); showToast("字幕检测失败", "error"); }
+    }
+
+    async function handleDanmaku() {
+        const bvid = getBvid(); if (!bvid) { showToast("请先输入BV号", "error"); return; }
+        showLoading("获取弹幕...");
+        try {
+            const d = await API.fetchDanmaku(bvid);
+            hideLoading();
+            if (d.success && d.data.danmaku && d.data.danmaku.length > 0) {
+                // Backend outputs: "[UP主][x5]text" or "[x3]text" or plain "text"
+                // Parse tags and style accordingly
+                const html = d.data.danmaku.map(dm => {
+                    let text = dm;
+                    let isUp = false;
+                    let count = 1;
+                    // Parse [UP主] prefix
+                    if (text.startsWith('[UP主]')) {
+                        isUp = true;
+                        text = text.substring('[UP主]'.length);
+                    }
+                    // Parse [xN] count prefix
+                    const countMatch = text.match(/^\[x(\d+)\]/);
+                    if (countMatch) {
+                        count = parseInt(countMatch[1]);
+                        text = text.substring(countMatch[0].length);
+                    }
+                    const isHot = count >= 3;
+                    const style = isUp ? 'background:#e8f5e9;border:1px solid #4caf50;color:#2e7d32;font-weight:600'
+                        : isHot ? 'background:#fff3e0;border:1px solid #ff9800;color:#e65100;font-weight:600'
+                        : 'background:var(--primary-bg)';
+                    const badge = isUp ? '👑 ' : isHot ? '🔥 ' : '';
+                    const countBadge = count >= 3 ? ` x${count}` : '';
+                    return `<span style="display:inline-block;margin:2px 4px;padding:2px 8px;${style};border-radius:12px;font-size:12px">${badge}${escapeHtml(text)}${countBadge}</span>`;
+                }).join("");
+                showGenericResult(`💬 弹幕 · ${d.data.count} 条`, `<div style="line-height:2.2">${html}</div>`);
+            } else { showGenericResult("💬 弹幕", escapeHtml(d.error || "该视频暂无弹幕")); }
+        } catch (e) { hideLoading(); showToast("获取弹幕失败", "error"); }
+    }
+
+    function showGenericResult(title, content) {
+        const importBtn = getBvid() ? `
+          <button class="btn btn-outline btn-sm" onclick="appendToKB('${escapeHtml(title)}', document.getElementById('genericContent').innerText)" style="margin-top:10px">
+            📥 导入到知识库
+          </button>` : "";
+        document.getElementById("genericResult").style.display = "block";
+        document.getElementById("genericContent").innerHTML = `<h3 style="margin-bottom:8px">${title}</h3>${content}${importBtn}`;
+        document.getElementById("genericResult").scrollIntoView({ behavior: "smooth" });
+    }
+
+    function showCommentsResult(title, content) {
+        const importBtn = getBvid() ? `
+          <button class="btn btn-outline btn-sm" onclick="appendToKB('评论精选', document.getElementById('commentsContent').innerText)" style="margin-top:10px">
+            📥 导入到知识库
+          </button>` : "";
+        document.getElementById("commentsResult").style.display = "block";
+        document.getElementById("commentsContent").innerHTML = `<h3 style="margin-bottom:8px">${title}</h3>${content}${importBtn}`;
+        document.getElementById("commentsResult").scrollIntoView({ behavior: "smooth" });
+    }
+
+    async function appendToKB(section, content) {
+        if (!currentBvid) return;
+        // Extract plain text after the title line
+        const text = content.replace(/^.*?\n/, "").trim();
+        if (!text || text.length < 10) { showToast("无可导入的内容", "error"); return; }
+        showLoading("追加到知识库...");
+        try {
+            const r = await fetch("/api/kb/append", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ bvid: currentBvid, content: text, section: section })
+            });
+            const d = await r.json();
+            hideLoading();
+            if (d.success) {
+                showToast(`已追加 ${d.data.addedLen} 字到知识库`, "success");
+            } else {
+                showToast(d.error || "追加失败", "error");
+            }
+        } catch (e) { hideLoading(); showToast("追加失败", "error"); }
+    }
+
+    // ==================== Export ====================
+
+    function handleExport(type) {
+        const bvid = getBvid();
+        if (!bvid) { showToast("请先输入BV号", "error"); return; }
+        const url = API.getExportUrl(type, bvid);
+        API.downloadFile(url, `${bvid}.${type === "comments_md" ? "comments.md" : type}`);
+        showToast("✅ 下载开始", "success");
+    }
+
+    // ==================== History ====================
+
+    let historyData = [];
+    let selectedHistory = new Set();
+    let selectAllMode = false;
+
+    async function loadHistory() {
+        showSkeleton('historyList', 'list');
+        try {
+            const r = await API.fetchHistory();
+            if (r.success && r.data) {
+                historyData = r.data;
+                selectedHistory.clear();
+                selectAllMode = false;
+                renderHistoryList(historyData);
+            } else {
+                hideSkeleton('historyList');
+            }
+        } catch (e) {
+            hideSkeleton('historyList');
+        }
+    }
+
+    function renderHistoryList(items) {
+        const list = document.getElementById("historyList");
+        if (items.length === 0) {
+            list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">暂无历史记录</div><div class="empty-state-text">输入BV号并点击总结，记录会自动出现在这里</div></div>';
+            return;
+        }
+        list.innerHTML = items.map(h => {
+            const checked = selectedHistory.has(h.id);
+            return `
+            <div class="history-item">
+              <label style="display:flex;align-items:flex-start;gap:6px;cursor:pointer" onclick="event.stopPropagation()">
+                <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleHistoryItem(${h.id}, this.checked)" style="margin-top:3px;flex-shrink:0">
+                <div style="flex:1;min-width:0" onclick="loadHistoryEntry(${h.id})">
+                  <div class="title">${escapeHtml(h.title)}</div>
+                  <div class="meta">${h.mode} · ${h.created_at}</div>
+                  <div class="preview">${escapeHtml((h.summary || "").substring(0, 80))}</div>
+                </div>
+              </label>
+            </div>`;
+        }).join("");
+        updateHistoryButtons();
+    }
+
+    function toggleHistoryItem(id, checked) {
+        if (checked) selectedHistory.add(id);
+        else selectedHistory.delete(id);
+        updateHistoryButtons();
+    }
+
+    function toggleSelectAll() {
+        selectAllMode = !selectAllMode;
+        document.getElementById("selectAllBtn").textContent = selectAllMode ? "☑ 取消全选" : "☐ 全选";
+        if (selectAllMode) {
+            historyData.forEach(h => selectedHistory.add(h.id));
+        } else {
+            selectedHistory.clear();
+        }
+        renderHistoryList(historyData);
+    }
+
+    function updateHistoryButtons() {
+        const btn = document.getElementById("deleteSelectedBtn");
+        btn.disabled = selectedHistory.size === 0;
+        btn.textContent = selectedHistory.size > 0 ? `🗑️ 删除选中(${selectedHistory.size})` : "🗑️ 删除选中";
+    }
+
+    async function deleteSelected() {
+        if (selectedHistory.size === 0) return;
+        if (!confirm(`确定删除选中的 ${selectedHistory.size} 条历史记录吗？`)) return;
+        let deleted = 0;
+        for (const id of selectedHistory) {
+            try {
+                const r = await API.deleteHistory(id);
+                if (r.success) deleted++;
+            } catch (e) { /* ignore */ }
+        }
+        showToast(`已删除 ${deleted} 条记录`, "success");
+        loadHistory();
+    }
+
+    async function deleteAllHistory() {
+        if (!confirm("确定清空全部历史记录吗？此操作不可撤销。")) return;
+        try {
+            // Fetch all and delete one by one
+            const r = await API.fetchHistory();
+            if (r.success && r.data) {
+                let deleted = 0;
+                for (const h of r.data) {
+                    try { await API.deleteHistory(h.id); deleted++; } catch (e) {}
+                }
+                showToast(`已清空 ${deleted} 条记录`, "success");
+            }
+        } catch (e) { showToast("清空失败", "error"); }
+        loadHistory();
+    }
+
+    function loadHistoryEntry(id) {
+        // Load history summary into result card
+        const h = historyData.find(x => x.id === id);
+        if (h && h.summary) {
+            document.getElementById("summaryResult").style.display = "block";
+            document.getElementById("summaryContent").innerHTML =
+                `<div style="font-size:12px;color:var(--muted);margin-bottom:8px">📋 ${escapeHtml(h.title)} · ${h.mode} · ${h.created_at}</div>
+                 <div style="white-space:pre-wrap;line-height:1.8">${escapeHtml(h.summary)}</div>`;
+            document.getElementById("summaryResult").scrollIntoView({behavior:"smooth"});
+            showToast("已加载历史总结", "success");
+        } else {
+            showToast("无总结内容", "info");
+        }
+    }
+
+    function searchHistory(val) {
+        clearTimeout(window._searchTimer);
+        window._searchTimer = setTimeout(() => {
+            if (!val.trim()) { renderHistoryList(historyData); return; }
+            const q = val.toLowerCase();
+            const filtered = historyData.filter(h =>
+                (h.title || "").toLowerCase().includes(q) ||
+                (h.bvid || "").toLowerCase().includes(q)
+            );
+            renderHistoryList(filtered);
+        }, 300);
+    }
+
+    // Init
+    document.addEventListener("DOMContentLoaded", () => {
+        // Pre-fill BVID from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const bvid = urlParams.get("bvid");
+        if (bvid) {
+            document.getElementById("urlInput").value = bvid;
+            currentBvid = bvid;
+            // Auto-summarize if coming from browse/B站 page
+            const autoSummarize = urlParams.get("auto");
+            if (autoSummarize === "1" && AppState.apiKey) {
+                setTimeout(() => handleSummarize(), 500);
+            }
+        }
+        // Keep currentBvid in sync with URL input changes
+        const urlInput = document.getElementById('urlInput');
+        if (urlInput) {
+            urlInput.addEventListener('input', function() {
+                const match = this.value.match(/BV[a-zA-Z0-9]{10}/);
+                if (match) {
+                    currentBvid = match[0];
+                }
+            });
+        }
+        loadHistory();
+    });
+</script>
+</body>
+</html>

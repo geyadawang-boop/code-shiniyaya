@@ -1,0 +1,1048 @@
+/* ============================================================
+ * BiliSum v2.0 - Frontend Design Enhancement
+ * Agent: frontend-design | generated 2026-07-09
+ * Covers: interactive whale, micro-interactions, skeleton screens,
+ *         modal/page transitions, parallax clouds, desktop-first responsive
+ * ============================================================ */
+
+/* ============================================================
+ * LAYER 1: Interactive Whale Refactor
+ * Replaces static ::after SVG with a reactive component pattern.
+ * States: idle (breathing), hover (curious swim), click (joyful leap)
+ * Bug fix: style.css:152-175 static data-URI whale
+ * ============================================================ */
+
+/* Remove old static whale -- we replace with JS-driven interactive element */
+body::after {
+    /* disabled: old static whale replaced by #interactiveWhale div */
+    display: none !important;
+}
+
+/* Whale container — injected by JS into every page */
+.whale-stage {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: 0;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.whale-actor {
+    position: absolute;
+    bottom: 10%;
+    left: -360px;
+    width: 340px;
+    height: 200px;
+    pointer-events: auto;
+    cursor: pointer;
+    transition: filter 0.8s ease;
+    filter: drop-shadow(0 10px 30px rgba(176, 212, 236, 0.3));
+    animation: whaleBreathe 4s ease-in-out infinite;
+}
+
+/* State 1: IDLE — gentle breathing (vertical bob + subtle scale pulse) */
+@keyframes whaleBreathe {
+    0%, 100% { transform: translateY(0) scale(1, 1); }
+    25%      { transform: translateY(-6px) scale(1.02, 0.98); }
+    50%      { transform: translateY(-2px) scale(1, 1); }
+    75%      { transform: translateY(-8px) scale(1.01, 0.99); }
+}
+
+/* Breathe-exhale: spout opacity pulses */
+.whale-actor .whale-spout-group {
+    transition: opacity 1.2s ease;
+}
+.whale-actor .whale-spout-group.exhaling {
+    opacity: 1;
+    animation: spoutRise 2.4s ease-out infinite;
+}
+@keyframes spoutRise {
+    0% { opacity: 0.3; transform: translateY(4px); }
+    30% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-16px); }
+}
+
+/* State 2: HOVER — whale follows cursor, tilts toward it, speeds up */
+.whale-actor.hovering {
+    animation: whaleCurious 0.6s ease-in-out infinite alternate;
+    filter: drop-shadow(0 12px 36px rgba(176, 212, 236, 0.5));
+}
+@keyframes whaleCurious {
+    0% { transform: translateY(0) rotate(0.5deg); }
+    50% { transform: translateY(-10px) rotate(-1deg); }
+    100% { transform: translateY(-4px) rotate(1.5deg); }
+}
+
+/* State 3: CLICK — joyful leap upward, spin, splash-land */
+.whale-actor.leaping {
+    animation: whaleLeap 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    filter: drop-shadow(0 20px 50px rgba(176, 212, 236, 0.7));
+}
+@keyframes whaleLeap {
+    0%   { transform: translateY(0) rotate(0deg) scale(1); }
+    30%  { transform: translateY(-60px) rotate(-15deg) scale(1.08); }
+    50%  { transform: translateY(-100px) rotate(-8deg) scale(1.12); }
+    70%  { transform: translateY(-40px) rotate(20deg) scale(1.05); }
+    85%  { transform: translateY(5px) rotate(5deg) scale(0.95); }
+    100% { transform: translateY(0) rotate(0deg) scale(1); }
+}
+
+/* Splash particles on leap land */
+.whale-splash {
+    position: absolute;
+    pointer-events: none;
+}
+.whale-splash .droplet {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: radial-gradient(circle, #dcecf8, transparent);
+    border-radius: 50%;
+    animation: splashOut 0.8s ease-out forwards;
+}
+@keyframes splashOut {
+    0% { transform: translate(0, 0) scale(1); opacity: 0.9; }
+    100% { transform: translate(var(--sx), var(--sy)) scale(0); opacity: 0; }
+}
+
+/* After leap, return to breathing */
+.whale-actor.leaping.returned {
+    animation: whaleBreathe 4s ease-in-out infinite;
+}
+
+/* Whale SVG styles (reused from old ::after but now interactive) */
+.whale-actor svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* Blush intensifies on hover */
+.whale-actor .whale-blush {
+    transition: opacity 0.4s ease;
+}
+.whale-actor.hovering .whale-blush {
+    opacity: 1;
+}
+
+/* Eye sparkle on hover */
+.whale-actor .whale-eye-highlight {
+    transition: transform 0.3s ease;
+}
+.whale-actor.hovering .whale-eye-highlight {
+    transform: scale(1.3);
+}
+
+
+/* ============================================================
+ * LAYER 2: Unified Micro-Interaction Specification
+ * 5-state system: hover / focus-visible / active / disabled / loading
+ * Bug fix: style.css:271-305 missing focus-visible, disabled, loading styles
+ * ============================================================ */
+
+/* Base interactive element transition token */
+:root {
+    --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in-out-quint: cubic-bezier(0.65, 0, 0.35, 1);
+    --micro-duration: 180ms;
+    --micro-duration-slow: 280ms;
+}
+
+/* --- Button 5-state system --- */
+.btn {
+    position: relative;
+    overflow: hidden;
+    transition:
+        transform var(--micro-duration) var(--ease-out-expo),
+        box-shadow var(--micro-duration) var(--ease-out-expo),
+        background-color var(--micro-duration) ease,
+        border-color var(--micro-duration) ease,
+        color var(--micro-duration) ease;
+}
+
+/* State: hover */
+.btn:hover:not(:disabled):not(.btn-loading) {
+    transform: translateY(-2px);
+}
+
+/* State: focus-visible (keyboard navigation) */
+.btn:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 3px;
+    border-radius: var(--radius-pill);
+}
+
+.btn:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* State: active (pressed) */
+.btn:active:not(:disabled):not(.btn-loading) {
+    transform: translateY(0) scale(0.97);
+    transition-duration: 60ms;
+}
+
+/* State: disabled */
+.btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+    filter: grayscale(30%);
+}
+
+/* State: loading */
+.btn-loading {
+    cursor: wait;
+    pointer-events: none;
+    position: relative;
+    color: transparent !important;
+}
+
+.btn-loading::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin: auto;
+    border: 2.5px solid transparent;
+    border-top-color: currentColor;
+    border-right-color: currentColor;
+    border-radius: 50%;
+    animation: btnSpin 0.7s linear infinite;
+}
+
+@keyframes btnSpin {
+    to { transform: rotate(360deg); }
+}
+
+/* Ripple effect on click */
+.btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, rgba(255,255,255,0.45) 10%, transparent 10%);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 0;
+    opacity: 0;
+    transition: background-size 0.5s ease, opacity 0.4s ease;
+    border-radius: inherit;
+    pointer-events: none;
+}
+.btn:active::before {
+    background-size: 300%;
+    opacity: 1;
+    transition: background-size 0s;
+}
+
+/* --- Tab / Chip 5-state system --- */
+.tab, .mode-chip {
+    transition:
+        transform var(--micro-duration) var(--ease-out-expo),
+        background-color var(--micro-duration) ease,
+        border-color var(--micro-duration) ease,
+        color var(--micro-duration) ease,
+        box-shadow var(--micro-duration) ease;
+}
+
+.tab:focus-visible, .mode-chip:focus-visible {
+    outline: 2.5px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.tab:active:not(.active), .mode-chip:active:not(.active) {
+    transform: scale(0.95);
+}
+
+.tab.active:active, .mode-chip.active:active {
+    transform: scale(0.96);
+}
+
+/* --- Card 5-state system --- */
+.card {
+    transition:
+        transform var(--micro-duration-slow) var(--ease-out-expo),
+        box-shadow var(--micro-duration-slow) var(--ease-out-expo),
+        border-color var(--micro-duration-slow) ease;
+}
+
+.card:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.card:active {
+    transform: scale(0.98);
+}
+
+/* --- Input 5-state system --- */
+.input {
+    transition:
+        border-color var(--micro-duration) ease,
+        box-shadow var(--micro-duration) ease,
+        background-color var(--micro-duration) ease;
+}
+
+.input:hover:not(:focus):not(:disabled) {
+    border-color: var(--sky-300);
+}
+
+.input:focus-visible {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(126, 184, 218, 0.15);
+}
+
+.input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--bg);
+}
+
+.input.input-loading {
+    background-image: linear-gradient(90deg, transparent 40%, rgba(126,184,218,0.15) 50%, transparent 60%);
+    background-size: 200% 100%;
+    animation: inputShimmer 1.5s ease infinite;
+}
+
+@keyframes inputShimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+
+/* ============================================================
+ * LAYER 3: Unified State Components
+ * Skeleton Screen / Empty State / Error State with Retry
+ * Bug fix: showSkeleton() in common.js never called; error states are ad-hoc
+ * ============================================================ */
+
+/* --- 3a. SKELETON SCREEN --- */
+/* Reuses existing .skeleton shimmer — extends with more patterns */
+
+.skeleton-card {
+    border: 1px solid var(--border);
+    box-shadow: none;
+    cursor: default;
+}
+
+/* Skeleton: chat bubble pattern */
+.skeleton-chat {
+    display: flex;
+    gap: 12px;
+    padding: 12px 16px;
+}
+.skeleton-chat .skeleton-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.skeleton-chat .skeleton-bubble {
+    flex: 1;
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 14px;
+    border: 1px solid var(--border);
+}
+.skeleton-chat-right {
+    flex-direction: row-reverse;
+}
+.skeleton-chat-right .skeleton-bubble {
+    background: var(--primary-bg);
+    border-color: transparent;
+}
+
+/* Skeleton: table row */
+.skeleton-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+}
+
+/* Skeleton: stats card */
+.skeleton-stat {
+    text-align: center;
+    padding: 16px 24px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+.skeleton-stat .skeleton {
+    width: 48px;
+    height: 24px;
+    margin: 0 auto 8px;
+    border-radius: 4px;
+}
+
+/* --- 3b. EMPTY STATE (enhanced) --- */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+    min-height: 200px;
+}
+
+.empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.6;
+    animation: emptyFloat 3s ease-in-out infinite;
+}
+
+@keyframes emptyFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+
+.empty-state-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+}
+
+.empty-state-text {
+    font-size: 13px;
+    color: var(--muted);
+    max-width: 320px;
+    line-height: 1.6;
+}
+
+.empty-state-action {
+    margin-top: 16px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* Empty state variants */
+.empty-state--compact {
+    padding: 24px 16px;
+    min-height: 120px;
+}
+.empty-state--compact .empty-state-icon {
+    font-size: 32px;
+}
+.empty-state--horizontal {
+    flex-direction: row;
+    gap: 16px;
+    text-align: left;
+}
+.empty-state--horizontal .empty-state-icon {
+    margin-bottom: 0;
+}
+
+/* --- 3c. ERROR STATE with Retry --- */
+.error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    text-align: center;
+    background: var(--danger-bg);
+    border-radius: var(--radius);
+    border: 1px solid #ffccc7;
+    margin: 12px 0;
+}
+
+.error-state-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+}
+
+.error-state-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--danger);
+    margin-bottom: 6px;
+}
+
+.error-state-message {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 14px;
+    max-width: 360px;
+    line-height: 1.6;
+    word-break: break-word;
+}
+
+.error-state-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.error-state .btn-outline {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+.error-state .btn-outline:hover {
+    background: var(--danger-bg);
+    border-color: var(--danger);
+}
+
+/* Error banner (inline, non-blocking) */
+.error-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: var(--danger-bg);
+    border: 1px solid #ffccc7;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: var(--danger);
+    margin: 8px 0;
+}
+.error-banner .error-banner-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+.error-banner .error-banner-msg {
+    flex: 1;
+    min-width: 0;
+}
+.error-banner .error-banner-close {
+    cursor: pointer;
+    font-size: 16px;
+    flex-shrink: 0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: none;
+    background: transparent;
+    color: var(--danger);
+}
+.error-banner .error-banner-close:hover {
+    background: rgba(255, 77, 79, 0.1);
+}
+
+/* --- 3d. Unified State Switcher Utility --- */
+/* CSS-only helper: toggles between skeleton / empty / error / content */
+[data-ui-state] > * { display: none; }
+[data-ui-state="loading"] > .ui-state-loading { display: block; }
+[data-ui-state="empty"]   > .ui-state-empty   { display: flex; }
+[data-ui-state="error"]   > .ui-state-error   { display: flex; }
+[data-ui-state="ready"]   > .ui-state-content { display: block; }
+
+.ui-state-loading,
+.ui-state-empty,
+.ui-state-error {
+    display: none;
+}
+
+[data-ui-state="ready"] > .ui-state-content {
+    display: block;
+}
+
+
+/* ============================================================
+ * LAYER 4: Page Transition Animations
+ * Uses View Transition API with fallback CSS keyframes
+ * Bug fix: location.href hard navigation, no transition
+ * ============================================================ */
+
+/* View Transition API — modern browsers (Chrome 111+, Edge 111+) */
+@supports (view-transition-name: none) {
+    /* Root transition capture */
+    :root {
+        view-transition-name: none;
+    }
+
+    /* Named elements for morphing transitions */
+    .app-topbar {
+        view-transition-name: page-topbar;
+    }
+
+    .brand {
+        view-transition-name: page-brand;
+    }
+
+    .content-area {
+        view-transition-name: page-content;
+    }
+
+    /* Page-out animation */
+    ::view-transition-old(root) {
+        animation: pageSlideOut 0.3s var(--ease-in-out-quint) forwards;
+    }
+
+    /* Page-in animation */
+    ::view-transition-new(root) {
+        animation: pageSlideIn 0.4s var(--ease-out-expo) 0.05s forwards;
+    }
+
+    /* Crossfade shared elements */
+    ::view-transition-old(page-topbar),
+    ::view-transition-new(page-topbar) {
+        animation: none;
+        mix-blend-mode: normal;
+    }
+
+    ::view-transition-old(page-content) {
+        animation: contentFadeOut 0.25s ease forwards;
+    }
+
+    ::view-transition-new(page-content) {
+        animation: contentSlideUp 0.35s var(--ease-out-expo) 0.08s forwards;
+    }
+}
+
+/* Keyframes for view transitions */
+@keyframes pageSlideOut {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-12px) scale(0.98); }
+}
+
+@keyframes pageSlideIn {
+    0% { opacity: 0; transform: translateY(16px) scale(1.01); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes contentFadeOut {
+    to { opacity: 0; transform: translateY(-8px); }
+}
+
+@keyframes contentSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Fallback: CSS-only page enter animation (no View Transition API) */
+.content-area {
+    animation: pageEnter 0.4s var(--ease-out-expo) both;
+}
+
+@keyframes pageEnter {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Individual card staggered entry (for grid/list) */
+.grid .card,
+.kb-list .kb-item,
+.folder-card,
+.history-item {
+    animation: cardEnter 0.5s var(--ease-out-expo) both;
+}
+
+@keyframes cardEnter {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Stagger delays computed via CSS custom property or nth-child */
+.folder-card:nth-child(1)  { animation-delay: 0.03s; }
+.folder-card:nth-child(2)  { animation-delay: 0.06s; }
+.folder-card:nth-child(3)  { animation-delay: 0.09s; }
+.folder-card:nth-child(4)  { animation-delay: 0.12s; }
+.folder-card:nth-child(5)  { animation-delay: 0.15s; }
+.folder-card:nth-child(6)  { animation-delay: 0.18s; }
+.folder-card:nth-child(7)  { animation-delay: 0.21s; }
+.folder-card:nth-child(8)  { animation-delay: 0.24s; }
+.folder-card:nth-child(9)  { animation-delay: 0.27s; }
+.folder-card:nth-child(10) { animation-delay: 0.30s; }
+
+
+/* ============================================================
+ * LAYER 5: Modal Open/Close Animations
+ * Bug fix: style.css:610-630 display:none/flex toggle with no transition
+ * ============================================================ */
+
+.modal-backdrop {
+    display: flex;
+    visibility: hidden;
+    opacity: 0;
+    transition:
+        opacity 0.25s var(--ease-out-expo),
+        visibility 0s 0.25s;
+    pointer-events: none;
+}
+
+.modal-backdrop.open {
+    visibility: visible;
+    opacity: 1;
+    transition:
+        opacity 0.3s var(--ease-out-expo),
+        visibility 0s 0s;
+    pointer-events: auto;
+}
+
+/* Modal card: scale + slide entrance */
+.modal-card {
+    transform: scale(0.92) translateY(20px);
+    opacity: 0;
+    transition:
+        transform 0.35s var(--ease-bounce),
+        opacity 0.25s ease;
+}
+
+.modal-backdrop.open .modal-card {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+}
+
+/* Modal card: exit animation */
+.modal-backdrop.closing {
+    visibility: visible;
+    opacity: 0;
+    transition:
+        opacity 0.2s ease,
+        visibility 0s 0.2s;
+}
+.modal-backdrop.closing .modal-card {
+    transform: scale(0.95) translateY(10px);
+    opacity: 0;
+    transition:
+        transform 0.2s ease,
+        opacity 0.15s ease;
+}
+
+/* Backdrop blur transition */
+.modal-backdrop {
+    backdrop-filter: blur(0px);
+    transition:
+        opacity 0.25s var(--ease-out-expo),
+        visibility 0s 0.25s,
+        backdrop-filter 0.3s ease;
+}
+.modal-backdrop.open {
+    backdrop-filter: blur(4px);
+}
+
+
+/* ============================================================
+ * LAYER 6: Cloud Parallax Effect
+ * Bug fix: style.css:112-118 single cloudDrift with no parallax
+ * ============================================================ */
+
+/* Replace old single-layer cloud with multi-layer parallax system */
+body::before {
+    /* Remove old radial-gradient clouds — replaced by layered cloud divs */
+    display: none !important;
+}
+
+/* Cloud layers injected by JS */
+.cloud-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 0;
+    will-change: transform;
+}
+
+/* Layer 1: Far clouds — slowest, most transparent, highest in sky */
+.cloud-layer--far {
+    opacity: 0.35;
+}
+.cloud-layer--far .cloud-blob {
+    animation: cloudDriftFar 90s linear infinite;
+}
+
+/* Layer 2: Mid clouds */
+.cloud-layer--mid {
+    opacity: 0.55;
+}
+.cloud-layer--mid .cloud-blob {
+    animation: cloudDriftMid 60s linear infinite;
+}
+
+/* Layer 3: Near clouds — fastest, most opaque */
+.cloud-layer--near {
+    opacity: 0.7;
+}
+.cloud-layer--near .cloud-blob {
+    animation: cloudDriftNear 40s linear infinite;
+}
+
+.cloud-blob {
+    position: absolute;
+    background: radial-gradient(ellipse at center,
+        rgba(255, 255, 255, 0.95) 30%,
+        rgba(255, 248, 242, 0.7) 55%,
+        transparent 75%
+    );
+    border-radius: 50%;
+}
+
+/* Cloud blob sizes and positions */
+.cloud-blob--lg  { width: 280px; height: 120px; }
+.cloud-blob--md  { width: 180px; height: 80px; }
+.cloud-blob--sm  { width: 120px; height: 55px; }
+.cloud-blob--xs  { width: 70px; height: 35px; }
+
+/* Parallax keyframes: each layer drifts at different speed */
+@keyframes cloudDriftFar {
+    0%   { transform: translateX(-10%); }
+    100% { transform: translateX(110%); }
+}
+@keyframes cloudDriftMid {
+    0%   { transform: translateX(-15%); }
+    100% { transform: translateX(115%); }
+}
+@keyframes cloudDriftNear {
+    0%   { transform: translateX(-20%); }
+    100% { transform: translateX(120%); }
+}
+
+/* Mouse-driven parallax on cloud layers */
+.cloud-layer.parallax-active {
+    transition: transform 0.6s ease-out;
+}
+
+
+/* ============================================================
+ * LAYER 7: Desktop-First Responsive Strategy
+ * Bug fix: style.css:762-769 single breakpoint, no desktop optimization
+ * ============================================================ */
+
+/* Desktop-first: base styles already target desktop (no max-width media query needed) */
+
+/* Large desktop (>= 1440px) */
+@media (min-width: 1440px) {
+    .summary-main { max-width: 900px; }
+    .sidebar { width: 340px; }
+    .kb-sidebar { width: 380px; }
+    .fav-left { width: 420px; }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; }
+    .content-area { padding: 24px 32px; }
+    .browse-grid-panel { padding: 20px 24px; }
+}
+
+/* Medium desktop (1024px - 1439px) — default, no media query needed */
+
+/* Tablet landscape (768px - 1023px) */
+@media (max-width: 1023px) {
+    .summary-main { max-width: 100%; }
+    .sidebar { width: 260px; }
+    .kb-sidebar { width: 280px; }
+    .fav-left { width: 300px; }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+    .browse-grid-panel { padding: 12px; }
+    .app-topbar { padding: 0 12px; }
+    .topbar-actions .btn span { display: none; } /* icon-only buttons */
+}
+
+/* Tablet portrait (601px - 767px) */
+@media (max-width: 767px) {
+    .app-topbar { height: 48px; }
+    .brand-title { font-size: 14px; }
+    .brand-subtitle { display: none; }
+    .sidebar { width: 240px; }
+    .kb-layout { flex-direction: column; }
+    .kb-sidebar { width: 100%; max-height: 200px; border-right: none; border-bottom: 1px solid var(--border); }
+    .fav-layout { flex-direction: column; }
+    .fav-left { width: 100%; max-height: 300px; border-right: none; border-bottom: 1px solid var(--border); }
+    .fav-right { flex: 1; min-height: 400px; }
+    .summary-layout { flex-direction: column; }
+    .sidebar { width: 100%; max-height: 200px; border-left: none; border-top: 1px solid var(--border); }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+    .video-info-card { flex-direction: column; }
+    .video-info-card img { width: 100%; height: auto; max-height: 200px; }
+    .modal-card { width: 95vw; padding: 20px; }
+    .browse-toolbar { flex-wrap: wrap; }
+    .input-row { flex-direction: column; }
+    .result-card { padding: 14px 16px; font-size: 13px; }
+}
+
+/* Mobile (<= 600px) */
+@media (max-width: 600px) {
+    .app-topbar { height: 44px; padding: 0 8px; }
+    .brand-title { font-size: 13px; }
+    .brand-mark { font-size: 18px; }
+    .topbar-actions { gap: 3px; }
+    .btn { padding: 6px 12px; font-size: 12px; }  /* bumped from 11px for WCAG 12px min */
+    .btn-lg { padding: 10px 20px; font-size: 13px; }
+    .sidebar { display: none; }
+    .kb-sidebar { max-height: 150px; }
+    .fav-left { max-height: 200px; }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+    .card-thumb { aspect-ratio: 16/9; }
+    .card-body { padding: 8px 10px; }
+    .card-title { font-size: 12px; }
+    .card-meta { font-size: 12px; }  /* bumped from 10px for WCAG */
+    .content-area { padding: 8px 10px; }
+    .hero-section { padding: 16px 12px; }
+    .hero-section h2 { font-size: 16px; }
+    .modal-card { width: 100vw; max-width: 100vw; border-radius: 16px 16px 0 0; margin-top: auto; padding: 16px 20px; }
+    .modal-backdrop { align-items: flex-end; }
+    .toast { left: 10px; right: 10px; top: auto; bottom: 10px; max-width: none; }
+    .tabs { gap: 3px; }
+    .tab { padding: 5px 10px; font-size: 12px; }  /* bumped from 11px for WCAG */
+    .mode-selector { gap: 4px; }
+    .mode-chip { padding: 5px 10px; font-size: 12px; }  /* bumped from 11px for WCAG */
+    .build-progress, #videoImportProgress, #progressBar { margin: 6px 10px; }
+    .section-title { font-size: 12px; }
+}
+
+/* Mobile small (<= 380px) */
+@media (max-width: 380px) {
+    .grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+    .btn { padding: 5px 10px; font-size: 12px; }  /* bumped from 10px for WCAG */
+    .input { padding: 8px 12px; font-size: 12px; }
+}
+
+
+/* ============================================================
+ * LAYER 8: Additional Polish
+ * ============================================================ */
+
+/* Content-visibility for off-screen performance */
+.grid .card,
+.kb-list .kb-item,
+.folder-card,
+.history-item {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 280px;
+}
+
+/* Smooth toast entrance (unify with existing) */
+.toast {
+    transition: transform 0.35s var(--ease-bounce), opacity 0.3s ease;
+}
+
+/* Hamburger menu: slide + fade */
+.hamburger-menu {
+    opacity: 0;
+    transform: translateY(-8px);
+    transition:
+        opacity 0.2s ease,
+        transform 0.25s var(--ease-out-expo);
+}
+.hamburger-menu.show {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Sidebar toggle animation */
+.sidebar {
+    transition: width 0.3s var(--ease-in-out-quint);
+}
+
+/* Chat bubble enter animation */
+.chat-bubble {
+    animation: chatBubbleIn 0.35s var(--ease-out-expo) both;
+}
+@keyframes chatBubbleIn {
+    from { opacity: 0; transform: translateY(10px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Tooltip for icon-only buttons on small screens */
+[data-tooltip] {
+    position: relative;
+}
+[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%) scale(0.8);
+    background: var(--text);
+    color: var(--surface);
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;  /* bumped from 11px for WCAG */
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 300;
+}
+[data-tooltip]:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+}
+
+/* Print styles */
+@media print {
+    .app-topbar, .sidebar, .modal-backdrop, .toast, .loading-overlay,
+    .cloud-layer, .whale-stage, .stars-layer, .browse-toolbar {
+        display: none !important;
+    }
+    body { background: #fff !important; color: #000; overflow: visible; height: auto; }
+    .app-shell { height: auto; }
+    .content-area, .summary-main { overflow: visible; max-width: 100%; }
+    .result-card { box-shadow: none; border: 1px solid #ccc; max-height: none; overflow: visible; }
+}
+
+/* ====== Whale Animation v4 — 5-Axis (v7.1) ====== */
+/* NOTE: The first @keyframes whaleBreathe (line ~47) with 5-phase breathing is canonical.
+   This second definition is renamed to avoid override. */
+@keyframes whaleBreatheV4 {
+    0%, 100% { transform: scale(1, 1); }
+    50% { transform: scale(1.03, 0.97); }
+}
+/* Applied when JS sets class .whale-v4 on .whale-actor (v7.1 upgrade path) */
+.whale-actor.whale-v4 {
+    animation: whaleBreatheV4 4s ease-in-out infinite;
+}
+
+@keyframes whaleBlink {
+    0%, 90%, 100% { opacity: 1; }
+    95% { opacity: 0.3; }
+}
+
+@keyframes whaleTailWag {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(3deg); }
+    75% { transform: rotate(-3deg); }
+}
+
+@keyframes whaleSpout {
+    0% { transform: scaleY(0); opacity: 0; }
+    30% { transform: scaleY(1); opacity: 0.7; }
+    70% { transform: scaleY(1.2); opacity: 0.3; }
+    100% { transform: scaleY(0); opacity: 0; }
+}
+
+@keyframes whaleFinWave {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(-8deg); }
+}
+
+@keyframes cloudDrift1 { from { transform: translateX(-100px); } to { transform: translateX(calc(100vw + 200px)); } }
+@keyframes cloudDrift2 { from { transform: translateX(-200px); } to { transform: translateX(calc(100vw + 400px)); } }
+@keyframes cloudDrift3 { from { transform: translateX(-50px); } to { transform: translateX(calc(100vw + 100px)); } }
+
+/* prefers-reduced-motion: stop ALL animations */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    html { scroll-behavior: auto !important; }
+    .skeleton {
+        background: var(--border, #dce0e4);
+        animation: none !important;
+        background-image: none !important;
+    }
+    .whale-actor, .whale-actor.hovering, .whale-actor.leaping {
+        animation: none !important;
+    }
+    .cloud-blob { animation: none !important; }
+    .empty-state-icon { animation: none !important; }
+    .content-area { animation: none !important; }
+    .grid .card { animation: none !important; }
+    .chat-bubble { animation: none !important; }
+}
