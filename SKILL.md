@@ -580,7 +580,7 @@ CC必须在调用任何工具(Read/Grep/Bash/Write/Edit)前，对照调用栈缓
 
 stop→路由: stop/中断/CTRL+C优先于所有路由。
 静默→降级: 连续N=4条用户消息无Codex回复 → 询问"继续等/跳过?"("继续等"→不重置计数,继续向上累积; N=5→自动降级)。多部分Codex粘贴保护: 相邻消息<3s到达且以连续内容结尾→计为1条消息。"继续等"/"继续等待"→保持静默计数, 不触发恢复路由。
-恢复→路由: 用户说"继续修复"→读session JSON(mode+step+itemStates)→从断点STEP+项继续。恢复不存在→冷启动STEP 0。checksum损坏→尽力读取+用户确认→继续; 或放弃→冷启动。
+恢复→路由: 用户说"继续修复"→读session JSON(mode+step+itemStates)→从断点STEP+项继续。session JSON不存在→回退snapshot恢复(读最新memory/snapshot-*.md)。snapshot也不存在→冷启动STEP 0。checksum损坏→尽力读取+用户确认→继续; 或放弃→冷启动。
   └─ mode:degraded→STEP 5用户单批准; STEP 7 CC自我验证(维度: 正确性+编码安全+架构+回退)
 
 ### STEP 0 — 三Skill前置 + 环境检测 (冷启动, 尽力而为)
