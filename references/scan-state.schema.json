@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://code-shiniyaya/schemas/scan-state-v1.0.0",
+  "title": "Scan State",
+  "description": "Tracks which scan dimensions are clean vs need re-scan across iterations, enabling incremental workflow continuation.",
+  "type": "object",
+  "required": ["schemaVersion", "iteration", "workflowId", "timestamp", "summary", "dimensions", "continuation"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version for forward-compatibility"
+    },
+    "iteration": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Which scan iteration this state represents (1 = first run, N = N-th continuation)"
+    },
+    "workflowId": {
+      "type": "string",
+      "description": "The CC workflow ID (e.g. wf_d93815ef-cfe) this state was parsed from"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp when this state was generated"
+    },
+    "summary": {
+      "type": "object",
+      "required": ["totalAgents", "completed", "hung", "passCount", "partialCount", "failCount"],
+      "properties": {
+        "totalAgents": {
+          "type": "integer",
+          "description": "Total number of agent tasks launched in this iteration"
+        },
+        "completed": {
+          "type": "integer",
+          "description": "Number of agents that returned a result (type: 'result' found in journal)"
+        },
+        "hung": {
+          "type": "integer",
+          "description": "Number of agents that were launched but never returned (started minus completed)"
+        },
+        "passCount": {
+          "type": "integer",
+          "description": "Number of completed agents with verdict PASS"
+        },
+        "partialCount": {
+          "type": "integer",
+          "description": "Number of completed agents with verdict PARTIAL"
+        },
+        "failCount": {
+          "type": "integer",
+          "description": "Number of completed agents with verdict FAIL"
+        },
+        "criticalIssues": {
+          "type": "integer",
+          "description": "Total CRITICAL severity issues across all completed agents"
+        },
+        "highIssues": {
+          "type": "integer",
+          "description": "Total HIGH severity issues across all completed agents"
+        },
+        "mediumIssues": {
+          "type": "integer",
+          "description": "Total MEDIUM severity issues across all completed agents"
+        },
+        "lowIssues": {
+          "type": "integer",
+          "description": "Total LOW severity issues across all completed agents"
+        }
+      }
+    },
+    "dimensions": {
+      "type": "array",
+      "description": "Per-dimension scan results — one entry per agent task (key)",
+      "items": {
+        "type": "object",
+        "required": ["key", "agentId", "label", "status"],
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "The v2 hash key from journal.jsonl that identifies this agent task"
+          },
+          "agentId": {
+            "type": "string",
+            "description": "The CC agent ID (e.g. a3badee85e3e20804) that executed this task"
+          },
+          "label": {
+            "type": "string",
+            "description": "Human-readable dimension label extracted from agent prompt (e.g. usability-1, logic-2)"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "running", "completed", "timed_out"],
+            "description": "Current state of this dimension"
+          },
+          "verdict": {
+            "type": ["string", "null"],
+            "enum": ["PASS", "PARTIAL", "FAIL", null],
+            "description": "Agent's verdict if status is completed"
+          },
+          "issues": {
+            "type": "array",
+            "description": "Issues found by this agent",
+            "items": {
+              "type": "object",
+              "required": ["severity", "description"],
+              "properties": {
+                "severity": {
+                  "type": "string",
+                  "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "iterDetected": {
+            "type": "integer",
+            "description": "Which iteration first detected these issues"
+          },
+          "iterResolved": {
+            "type": ["integer", "null"],
+            "description": "Which iteration resolved this dimension (null if still pending)"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Free-form notes about this dimension"
+          },
+          "scanned_files": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Source file paths actually scanned by this dimension agent (used for self-check #15 rotation verification)"
+          }
+          }
+        }
+      }
+    },
+    "continuation": {
+      "type": "object",
+      "required": ["completedKeys", "retryKeys"],
+      "properties": {
+        "completedKeys": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Keys of dimensions that completed successfully (carried forward to next iteration)"
+        },
+        "retryKeys": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Keys of dimensions that need re-running in next iteration (hung/failed)"
+        },
+        "parentIteration": {
+          "type": ["integer", "null"],
+          "description": "Which iteration this scan state continues from (null if first iteration)"
+        },
+        "retryReason": {
+          "type": "object",
+          "description": "Map of key -> reason string for each retry dimension",
+          "additionalProperties": {
+            "type": "string",
+            "enum": ["TIMED_OUT", "FAILED", "KILLED", "PARTIAL_RESULT", "VERDICT_FAIL"]
+          }
+        }
+      }
+    }
+  }
+}

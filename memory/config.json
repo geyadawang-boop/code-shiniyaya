@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "4.4.0",
+  "description": "code-shiniyaya 集中配置文件。所有阈值、上限、大小参数在此管理，不散布在SKILL.md文本中。",
+
+  "agent": {
+    "batch_size_min": 4,
+    "batch_size_max": 24,
+    "cpu_cores_deduct": 2,
+    "agent_cap": 50,
+    "default_batch_fallback": 4,
+    "iteration_scan_agents": 20,
+    "retry_attempts_per_slot": 2,
+    "retry_upgrade_tier": 3,
+    "re_prompt_per_agent_max": 2
+  },
+
+  "silence": {
+    "n_ask": 4,
+    "n_auto_degrade": 5,
+    "multi_part_paste_max_seconds": 3,
+    "autonomous_degrade_cycles": 3
+  },
+
+  "truncation": {
+    "max_findings_per_dimension": 8,
+    "max_finding_chars": 600,
+    "max_codex_feedback_chars": 8000,
+    "max_source_file_chars": 2000,
+    "max_verify_prompt_chars": 12000,
+    "head_ratio": 0.6,
+    "separator_chars": 5,
+    "paginate_page_size_lines": 8192
+  },
+
+  "budget": {
+    "total_agent_launches": 50,
+    "fix_attempts_per_bug": 5,
+    "message_rounds": 200,
+    "p0_budget_pct_normal": 60,
+    "p0_budget_pct_degraded": 80,
+    "p1_budget_pct": 30,
+    "p2_budget_pct": 10,
+    "break_glass_overage_pct": 10,
+    "reset_hours": 24,
+    "threshold_warn": 50,
+    "threshold_cut_p2": 75,
+    "threshold_p0_only": 90
+  },
+
+  "reflection": {
+    "reflection_min_hours": 8,
+    "reflection_min_workflows": 3,
+    "consolidate_every_n_workflows": 3,
+    "max_existing_memory_files": 24,
+    "max_existing_memory_chars": 2500,
+    "max_index_prompt_chars": 6000,
+    "reflection_log_max_entries": 40
+  },
+
+  "agent_selection": {
+    "diagnosis_min_agents": 6,
+    "codex_verify_min_agents": 10,
+    "reference_scan_min_agents": 5,
+    "full_repo_scan_min_agents": 40,
+    "degraded_step7_agents": 6,
+    "p0_verify_agents": 4,
+    "p0_verify_types": ["investigator", "general-purpose", "Plan", "debugging"],
+    "p0_verify_dimensions": ["正确性", "编码安全", "架构", "回退"]
+  },
+
+  "convergence": {
+    "findings_near_convergence": 5,
+    "consecutive_low_rounds": 2,
+    "low_findings_threshold": 10,
+    "cr_healthy": 60,
+    "cr_slow": 20,
+    "warmup_steps_fixed": 10,
+    "warmup_pct": 0.05,
+    "line_tolerance": 5,
+    "evidence_conflict_line_gap": 5
+  },
+
+  "git_branch": {
+    "session_id_chars": 8,
+    "reflog_recovery_days": 30,
+    "merge_conflict_file_threshold": 2,
+    "merge_conflict_line_threshold": 20
+  },
+
+  "output": {
+    "report_root": "C:\\Users\\shiniyaya\\Desktop\\code-shiniyaya\\报告\\iteration-reports",
+    "memory_root": "C:\\Users\\shiniyaya\\Desktop\\code-shiniyaya\\memory",
+    "state_root": "{project_root}/.claude/memory/code-shiniyaya"
+  },
+
+  "checkpointing": {
+    "max_handoff_per_agent": 1,
+    "max_handoff_receive_per_type": 2,
+    "max_goto_abort_per_agent": 1,
+    "step6_max_retry": 3,
+    "workflow_max_retry_per_dimension": 2,
+    "workflow_dimension_retry_cap": 2,
+    "timeout_seconds": 600
+  }
+}
