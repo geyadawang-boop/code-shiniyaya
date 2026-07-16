@@ -1,4 +1,4 @@
-- [全部22条规则](all-active-rules.md) — Block A协作6 / B四Skill5(含ponytail×6) / C技术6 / D输出5
+- [私人仓库同步](bilisum-private-repo.md) — https://github.com/geyadawang-boop/BiliSum- (v9.0完整源码+记忆, 2 commits, 250文件)
 - [160Agent产出汇总](bilisum-160agent-results.md) — 🔴2026-07-16: 已应用content_filter+frame_text_service+多模态client; 待批准: 三级字幕回退+教学优先prompt
 - [v9.0 最终执行蓝图](bilisum-v9.0-execution-plan.md) — 🔴整合: 25 Bug + 8 Feature + 9移植, 4阶段15子Phase, ~34h, 50 Agent bilinote验证完成
 - [人工核验清单](manual-verification-checklist.md) — 当前8项待核验(v8.7修复), 每轮修复后自动生成
