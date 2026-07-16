@@ -224,6 +224,28 @@ AI: 读最新snapshot → 恢复全部状态 → 继续执行
 
 <!-- 死循环三层防御: L1=规则26(事后阻断 v4.6.9), L2=PreToolUse hook(平台止损 v4.7.2), L3=一字恢复(保存+续跑 v4.7.5) -->
 
+## 多Agent并行时主任务栏工作 (v4.7.5, 防echo循环)
+
+根因: 多个Agent后台跑时CC空转等待→验证强迫→echo "done"/"ok"/"1"/"2"。解法: 不等——主任务栏同步做有产出的事。
+
+Agent并行启动后，主任务栏同步执行（不等Agent返回）:
+
+1. **写snapshot草稿**: 基于当前已知状态写memory/snapshot-{ts}.md(不要等Agent完成后才写→那时可能已进入echo循环)
+2. **更新CHANGELOG**: 写本轮迭代的CHANGELOG条目草稿(版本号/日期/已知修复摘要)
+3. **读取上一轮产出**: 如有journal.jsonl→预提取模式→准备交叉对比
+4. **git操作**: git status + git log --oneline -3 → 确认工作树状态
+5. **预构建汇总表**: 在thinking中构建P0/P1/P2分类框架→Agent返回直接填充
+
+禁止:
+- echo "done"/"ok"/"1"/"2"等任何占位输出
+- 重复Read同一文件(规则26(a))
+- Grep同一pattern同一path(规则26(b))
+- 输出确认词(done/final/complete/verified/confirmed)且无Write/Edit
+
+Agent全部返回→汇总→去重→分类→修复→提交→下一轮验证。
+
+`# ponytail: 主任务栏工作防echo循环，ceiling: Agent快时主任务可能未完成，upgrade: CC暴露Agent进度事件时用事件驱动`
+
 <!-- CC架构基准: CLI请求-响应, 无事件循环, 无守护进程, 无后台任务通知 -->
 <!-- 最终验证: 5 Agent PASS, 源文件引用正确, 跨文件一致, 无内部矛盾, 0不可实现模式 -->
 
