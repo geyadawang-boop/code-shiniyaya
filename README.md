@@ -1,186 +1,116 @@
-# BiliSum — B站视频AI总结与知识库工具
+# code-shiniyaya — CC↔Codex 双向验证元编排 Skill
 
-一键将B站视频转化为可检索、可问答的知识库。提取字幕、弹幕、评论，AI多维度总结，画面关键帧抓取，智能问答。
+## 是什么
+
+code-shiniyaya是Claude Code的元编排Skill——不直接修改代码，而是编排CC与Codex之间标准化的双向验证闭环。CC负责深度诊断（读源码+6+ Agent并行扫描），Codex负责独立验证（交叉检查CC方案），双方都批准后才执行。这不是"让AI写代码"——是"让两个AI系统互相验证对方的工作"。
 
 ## 核心功能
 
-### 视频知识库导入
-- 粘贴B站BV号 → 自动抓取字幕(多P全量)、弹幕精华、热门评论
-- 无字幕视频自动ASR语音转写 (faster-whisper)
-- 平台话术智能过滤 (一键三连/关注/打卡等噪音自动清除)
-- 弹幕智能折叠 (500条"哈哈哈"→一条"哈哈哈 x500")
-- 导入内容存入知识库文件夹 (`BV号_视频标题.json`)
+### 7步双向验证闭环 (STEP 0-7)
 
-### AI多维度总结
-- 教学优先: 动机→核心思想→机制→例子→小结
-- 七维结构: 概览/核心结论/知识树/逻辑脉络/时间线笔记/术语表/复习问题
-- 支持详细(Markdown)和结构化(JSON)两种输出
-- 跳过寒暄、求三连、广告，保留实质性讨论
-- 所有引用标注来源与置信度
+| 步骤 | 做什么 | Agent数 | 门控 |
+|------|--------|---------|------|
+| STEP 0 | 冷启动: 三Skill前置 + 环境能力检测(git/Python/tiktoken) | — | 无 |
+| STEP 1 | 诊断扫描: 6+ Agent并行, 5类型, 去重合并, P0/P1/P2分类 + grep所有调用者 | 6+ | 用户确认 |
+| STEP 2 | 方案生成: 每Bug file:line+old/new代码+风险+验证命令, 多方案3 Agent对比 | 3 | 用户确认 |
+| STEP 3 | Codex可复制文本: 消毒(防Bidi/零宽/控制字符), 纯文本, >20000字符分部分 | — | 无 |
+| STEP 4 | Codex反馈交叉验证: 10+ Agent跨7维度(准确性/代码复用/遗漏/安全/架构/回退/执行) | 10+ | Codex验证 |
+| STEP 5 | **双批准门控**: CC批准 + Codex批准 = 执行。单方禁止。降级模式: 用户单批准 | — | ⚠️阻断 |
+| STEP 6 | 逐项执行: Git状态机(独立项)或DAG依赖追踪(跨文件依赖), ast.parse验证 | 1-4 | 逐项 |
+| STEP 7 | 双向验证: CC→Codex→CC, 1轮完成, 仅争议时第2轮, 再有争议→用户裁决 | 6+ | 用户 |
 
-### 画面关键帧抓取
-- 导入时自动提取关键帧 + 场景变化帧
-- VLM视觉识别画面文字 (公式、图表、代码、产品型号)
-- 时间戳标注 → AI总结和问答可直接引用画面内容
-- 接入阿里云百炼DashScope (qwen-vl-plus)
+**快速路径**: 已有完整方案→跳过STEP 1-2, 直接进入STEP 5批准。
+**降级模式**: Codex连续4条消息无回复→询问; 5条→自动降级→用户单批准可执行(P0仍需CC 4 Agent验证)。
 
-### AI知识库问答
-- 基于已导入视频内容回答问题
-- 三层检索回退: ChromaDB向量搜索 → FTS5全文搜索 → JSON文件直接扫描
-- 时间戳引用: 回答可标注来自字幕还是画面内容
-- 支持追问和否定重试
+### 26条硬规则 + 18项自检
 
-### 字幕三級回退
-- Tier 1: 官方CC字幕/AI字幕 (优先,速度快)
-- Tier 2: ASR语音转写 (无字幕时自动触发, 最长900秒)
-- Tier 3: 纯视觉模式 (关键帧→VLM识别→"[画面]"字幕条目)
+**门控**: 双批准/CC不独立修改源码/分析自由修改阻断/逐项反馈stop优先
+**Agent**: 动态batch_size(max(4,min(16,cpu_cores-2)))/语法门控(ast.parse→前进→失败回滚)/3层重试升级(同类型→同类型+反馈→general-purpose)/无共享文件
+**Plan-Code Gap**: git diff+grep -n双验证/方案锁定(偏离→新方案+重新双批准)/Write/Edit前必须Read
+**停止线**: 3次同文件失败+Type A/B崩溃分类/stop立即停保存JSON/Write成功不Read验证
+**死循环阻断** (规则26, 最高优先级): 同一file+offset在第2次Read前阻断; 确认词输出无Write/Edit→阻断; Write↔Read done循环→阻断; 阻断后静默等待用户, 不输出确认信息
 
-### 收藏夹批量导入
-- 选择B站收藏夹 → 批量导入所有视频
-- 自动去重 (已导入的不重复处理)
-- 导入进度实时显示
+**18项自检**: 工作流通知=继续信号/不等待/不静默/工作流存活/循环持续/有意义迭代/任务保真/工作流时间预算/元迭代完整性/稳定性积累/任务规格锁定/Agent卡住/4源深度利用/产出物写入/4源自我迭代/源文件旋转/报告路径/死循环根因阻断
 
-### 智能分类
-- 12类+5维自动分类 (科技/娱乐/教程/科普等)
-- LLM标签自动生成
-- 按分类浏览知识库
+### 自主迭代模式 (9 触发词)
 
-### 导出与备份
-- 导出为Markdown笔记 (七维结构)
-- 保存到Obsidian知识库
-- DOCX报告 (含封面和思维导图)
-- 计划: .txt纯文本 / .srt时间轴字幕导出
+触发词: **循环迭代/自动更新/自动迭代/自主执行/不中断/持续修复/自动扫描修复/优化skill/根据源文件优化**
 
-### 思维导图
-- 现有版本: AI总结时同步生成
-- v9.0计划: 独立LLM调用, 按时序多层级, 可折叠/缩放/拖拽, 点击跳转视频时刻
+进入模式后:
+1. 分析需求 → 生成迭代计划 → 写入报告目录 → 呈现用户审阅
+2. 批准后(或5分钟无回复自动批准) → 自主执行
+3. **不中断**: 工作流完成→处理→修复→下一轮, 不等用户
+4. **不结束**: 直到零bug收敛 / 用户说停 / 预算耗尽
+5. **不等待**: 绝不说"要继续吗?"
+6. 每轮仅输出一行进度, 达标时输出最终签收单
+7. P0安全敏感修复(数据丢失/安全漏洞/权限提升)仍触发用户中断
+8. Agent失败零静默: 必须报告失败数量/原因/修复动作
 
-### B站集成
-- 内嵌B站浏览 (iframe)
-- 扫码登录获取高清
-- 视频/音频/字幕下载 (下载到指定路径, 按 `视频标题_BV号` 目录)
-- WBI v2签名完整支持
+### 运行时反馈系统
 
-### 其他
-- 下载路径自定义 + 知识库路径自定义 (改完即生效, 无需重启)
-- 删除视频时自动清理: 知识库文件/搜索索引/AI向量/ASR音频缓存/下载文件夹
-- API设置支持: DeepSeek / 通义千问 / Claude / OpenAI (国内优先)
-- 本地Electron桌面应用
+**三探头行为验证**: 每次修复后3个独立纯函数评分——hardware(是否保留校准)/explanation(用户要求的解释是否>=45词)/onecheck(非平凡逻辑是否留assert/demo/test, 无框架无fixture, 一行不需要测试, 无check=未完成)
 
-## 技术栈
+**正确性门控**: 提取代码→按语言执行(python3→python回退,node)→注入per-task harness→超时30s→pass=keep/fail=discard/crash=no commit。无代码块=FAIL(非N/A)
 
-| 层 | 技术 |
-|----|------|
-| 后端 | Python + FastAPI + uvicorn |
-| 向量库 | ChromaDB + FTS5全文本搜索 |
-| AI/LLM | OpenAI兼容接口 (DeepSeek等) + unified_llm_client |
-| ASR | faster-whisper |
-| 视频处理 | yt-dlp + ffmpeg |
-| 桌面壳 | Electron |
-| 前端 | 原生HTML/CSS/JS (无框架依赖) |
-| 数据库 | SQLite (WAL模式) |
-| VLM | DashScope qwen-vl-plus (画面文字识别) |
+**三元件裁判框架**: (a)公开rubric, (b)temperature=0裁判, (c)--selftest门控(裁判先通过好/坏参考验证才能评分真实提交)
 
-## 快速开始
+**双轴评分**: 每个安全敏感修复同时检查correct+safe——单独一轴不够。bad参考=幸福路径正确但对抗输入不安全
 
-```bash
-# 安装依赖
-pip install -r requirements.txt
+**完整性pass**: "代码少是因为过度工程消除还是偷工减料?" LLM裁判同时评分完整性和过度工程
 
-# 启动后端
-cd backend
-python main.py
+**自检门控层级**: --selftest-offline先验证门控逻辑(免API)→--selftest再实际裁判验证(小量API)→两层都通过→裁判可信
 
-# 或双击 start.bat (Windows)
-# 或通过Electron壳启动 (npm start)
-```
+**代码退化处理**: 无围栏代码→整段响应作为一个block评分的; 无代码非空→仍然评分的; 仅完全空响应→FAIL
 
-打开 http://127.0.0.1:8000/browse
+**激活哨兵**: flag file写入磁盘→statusline读取→跨会话保持; 一次性提醒哨兵→不重复骚扰
 
-首次使用: ⚙ API设置 → 填入DeepSeek API Key → 保存。
+**金丝雀短语检测**: `\{.*\}`宽松正则提取JSON→容忍Markdown/注释/多余文本; 解析失败返回None不崩溃
 
-## 项目结构
+**stdin/超时防阻塞**: 1秒超时+error捕获→Windows PowerShell吞管道输入时恢复; Best-effort错误分级: API 3次重试(2s/4s/6s指数退避)→最终失败返回error JSON不抛异常
 
-```
-BiliSum/
-├── backend/           # Python后端 (67个.py文件)
-│   ├── main.py        # FastAPI应用入口
-│   ├── database.py    # SQLite数据库操作 + KB路径管理
-│   ├── bilibili_client.py  # B站API完整集成 (20+端点)
-│   ├── summarizer.py  # AI总结引擎 (七维教学优先)
-│   ├── rag_service.py # ChromaDB向量搜索
-│   ├── content_filter.py     # 平台话术/弹幕评论智能过滤
-│   ├── frame_text_service.py # 画面关键帧VLM识别
-│   ├── asr_service.py # 语音转写
-│   ├── classifier.py  # 智能分类
-│   ├── routers/       # API路由模块
-│   │   ├── kb.py      # 知识库CRUD + AI问答
-│   │   ├── ai.py      # AI总结
-│   │   ├── bilibili.py # B站视频下载
-│   │   ├── favorites.py # 收藏夹同步
-│   │   └── ...
-│   ├── frame_extractor.py # ffmpeg帧提取
-│   ├── scene_detector.py  # 场景检测
-│   ├── thumbnail_generator.py # 缩略图
-│   ├── unified_llm_client.py # 多模型统一客户端(支持多模态)
-│   └── ...
-├── frontend/          # 前端页面
-│   ├── browse.html    # 首页·B站浏览
-│   ├── kb.html        # 知识库管理+AI问答
-│   ├── summary.html   # AI总结页
-│   ├── favorites.html # 收藏夹批量导入
-│   ├── tools.html     # 工具页(下载等)
-│   ├── categories.html # 智能分类浏览
-│   ├── multi-platform.html # 多平台导入(YT/B站/直链)
-│   ├── upload.html    # 本地视频上传
-│   ├── css/           # 样式 (style.css + enhancements.css)
-│   └── js/            # JS (common.js + api.js + enhancements.js)
-├── memory/            # 项目记忆 (120个Markdown文件)
-│   ├── all-active-rules.md           # 22条活跃规则
-│   ├── bilisum-v9.0-execution-plan.md # v9.0执行蓝图
-│   ├── bilisum-v8.7-master-bug-list.md # 25个Bug清单
-│   ├── manual-verification-checklist.md # 人工核验清单
-│   └── ...
-├── references/        # 参考技能定义+文档
-├── preload.js / main.js  # Electron壳
-├── requirements.txt   # Python依赖
-└── start.bat          # Windows一键启动
-```
+**Lean exit**: 发现<3且无P0→跳过50-agent验证, 输出"通过, 已达标"
 
-## 配置
+### ponytail:debt 债务追踪
 
-### AI API
-- DeepSeek: https://api.deepseek.com/v1/chat/completions
-- 通义千问 DashScope: 阿里云百炼控制台
-- 自定义OpenAI兼容端点
+所有有意简化或暂未实现的功能都有 `# ponytail: <天花板>, <升级触发>` 标注。运行 `grep -rnE '# ?ponytail:' .` 即可扫描全部债务, 生成 `PONYTAIL-DEBT.md` 账本。无升级路径的标记为 `no-trigger` (腐烂风险)。
 
-### 画面抓取 (需DashScope key)
-在设置中填入 `dashscope_api_key` (阿里云百炼→API-KEY管理)
+当前30条债务标注, 全部有天花板+升级路径。
 
-### 环境变量 (可选)
-```
-BILISUM_ASR_FALLBACK=0     # 禁用ASR回退
-BILISUM_VISUAL_FALLBACK=0  # 禁用视觉回退
-BILISUM_ASR_TIMEOUT=900    # ASR超时(秒)
-```
+### Hook基础设施 (9模式)
 
-## 开源参考
+沉默失败契约 / UTF-8 BOM剥离 / stdin超时守卫 / 一次性提醒哨兵 / Shell安全路径allowlist / 多级配置解析(env > config > default) / 平台感知配置目录 / 停用全消息匹配 / 子Agent规则集注入
 
-本项目参考了以下优秀的开源项目进行功能优化:
-- [bilinote](https://github.com/PrideWood/bilinote) — 多平台URL/本地上传/思维导图/任务历史
-- [wdkns-skills](https://github.com/wdkns/wdkns-skills) — 字幕三级回退/画面关键帧/平台话术过滤
-- [bilibili-rag](https://github.com/via007/bilibili-rag) — ChromaDB同步单例/引用计数删除/自愈校准
-- [Bili23-Downloader](https://github.com/) — safe_remove/目录验证/磁盘守卫/下载管理
-- [ponytail](https://github.com/DietrichGebert/ponytail) — YAGNI阶梯开发原则
+### 状态机 + 原子写入
 
-## 规则体系
+会话JSON状态文件(session/pending/DAG/budget四种), SHA-256 checksum防损坏, os.replace原子写入, versionVector并发控制, Git分支隔离(独立修复项), keep|discard|crash三分法执行日志
 
-项目遵循22条活跃开发规则 (详见 `memory/all-active-rules.md`):
-- Block A 协作协议 (6条): 用户+Codex双批准/CC禁独改/双向验证/10Agent/深度分析/可复制文本
-- Block B 四Skill协同 (5条): OpenSpec计划/multi-agent执行/superpowers纪律/ponytail精简×6
-- Block C 技术约束 (6条): 国内API仅限/修复独立验证/强制审查/符号影响分析/逐任务反馈/Caveman压缩
-- Block D 输出规则 (5条): 报告→报告文件夹/VPN代理/禁重复验证/人工复核/核验清单
+### 自我保护机制
 
-## License
+- **规则26预调用阻断**: 每个工具调用前对照transcript执行阻断检查(同file+offset→阻断, 同pattern+path→阻断, 确认词无Write→阻断, done文件循环→阻断)
+- **规则12崩溃分类**: Type A(琐碎)自动修复不消耗配额, Type B(根本性)消耗配额3次后终止
+- **收敛阈值自调整** (规则24): 发现数<5且连续2轮<10且均为P1/P2→触发50 Agent最终确认
+- **Fast-fail内联守卫** (规则25): 关键指标(NaN/超阈值)立即abort, 预热期不计统计
+
+## 安装
+
+将 `SKILL.md` 放入 Claude Code 可访问的路径。CC启动时自动从 triggers 字段匹配触发词。
+
+## 触发 (57+ 短语, 9类)
+
+| 类别 | 示例 |
+|------|------|
+| A. 发送 | "告诉codex", "发给codex", "codex帮我看下" |
+| B. 验证+审查 | "双重检验", "codex交叉验证", "对敲代码", "codex review" |
+| C. 协作 | "帮我和codex对一下", "cc和codex一起修" |
+| D. 门控 | "双批准", "codex审批" |
+| E. 方案/扫描 | "多方案对比", "源文件交叉验证", "deep diagnosis" |
+| H. 自主迭代 | "循环迭代", "自动更新", "持续修复", "优化skill" |
+| I. Agent错误 | "agent错误", "agent失败", "静默无反馈" |
+
+## 版本
+
+v4.7.0 — 1549行, 30条债务标注, 7轮20+ Agent交叉验证收敛到零bug, 5源~172模式全量集成。
+
+## 许可证
 
 MIT
