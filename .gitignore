@@ -37,6 +37,6 @@ test_agent.md
 
 # v7.2 - Additional exclusions
 *.db
-whisper/models/
-whisper/node_modules/
-*.bak
+# v7.4 — code-shiniyaya source archives (reference only, not part of skill)
+*-src/
+*-src
