@@ -508,7 +508,7 @@ CC必须在调用任何工具(Read/Grep/Bash/Write/Edit)前，对照调用栈缓
 
 ### DAG (`dag-{sessionId[:8]}.json`)
 ```json
-{ "schemaVersion": "3.9.0", "edges": [], "files": {}, "snapshot": "" }
+{ "schemaVersion": "3.9.0", "edges": [], "files": {}, "snapshot": "", "checksum": "" }
 ```
 `snapshot`: `git rev-parse HEAD`。恢复时不匹配→重建DAG。
 
@@ -537,13 +537,15 @@ CC必须在调用任何工具(Read/Grep/Bash/Write/Edit)前，对照调用栈缓
 
 ```json
 {
+  "schemaVersion": "4.0.0",
   "total": {"agent_launches": 50, "fix_attempts_per_bug": 5, "message_rounds": 200},
   "consumed": {"agent_launches": 12, "fix_attempts": {"B1": 2, "B2": 1}, "message_rounds": 45},
   "by_severity": {
     "P0": {"budget_pct": 60, "consumed": 8},
     "P1": {"budget_pct": 30, "consumed": 4},
     "P2": {"budget_pct": 10, "consumed": 0}
-  }
+  },
+  "checksum": ""
 }
 ```
 
