@@ -66,6 +66,10 @@
 - [autonomous-coding Step4-7模式](autonomous-coding-step4-7-patterns.md)
 - [autonomous-coding 工具模式发现](autonomous-coding-tool-patterns-findings.md)
 
+- [快照 2026-07-17](snapshot-20260717T013659.md) — v4.7.3上下文感知防饱和机制 + 5 Agent完整性门控
+- [会话最终状态](session-final-state.md) — v4.7.2压缩前最终状态
+- [优化全记录](code-shiniyaya-skill-optimization.md) — v4.1.3→v4.7.3完整迭代史
+
 ### 会话与维护
 
 - [清理验证记录](cleanup-verification.md) — 2026-07-16 清理: bilisum记忆目录中已无孤立文件, 隔离验证通过
