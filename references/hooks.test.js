@@ -103,7 +103,7 @@ r = runHook('bearings.js', { cwd: os.tmpdir() });
 check('bearings: silent outside code-shiniyaya repo', r.code === 0 && r.out === '');
 
 r = runHook('bearings.js', { cwd: 'C:/Users/shiniyaya/Desktop/code-shiniyaya' });
-check('bearings: emits [BEARINGS] in repo', r.code === 0 && r.out.startsWith('[BEARINGS]'));
+check('bearings: emits BEARINGS (or NEXT ACTION first line) in repo', r.code === 0 && (r.out.startsWith('[BEARINGS]') || (r.out.startsWith('NEXT ACTION:') && r.out.includes('[BEARINGS]'))));
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);
