@@ -1,8 +1,9 @@
 # 升级资源转移包索引 (v4.7.7后升级第一参考)
 
 **主文件**: `C:\Users\shiniyaya\Desktop\skill辅助文件夹\skill升级开发-完整转移包.md` (373行, 全文可复制到新会话)
-**辅助文件夹**: `C:\Users\shiniyaya\Desktop\skill辅助文件夹\` (19文件)
-**日期**: 2026-07-17 | **来源**: 五轮~40 Agent扫描
+**补充文件**: `C:\Users\shiniyaya\Desktop\skill辅助文件夹\最终轮补充-自动化迭代与防bug转移包.md` (329行, 10 Agent×8方向, 第九节=可复制记忆块)
+**辅助文件夹**: `C:\Users\shiniyaya\Desktop\skill辅助文件夹\` (20文件)
+**日期**: 2026-07-17~18 | **来源**: 六轮~50 Agent扫描
 
 ## 用法
 5源已穷尽收敛(v4.6.12确认)。code-shiniyaya后续升级不再重扫5源——直接从转移包提取:

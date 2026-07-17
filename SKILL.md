@@ -1071,7 +1071,7 @@ def paginate_large_output(text: str, page_size: int = 8192) -> list[str]:
 - **reference-sources-v2.md** — 4个新增参考源 (65个模式)
 - **high-impact-patterns.md** — Top-10可集成模式
 - **reference-sources.md** — 全部41个参考源清单
-- **upgrade-transfer-package.md** (v4.7.7) — **升级资源转移包索引**: 5源穷尽后的第一升级参考。主文件`C:\Users\shiniyaya\Desktop\skill辅助文件夹\skill升级开发-完整转移包.md`(373行, 8板块: 可装Skill/已装Skill提取规则/外部工具/CC内置能力/参考仓库file:line/DSPy/新Skill方案/9条Action Items)。后续升级从转移包提取, 不重扫5源; 新模式集成仍走ponytail阶梯+20 Agent验证。
+- **upgrade-transfer-package.md** (v4.7.7) — **升级资源转移包索引**: 5源穷尽后的第一升级参考。主文件`C:\Users\shiniyaya\Desktop\skill辅助文件夹\skill升级开发-完整转移包.md`(373行, 8板块: 可装Skill/已装Skill提取规则/外部工具/CC内置能力/参考仓库file:line/DSPy/新Skill方案/9条Action Items) + 补充文件`最终轮补充-自动化迭代与防bug转移包.md`(329行, 8方向: 5层验证体系/防循环LoopLens+unloop/token节省数据/CC真实边界: Stop hook=对抗审查唯一入口+exit code 2=唯一可靠阻塞)。后续升级从转移包提取, 不重扫5源; 新模式集成仍走ponytail阶梯+20 Agent验证。
 - **applied-patterns.md** — 规则22已应用模式台账
 
 **规则**: 此Skill对应的所有记忆和修改只能写入本目录, 不得写入 `~/.claude/projects/c--/memory/` (bilisum记忆)。Bilisum及其记忆仅供参考, 不作为本Skill的写入目标。
