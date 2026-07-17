@@ -100,6 +100,11 @@
     "step6_max_retry": 3,
     "workflow_max_retry_per_dimension": 2,
     "workflow_dimension_retry_cap": 2,
-    "timeout_seconds": 600
+    "timeout_seconds": 600,
+    "laggard_timeout_seconds": 300
+  },
+
+  "plugin": {
+    "plugin_calls_cap": 20
   }
 }

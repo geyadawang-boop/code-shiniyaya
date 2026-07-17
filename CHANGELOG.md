@@ -1,5 +1,17 @@
 ﻿# code-shiniyaya CHANGELOG
 
+## v4.7.7 Round 2 — 2026-07-17 (对抗验证残留修复)
+- P0: STEP 6.1回滚机制修正——lastFileHash(SHA-256)不能重建内容, 改git checkout HEAD --/originalSnapshot字段, hash仅验证
+- 残留清零: "7步闭环"→9步(反模式24/workflow_context) | 规则22"4源"→5源+台账移至memory/applied-patterns.md | 反模式17更名5源 | 自检头版本v4.2.6-v4.7.7
+- 插件消毒范围修正: JSON-RPC仅豁免第6步围栏转义, 字符消毒1-5步仍适用(Bidi/零宽可藏于内容)
+- 反模式14对齐自检#1例外(a)-(d); 进度行格式统一(X/Y可含单位词)
+- §根本性限制补echo-guard.js已实现声明; 自检#18改"跨turn部分不可行"
+- 新增: 自检#20(7方向覆盖+反模式6执行器) | STEP 5用户拒绝/STEP 1列表否决/预算损坏75%保守恢复/STEP 8反思日志失败+槽满 错误行
+- 预算增plugin_calls(cap 20, config.json新plugin段); checkpointing增laggard_timeout_seconds 300
+- snapshot会话隔离已知限制标注; 5源全量确认计数对齐(autodream 9/autoresearch 5)
+- STEP 0探测修正: importlib.util显式导入(部分CPython构建AttributeError)
+- 残留行号引用全部→§锚点(行312/551/1437/1505); 主任务栏列表格式修复+项5改可观察产物; Stream-First去重(-5行)
+
 ## v4.7.7 — 2026-07-17 (5 Agent交叉扫描迭代 Round 1)
 - P0×6全修: push矛盾统一为"commit不push" | STEP 7回滚路径(git revert/lastFileHash) | batch上限config 24→16 | 扫描规格统一5源×4Agent | 规则15恢复完整定义+停止例外(a)-(d) | 可运行边界STEP 0-8统一
 - echo-guard.js v2.0: 修复致命bug——v1.0从argv读命令但CC hook走stdin JSON, 30个正则全为死代码。v2.0改stdin解析+BOM剥离+1s超时守卫, 实测阻断echo done/纯数字/wc循环
