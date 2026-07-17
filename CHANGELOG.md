@@ -1,4 +1,22 @@
-# code-shiniyaya CHANGELOG
+﻿# code-shiniyaya CHANGELOG
+
+## v4.7.6 — 2026-07-17 (Reasonix 迭代)
+- 集成4个高价值模式(ponytail筛选自25候选):
+  - 墙钟时间盒(autoresearch): 迭代工作流固定墙钟上限, 防无限等待Agent
+  - GET BEARINGS启动检查清单(autonomous-coding): 7步标准化环境确认
+  - caveman auto-clarity安全解压(ponytail): 安全警告/不可逆操作→自动写完整语言
+  - selftest双层门控(ponytail): 规则26/自检#18须通过门控才能标记VERIFIED
+- Round 2集成2个辅助模式:
+  - 基线优先(autoresearch): STEP 6修复前记录指标基线
+  - Agent输出重定向+grep(autoresearch): 全量写文件→grep提取→仅指标入上下文
+- 迭代收敛: 2轮扫描→25候选→ponytail筛至6→全5源确认收敛
+- 平台: Reasonix (parallel_tasks + review, 无echo循环卡住
+- Iter 1-4 自优化 (14处修复, SKILL.md: 1736→1606行(-7.5%), -7.5%):
+  - Iter 1 (7处): 8步→9步修正, 自检#2/#3/#4 ponytail标注, selftest矛盾消除, NON-VIABLE降级, Codex消毒补全
+  - Iter 2 (3处): 触发词路由/不可变契约/安全6项去重引用
+  - Iter 3 (3处): no-trigger格式标准化, JSON消毒冗余声明, 规则15优先级澄清
+  - Iter 4 (1处): v4.6.12章节去重(-132行) + 消毒编号修正(5→6→7)
+- 最终审计修复 (6处): 自检#5b→#5, 规则15编号, StreamFirst引用, v4.6.10注释, H/I路由, CHANGELOG补全)
 
 ## v4.7.5 — 2026-07-17
 - 一字恢复: 诚实面对CC架构极限 — AI不能自主跨turn执行，full-auto是伪功能
