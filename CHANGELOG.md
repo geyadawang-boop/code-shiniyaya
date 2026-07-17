@@ -1,4 +1,12 @@
-﻿# code-shiniyaya CHANGELOG
+# code-shiniyaya CHANGELOG
+
+## v4.7.7 Round 3 — 2026-07-17 (收敛验证: 0 P0, 4 P1全修)
+- P1-1: STEP 6.0分支创建修正——`git branch`+`git checkout -b`两步必然报错(分支已存在), 合并为单步checkout -b原子操作
+- P1-2: >50KB回滚范围重划——git不可用+>50KB=无法回滚→执行前需用户显式确认(原文强制走6.0与git不可用矛盾)
+- P1-3: originalSnapshot字段正式声明——加入pending schema字段表+不可变契约白名单(set-once), 消除契约违规
+- P1-4: 预算损坏保守恢复对齐档位——"75%(仅P0)"自相矛盾→改">90%档(仅P0)"
+- P2: SKILL.md/CHANGELOG.md UTF-8 BOM剥离(自身Agent-1门控要求"无BOM") | "10/20项NON-VIABLE"过时统计→7不可行/2部分/1可行 | 触发头57+→60+对齐metadata
+- Round 3裁定: 0 P0残留。遗留P2(行159-166两处准确引用/snapshot草稿哨兵语义/6.0 crash语义)记入下轮维护
 
 ## v4.7.7 Round 2 — 2026-07-17 (对抗验证残留修复)
 - P0: STEP 6.1回滚机制修正——lastFileHash(SHA-256)不能重建内容, 改git checkout HEAD --/originalSnapshot字段, hash仅验证
