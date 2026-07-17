@@ -1,7 +1,22 @@
 # code-shiniyaya CHANGELOG
 
-## v4.7.8 — 2026-07-18 (转移包5 Agent迭代Round 1: 23提案全部落地)
-### 基础设施层(6个新文件+3 hook升级+2个settings.json)
+## v4.7.8 — 2026-07-18 (转移包5 Agent迭代: 3轮, ~35提案落地)
+### Round 3 (1 P0 + 4 P1 + hooks.test.js 17/17)
+- P0: echo-guard deny档ReferenceError(fail-open)——`state._hits`→`hits`裸引用, 最强升级档永不生效; 同代修复+hooks.test.js防复发
+- A3复合命令洞: `git status; rm -rf x`借幂等前缀逃逸指纹——IDEMPOTENT加metachar过滤器([;&|`$><\n])
+- bearings.js shell注入消去: execSync→execFileSync(git -C参数化), 对齐SKILL.md §Hook基础设施 Shell安全规则
+- skill-improver→designing-workflow-skills切换: 原slot依赖plugin-dev skill-reviewer agent(未装)=永走不可用分支, dws纯Read/Grep可执行+review-checklist.md覆盖slot全部维度
+- 跨模型诚实边界: CC+Codex CLI均经同一代理路由到deepseek→"跨模型"=跨harness对抗(非权重差异), SKILL.md诚实声明
+- aislop确定性预扫: STEP 1新增可选CLI(亚秒零LLM, 语言=TS/JS/Python/Go/Rust/Ruby/PHP), 结果=grounding=grounded发现
+- 4 P1一致性修复: L114 §根本限制更新(v4.7.8三hook+deny), L1536 stale v2.0→v3.0, 挂点5→8, SessionStart重启检查(PreToolUse/Stop/**SessionStart**)
+
+### Round 2 (1 P0 + bearings.js注册)
+- P0: bearings.js从未注册settings.json SessionStart——CHANGELOG声称已注册为假; guard窄化(CHANGELOG-only→snapshot+SKILL.md name:code-shiniyaya双判)
+- echo-guard idempotent allowlist: git status/log/branch/diff--stat/remote+ls+pwd免指纹(mechanical repeats mandated by SKILL.md)
+- stop-guard: lookback 40→120行+substantive正则增MultiEdit/Task(防长turn漏检Write)
+- PAR整体替换加入拒绝台账#6; 2 P2诚实性修正(deny变体2/6如实+verifier写禁止=提示词级)
+
+### Round 1: 基础设施层(4个新文件+2个settings.json)
 - **echo-guard.js v3.0**: unloop模式内化——命令指纹MD5(跨turn滚动历史, 15min TTL, **不随turn重置**——补齐自检#18(c)(d)在Bash层空缺) + 逐级升级(systemMessage→`permissionDecision:ask`→`deny`+换策略指令), 迁移至hookSpecificOutput三态契约
 - **bearings.js** SessionStart hook: matcher startup|resume|compact → 自动注入cwd/memory/git log5/status/CHANGELOG头/snapshot清单为系统上下文——一字恢复步骤1-6自动化(清偿L178债务: CC支持SessionStart hook)
 - **stop-guard.js** Stop hook: turn结束对抗审查——拦截纯确认turn(≥2确认词+零Write/Edit/Agent, PreToolUse结构性盲区), `stop_hook_active=true`放行(CC平台级防hook自循环)
@@ -10,8 +25,8 @@
 - 项目级.claude/settings.json: L3最高危子集硬化(rm递归/chmod递归/强推)
 - iteration-task.md: zero-drift活文档化(规格块实时同步, 历史移附录——修复v4.7.7地面真相4源 vs 5源规格矛盾)
 
-### SKILL.md 文本层(16处)
-- §外部加速Skill: 可选层5挂点, 每处自带回退
+### SKILL.md 文本层(~25处)
+- §外部加速Skill: 可选层8挂点(含aislop预扫+跨模型诚实边界), 每处自带回退
 - §外部看门狗重写: echo-guard v3.0全部6机制 + stop-guard + permissions.deny备份层 + 已评估拒绝台账(6项)
 - §根本限制: 可靠性排序更新(双hook+deny)=L2平台>L3恢复>L1文本
 - bearings债务标记清偿(upgrade条件达成)
@@ -23,7 +38,7 @@
 - 规则24: 第二收敛信号(轮间Jaccard≥80%→计零新发现)
 - 自检#10: zero-drift活文档升级
 - Agent编排: 缓存前缀纪律 + 模型阶梯(机械扫描→Haiku) + verifier回退链
-- 自主迭代: grilling计划压测 + skill-improver收敛后质量过检
+- 自主迭代: grilling计划压测 + designing-workflow-skills收敛后质量过检(R3切换)
 - 三元件裁判: agent-lint L1静态前置门(清偿L180债务)
 - Agent工厂模式债务标记清偿(upgrade condition: model param已达成)
 
