@@ -1,10 +1,10 @@
-# code-shiniyaya v4.7.6 — CC↔Codex 双向验证元编排 Skill
+# code-shiniyaya v4.7.9 — CC↔Codex 双向验证元编排 Skill
 
 ## 是什么
 
 code-shiniyaya 是 Claude Code 的元编排 Skill——不直接修改代码，而是编排 CC 与 OpenAI Codex 之间标准化的双向验证闭环。CC 负责深度诊断（读源码 + 6+ Agent 并行扫描），Codex 负责独立验证（交叉检查 CC 方案），双方都批准后才执行。
 
-这不是"让 AI 写代码"——是"让两个 AI 系统互相验证对方的工作"。v4.7.6 经过 Reasonix 平台 6 轮迭代优化，从 1736 行精简至 1606 行（-7.5%），累计 33 处修复。
+这不是"让 AI 写代码"——是"让两个 AI 系统互相验证对方的工作"。v4.7.8-v4.7.9 新增平台层防御体系（echo-guard v3 跨 turn 指纹 + stop-guard 干净轮拦截 + bearings 自动恢复注入）、干净轮收敛计数器、预发射防卡顿机制与外部加速 Skill 可选层（8 挂点）。
 
 ---
 

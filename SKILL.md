@@ -242,7 +242,7 @@ AI: 读最新snapshot → 恢复全部状态 → 继续执行
 |---------|------|
 | <55% | 正常执行 |
 | 55-70% | **一字恢复**: 保存snapshot+git commit(不push) → 输出"⚡ 55% — /compact + 继" → 终止turn |
-| 70-90% | 同上 + 输出时不调用新Agent + 标注紧急 |
+| 70-90% | **禁用扫描发射+自动压缩**: 不调用新Agent; 保存snapshot+git commit(不push) + **设置`settings.json` `autoCompactThreshold: 70`**(v4.7.9, CC原生阈值——上下文≥70%时平台自动触发压缩, 与55%启发式检查互补: 55%由模型触发保存, 70%由平台触发压缩)。输出"⚡ 70% — 触发autoCompact, 继" → 终止turn。注: autoCompactThreshold为CC v1.0.57+平台参数, 如CC版本未达此版本→回退60%/80%三级纯模型降级(保存+等用户手动/compact) |
 | >90% | 仅保存snapshot+git commit(不push)，输出"⚠️ >90% /compact 继"，不启动任何Agent |
 
 阈值估算: versionVector × ~12% (每轮20 Agent ≈ 10-15%上下文消耗)。Write密集型会话此估算准确；Read密集型会话严重低估（versionVector仅追踪写入次数，Read/Grep不产生versionVector递增 → 此为本机制的已知天花板）。压缩后恢复时versionVector清零。
