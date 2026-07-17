@@ -155,7 +155,7 @@ CC在每个turn开始前检查以下信号:
 
 ```
 55%饱和信号触发:
-  1. 保存 memory/snapshot-{ts}.md (版本号/todo/关键数据/**nextAction/干净轮计数: i/2**)——原子写入(tmp+rename)+末尾哨兵行`<!-- SNAPSHOT-COMPLETE {ts} -->`。nextAction赋值: 预发射成功Agent在飞→**await**; pending非空→fix; 干净轮计数≥2→verify; 其余→scan(与恢复决策①-④对应)
+  1. 保存 memory/snapshot-{ts}.md (版本号/todo/关键数据/**nextAction/干净轮计数: i/2**)——原子写入(tmp+rename)+末尾哨兵行`<!-- SNAPSHOT-COMPLETE {ts} -->`。nextAction赋值: 预发射成功Agent在飞→**await**; pending非空→fix; 干净轮计数≥2→verify; 其余→scan(与恢复决策①-④对应)。**快照保留策略**(v4.7.9-r9, Scan 12 P1-1): 保存新snapshot后, 若snapshot-*.md总数>max_snapshots(默认20), 删除最旧的非goal-reached版快照; 过期>snapshot_retention_days(默认7天)的快照按mtime清理——上限见memory/config.json
   2. CHANGELOG 追加一行
   3. git add + commit（不push——push可能因网络失败阻塞保存，snapshot本地保存即安全）。**若干净轮<2且预发射未完成(v4.7.9-r6, 审计#3)——禁止commit: commit的"已完成"认知闭合会诱使模型跳过Agent发射。此时仅写snapshot文件+输出饱和警告, commit推迟至下turn"继"恢复后Agent启动成功后**
   4. 输出: "⚡ 55% — /compact + 继"

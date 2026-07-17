@@ -1,5 +1,7 @@
 {
   "schemaVersion": "4.4.0",
+  "max_snapshots": 20,
+  "snapshot_retention_days": 7,
   "description": "code-shiniyaya 集中配置文件。所有阈值、上限、大小参数在此管理，不散布在SKILL.md文本中。",
 
   "agent": {
