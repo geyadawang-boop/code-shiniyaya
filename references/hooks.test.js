@@ -1,9 +1,11 @@
 #!/usr/bin/env node
-// hooks.test.js — zero-dep runnable check for the 3 defense hooks (ponytail "one runnable check" rule)
+// hooks.test.js — zero-dep runnable check for the 4 defense hooks (ponytail "one runnable check" rule)
 // Run: node references/hooks.test.js
 // History: v1.0 shipped argv-vs-stdin bug (all regexes dead), v3.0 shipped ReferenceError in deny
 // tier (fail-open). Both broke in paths manual testing skipped. This file closes that class.
 // v1.1: spawnSync with input option — no shell, no quoting hazards.
+// v3.2: echo-guard dirty-state/destruct-vet/lastTs-freeze; stop-guard notification-boundary tests added.
+// v3.3: echo-guard READONLY bypass checks (find -delete/sort -o blocked + grep exempt).
 
 const { spawnSync } = require('child_process');
 const path = require('path');
@@ -35,9 +37,9 @@ check('echo-guard: echo done blocked, exit 0', r.code === 0 && r.out.includes('"
 r = runHook('echo-guard.js', { session_id: sid, tool_input: { command: 'echo 42' } });
 check('echo-guard: bare number echo blocked', r.out.includes('"block"'));
 
-r = runHook('echo-guard.js', { session_id: sid, tool_input: { command: 'wc -l SKILL.md' } });
+r = runHook('echo-guard.js', { session_id: sid + 'wc', tool_input: { command: 'wc -l SKILL.md' } });
 check('echo-guard: first wc -l passes', r.code === 0 && !r.out.includes('"block"'));
-r = runHook('echo-guard.js', { session_id: sid, tool_input: { command: 'wc -l SKILL.md' } });
+r = runHook('echo-guard.js', { session_id: sid + 'wc', tool_input: { command: 'wc -l SKILL.md' } });
 check('echo-guard: second wc -l same file blocked', r.out.includes('"block"'));
 
 // escalation ladder on a non-idempotent command (4 runs: pass, warn, ask, deny — all exit 0)
@@ -159,6 +161,28 @@ for (let i = 0; i < 5; i++) {
   if (rr.out.includes('deny') || rr.out.includes('ask') || rr.out.includes('block')) { laddered = true; break; }
 }
 check('echo-guard v3.2: READONLY grep 5x exempt from ladder+cap', !laddered);
+
+// --- v3.3 (Scan 8) ---
+// echo-guard: destruct-vet blocks find -delete from READONLY exemption
+const fdsid = 'fd' + Date.now();
+for (let i = 0; i < 5; i++) { runHook('echo-guard.js', { session_id: fdsid, tool_input: { command: 'find . -name "*.tmp" -delete' } }); }
+const fdf = runHook('echo-guard.js', { session_id: fdsid, tool_input: { command: 'find . -name "*.tmp" -delete' } });
+check('echo-guard v3.3: find -delete NOT exempt (destruct-vet)', fdf.out.includes('deny') || fdf.out.includes('ask'));
+
+// echo-guard: sort -o is destruct — not exempt
+const sosid = 'so' + Date.now();
+for (let i = 0; i < 5; i++) { runHook('echo-guard.js', { session_id: sosid, tool_input: { command: 'sort data.txt -o output.txt' } }); }
+const sof = runHook('echo-guard.js', { session_id: sosid, tool_input: { command: 'sort data.txt -o output.txt' } });
+check('echo-guard v3.3: sort -o NOT exempt', sof.out.includes('deny') || sof.out.includes('ask'));
+
+// echo-guard: read-only find . -name IS exempt
+const frsid = 'fr' + Date.now();
+let frhit = false;
+for (let i = 0; i < 6; i++) {
+  const rr = runHook('echo-guard.js', { session_id: frsid, tool_input: { command: 'find . -name "*.py"' } });
+  if (rr.out.includes('deny') || rr.out.includes('ask')) { frhit = true; }
+}
+check('echo-guard v3.3: read-only find exempt (no ladder)', !frhit);
 
 // stop-guard: task-notification boundary must not satisfy userStop ("stops" boilerplate)
 const tmpN = path.join(os.tmpdir(), 'sg-notif-' + Date.now() + '.jsonl');
