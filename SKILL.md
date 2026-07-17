@@ -801,7 +801,7 @@ stop→路由: stop/中断/CTRL+C优先于所有路由。
    d. 验证通过 → 保留提交(分支前进, git log记录修复)
    e. 验证失败 → `git reset --hard HEAD~1`, 重试一次
    f. 连续2次失败 → 标BLOCKED, `git reset --hard HEAD~1`清除最后失败提交, 继续下一项
-4. **结果记录**: 每次尝试追加到 `.claude/memory/code-shiniyaya/fix-log-{sessionId[:8]}.tsv`:
+3. **结果记录**: 每次尝试追加到 `.claude/memory/code-shiniyaya/fix-log-{sessionId[:8]}.tsv`:
    ```
    commit	bug_id	status	description
    a1b2c3d	BUG-01	keep	fix null deref in parser
@@ -811,8 +811,8 @@ stop→路由: stop/中断/CTRL+C优先于所有路由。
    - `status`: keep(验证通过) | discard(验证失败, 已reset) | crash(语法错误, 无法commit)
    - 此文件git不跟踪(加入.gitignore)
    - 崩溃项: commit列留空(N/A), status=crash, description记录错误
-5. **合并**: 全部项完成→`git checkout {原始分支}`→`git merge fixes/{sessionId[:8]}`→合并成功→`git branch -d fixes/{sessionId[:8]}`。合并冲突→`git merge --abort`, 列出冲突文件, 报告用户选择(手动解决/丢弃修复分支/逐个cherry-pick通过验证的commit)。
-6. **中断恢复**: 分支存在且非当前分支→`git checkout fixes/{sessionId[:8]}`→`git log --oneline`→从最后commit续修
+4. **合并**: 全部项完成→`git checkout {原始分支}`→`git merge fixes/{sessionId[:8]}`→合并成功→`git branch -d fixes/{sessionId[:8]}`。合并冲突→`git merge --abort`, 列出冲突文件, 报告用户选择(手动解决/丢弃修复分支/逐个cherry-pick通过验证的commit)。
+5. **中断恢复**: 分支存在且非当前分支→`git checkout fixes/{sessionId[:8]}`→`git log --oneline`→从最后commit续修
 
 **决策规则**: 二分法保留/重置——修复有效→保留; 修复无效→`git reset`。禁止部分保留。3种结果: keep | discard | crash。
 
