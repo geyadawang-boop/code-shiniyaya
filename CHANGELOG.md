@@ -1,5 +1,35 @@
 # code-shiniyaya CHANGELOG
 
+## v4.7.8 — 2026-07-18 (转移包5 Agent迭代Round 1: 23提案全部落地)
+### 基础设施层(6个新文件+3 hook升级+2个settings.json)
+- **echo-guard.js v3.0**: unloop模式内化——命令指纹MD5(跨turn滚动历史, 15min TTL, **不随turn重置**——补齐自检#18(c)(d)在Bash层空缺) + 逐级升级(systemMessage→`permissionDecision:ask`→`deny`+换策略指令), 迁移至hookSpecificOutput三态契约
+- **bearings.js** SessionStart hook: matcher startup|resume|compact → 自动注入cwd/memory/git log5/status/CHANGELOG头/snapshot清单为系统上下文——一字恢复步骤1-6自动化(清偿L178债务: CC支持SessionStart hook)
+- **stop-guard.js** Stop hook: turn结束对抗审查——拦截纯确认turn(≥2确认词+零Write/Edit/Agent, PreToolUse结构性盲区), `stop_hook_active=true`放行(CC平台级防hook自循环)
+- **code-shiniyaya-verifier** 自定义Agent(~/.claude/agents/): 规则20 P0验证维度平台侧钉死(正确性+编码安全), 只读工具集, 结构性防验证Agent写文件
+- settings.json: permissions声明式deny备份层(L2.5——与hooks独立顶层键, 插件重写hooks时存活) + Stop hook注册 + SessionStart独立条目(不并入zh-cn条目防连带删除)
+- 项目级.claude/settings.json: L3最高危子集硬化(rm递归/chmod递归/强推)
+- iteration-task.md: zero-drift活文档化(规格块实时同步, 历史移附录——修复v4.7.7地面真相4源 vs 5源规格矛盾)
+
+### SKILL.md 文本层(16处)
+- §外部加速Skill: 可选层5挂点, 每处自带回退
+- §外部看门狗重写: echo-guard v3.0全部6机制 + stop-guard + permissions.deny备份层 + 已评估拒绝台账(6项)
+- §根本限制: 可靠性排序更新(双hook+deny)=L2平台>L3恢复>L1文本
+- bearings债务标记清偿(upgrade条件达成)
+- STEP 4: fp-check FP消除(封堵Byzantine引用真/bug假漏洞) + inferred加严
+- STEP 7降级: MMAR跨模型对抗恢复(第二模型>同模型多Agent)
+- STEP 6.0: pantheon-fix替代路由(DAG空+复杂P0+用户opt-in) + differential-review合并前安全diff门
+- STEP 7: variant-analysis变体扩扫(喂下轮STEP 1, 不阻塞闭环)
+- 规则20: code-shiniyaya-verifier槽位优先
+- 规则24: 第二收敛信号(轮间Jaccard≥80%→计零新发现)
+- 自检#10: zero-drift活文档升级
+- Agent编排: 缓存前缀纪律 + 模型阶梯(机械扫描→Haiku) + verifier回退链
+- 自主迭代: grilling计划压测 + skill-improver收敛后质量过检
+- 三元件裁判: agent-lint L1静态前置门(清偿L180债务)
+- Agent工厂模式债务标记清偿(upgrade condition: model param已达成)
+
+### 拒绝台账(6项, 全部有理由)
+claude-focus(prompt cache全未命中) / LoopLens+unloop整装(MCP违背零依赖hook) / Semantic Early-Stopping原样(无embedding API→降级) / asyncRewake(轮询器冗余) / headroom_compress(文件重定向严格更优) / PAR替换10+Agent(成本>收益)
+
 ## v4.7.7 Round 3 — 2026-07-17 (收敛验证: 0 P0, 4 P1全修)
 - P1-1: STEP 6.0分支创建修正——`git branch`+`git checkout -b`两步必然报错(分支已存在), 合并为单步checkout -b原子操作
 - P1-2: >50KB回滚范围重划——git不可用+>50KB=无法回滚→执行前需用户显式确认(原文强制走6.0与git不可用矛盾)

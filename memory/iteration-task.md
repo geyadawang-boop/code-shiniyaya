@@ -1,11 +1,21 @@
-# 迭代优化任务 — code-shiniyaya Skill 强化 (FINAL)
+# 迭代优化任务 — code-shiniyaya Skill 强化 (活文档)
 
-**创建日期**: 2026-07-16
-**完成日期**: 2026-07-16
-**状态**: COMPLETE — 34轮迭代完成, SKILL.md v4.5.2-final, 1040 lines
-**记忆隔离**: 所有记忆已写入 `C:\Users\shiniyaya\Desktop\code-shiniyaya\memory\`
+**创建日期**: 2026-07-16 | **最后更新**: 2026-07-18 (v4.7.8, zero-drift活文档化)
+**状态**: ACTIVE — 本文件为自检#10地面真相, 规格变更时必须同步更新此块(陈旧地面真相=反向漂移源)
 
 ---
+
+## 当前任务规格 (v4.6.10+, 自检#6同步)
+
+- **扫描规模**: 20 Agent × **5源**(AutoAgent/autodream/autoresearch/autonomous-coding/ponytail, **每源4 Agent**)
+- **维度**: 10维轮换(自动化模式/验证机制/代码质量/迭代连续性/记忆模式/工具API/Agent协调/输入输出/配置基础设施/基准测试)
+- **管线**: 扫描 → 应用修复 → 基准测试门控(流水线5 Agent vs 单体1 Agent) → 8 Agent bug扫描
+- **收敛**: 连续2轮零新发现 + P0=0 + P1=0 (规则24 + 轮间重合度≥80%)
+- **5源状态**: ALL EXHAUSTED (v4.6.12确认) — 新升级源=转移包(memory/upgrade-transfer-package.md)
+
+---
+
+## 附录: 历史完成记录 (2026-07-16, 4源时代, 已归档)
 
 ## 任务目标 — 已达成
 
