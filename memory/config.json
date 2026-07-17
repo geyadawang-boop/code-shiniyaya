@@ -4,7 +4,7 @@
 
   "agent": {
     "batch_size_min": 4,
-    "batch_size_max": 24,
+    "batch_size_max": 16,
     "cpu_cores_deduct": 2,
     "agent_cap": 50,
     "default_batch_fallback": 4,

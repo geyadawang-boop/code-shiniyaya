@@ -1,5 +1,21 @@
 ﻿# code-shiniyaya CHANGELOG
 
+## v4.7.7 — 2026-07-17 (5 Agent交叉扫描迭代 Round 1)
+- P0×6全修: push矛盾统一为"commit不push" | STEP 7回滚路径(git revert/lastFileHash) | batch上限config 24→16 | 扫描规格统一5源×4Agent | 规则15恢复完整定义+停止例外(a)-(d) | 可运行边界STEP 0-8统一
+- echo-guard.js v2.0: 修复致命bug——v1.0从argv读命令但CC hook走stdin JSON, 30个正则全为死代码。v2.0改stdin解析+BOM剥离+1s超时守卫, 实测阻断echo done/纯数字/wc循环
+- settings.json PreToolUse hook重新注册(被zh-cn插件重写丢失), 保留插件SessionStart/Notification
+- §根本限制/§外部看门狗重写: 反映echo-guard.js v2.0真实机制, 可靠性排序L2平台>L3恢复>L1文本
+- snapshot原子化: tmp+rename+哨兵行`SNAPSHOT-COMPLETE`, "继"恢复先验哨兵; 第三道防线(git不可用→session JSON→冷启动)
+- 4 Agent精简扫描组成定义: 5 Agent门控去Agent2(交叉引用)
+- 反模式#10/#14/#15降级(v4.7.5诚实模型对齐), #23标注规范级
+- 入口路由表补全: stop置顶, A-I全9类显式路由, G类40+ Agent全库扫描
+- codex插件7命令全档: 补/codex:status(前置探测)+/codex:cancel(失控刹车); 插件仅替代传输层, 验证深度不降
+- 自检#19新增: 消毒流水线合规(出站STEP 3+入站STEP 4粘贴)
+- 错误表补STEP 0/1.5/2/Pre-6.0行(python失败/git缺失/参考源全失败/方案对比失败/DAG环)
+- 墙钟时间盒诚实修正: 执行主体=hook/Agent工具基础设施, 非模型自查
+- 缺口表vs状态表矛盾消除: 合并为单表"规范级", #3/#5/#6/#8补交叉引用, #10补train.py:594
+- metadata: 60+ keywords/9类, agent-floor补4(post-compaction slim); "4源"→"5源"全文清理; 残留行号引用→§锚点
+
 ## v4.7.6 — 2026-07-17 (Reasonix 迭代)
 - 集成4个高价值模式(ponytail筛选自25候选):
   - 墙钟时间盒(autoresearch): 迭代工作流固定墙钟上限, 防无限等待Agent
