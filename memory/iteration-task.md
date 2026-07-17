@@ -10,7 +10,7 @@
 - **扫描规模**: 20 Agent × **5源**(AutoAgent/autodream/autoresearch/autonomous-coding/ponytail, **每源4 Agent**)
 - **维度**: 10维轮换(自动化模式/验证机制/代码质量/迭代连续性/记忆模式/工具API/Agent协调/输入输出/配置基础设施/基准测试)
 - **管线**: 扫描 → 应用修复 → 基准测试门控(流水线5 Agent vs 单体1 Agent) → 8 Agent bug扫描
-- **收敛**: 连续2轮零新发现 + P0=0 + P1=0 (规则24 + 轮间重合度≥80%)
+- **收敛**: 连续2轮零新发现 + P0=0 + P1=0 + 干净轮计数器≥2(修复轮不计, 任何修复→清零) (规则24 + 轮间重合度≥80%)
 - **5源状态**: ALL EXHAUSTED (v4.6.12确认) — 新升级源=转移包(memory/upgrade-transfer-package.md)
 
 ---

@@ -1,9 +1,9 @@
 # code-shiniyaya CHANGELOG
 
-## v4.7.8 — 2026-07-18 (转移包5 Agent迭代: 5轮, 收敛中——干净轮1/2)
+## v4.7.8 — 2026-07-18 (转移包5 Agent迭代: 5轮+R4补丁, 收敛中——干净轮0/2, R7起重计)
 ### Round 4-5 (过早停止bug修复——规则24干净轮计数器)
 - **规则24+§自主执行+§收敛条件**: 新增干净轮计数器——修复轮永不计为干净轮(实证: R1修复引入bearings未注册P0+deny档ReferenceError P0, 均由后续扫描发现); 收敛=干净轮≥2, "发现已全部修复"≠"收敛达成"。R3宣布收敛即违规实例
-- R4: CHANGELOG三轮漂移修复(bearings每启动注入头15行, 恢复上下文曾只见Round 1); R5扫描: CLEAN ROUND(干净轮1/2), hooks.test 17/17, 待R6确认
+- R4: CHANGELOG三轮漂移修复(bearings每启动注入头15行, 恢复上下文曾只见Round 1); R5扫描: CLEAN(于a06ef02), hooks.test 17/17——R4补丁(68e7a4a)=修复轮→计数器清零, R5干净轮作废; R6扫描: 2P1+2P2(计数器补丁自身的一致性尾巴)→修复→R7为候选#1
 ### Round 3 (1 P0 + 4 P1 + hooks.test.js 17/17)
 - P0: echo-guard deny档ReferenceError(fail-open)——`state._hits`→`hits`裸引用, 最强升级档永不生效; 同代修复+hooks.test.js防复发
 - A3复合命令洞: `git status; rm -rf x`借幂等前缀逃逸指纹——IDEMPOTENT加metachar过滤器([;&|`$><\n])

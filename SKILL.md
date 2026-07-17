@@ -345,7 +345,7 @@ Agent全部返回→汇总→去重→分类→修复→提交→下一轮验证
 3. **不等待** (v4.7.5 降级): 同turn内绝不在迭代中途输出"要继续吗?"。turn结束=停止——等用户"继"恢复。
 4. **每轮输出**: 仅输出一行进度（"第N轮: X个发现→Y个修复→继"），不输出长篇分析。此行为turn结束符——用户"继"→下一轮继续。
 5. **达标时输出**: 最终签收单（发现总数、修复总数、当前零bug确认）
-6. **5源深度优化** (v4.6.10): 每轮迭代必须从5个源文件(AutoAgent/autodream/autoresearch/autonomous-coding/ponytail)中提取可优化点——扫描→对比→提取→写入SKILL.md→验证。循环持续直到所有源文件中无可提取的优化点(连续2轮零新发现=收敛)。收敛后(v4.7.8可选): designing-workflow-skills单次质量轴过检(触发词/描述/阶段出入口/路由关键词/子Agent提示词/工具调用规模AP-18/19——5源内容扫描不覆盖的维度; AP-2超500行=已知WONTFIX不计发现); 不可用→跳过。
+6. **5源深度优化** (v4.6.10): 每轮迭代必须从5个源文件(AutoAgent/autodream/autoresearch/autonomous-coding/ponytail)中提取可优化点——扫描→对比→提取→写入SKILL.md→验证。循环持续直到所有源文件中无可提取的优化点(连续2轮零新发现且规则24干净轮计数器≥2=收敛)。收敛后(v4.7.8可选): designing-workflow-skills单次质量轴过检(触发词/描述/阶段出入口/路由关键词/子Agent提示词/工具调用规模AP-18/19——5源内容扫描不覆盖的维度; AP-2超500行=已知WONTFIX不计发现); 不可用→跳过。
 `# ponytail: skill-improver被此取代——skill-improver的fix-review loop与H类自身循环冗余, 且硬需plugin-dev skill-reviewer agent(本环境未装)→slot永走不可用分支==dead text; designing-workflow-skills纯Read/Grep/Glob, review-checklist.md覆盖slot全部维度+AP-18/19(直接审计代码规模驳杂的20-Agent batching)`
 7. **Agent失败零静默** (v4.6.11): 任何Agent/工作流调用失败必须立即报告: (a)失败数量, (b)失败原因(超时/JSON Schema错误/API错误/内容过滤/其他), (c)尝试的修复动作(重试/切换Agent类型/回退纯agent()调用/放弃该维度)。静默跳过失败Agent=致命违反。若JSON Schema为根因→下一次调用禁用schema参数直接使用纯文本输出。若某维度所有Agent类型均失败→标记PERMANENTLY_FAILED并写入ERRORS.md, 不静默跳过。
 8. **逐项优化逐项验证** (v4.7.0): 每个优化任务完成后立即20 Agent全维度扫描→发现bug→修复→重新扫描→零bug后进入下一优化任务。不批量优化, 不跳过验证。优化序列化执行确保每步变更可追溯。
@@ -439,7 +439,7 @@ CC必须在调用任何工具(Read/Grep/Bash/Write/Edit)前，对照调用栈缓
 ### 迭代自检 (v4.2.6-v4.7.8)
 
 每次工作流完成通知到达时, CC尽力执行以下自检——标记NON-VIABLE的项(因CC架构限制无法自主执行)依赖用户"继"触发恢复后补充检查。未通过则修复行为+重启动:
-1. **工作流完成通知=继续信号, 用户可见消息=停止** (v4.7.5 标记NON-VIABLE): task-notification跨turn自主处理不可行(CC无自主通知处理能力)。降级替代: 用户"继"触发恢复→CC读取最近journal.jsonl→提取问题→应用修复→同turn内启动下一轮。CC若写了分析/汇报/状态文本→已违反规则15, 已停止。CC只能在(a)达标停止确认 (b)致命错误无法继续 (c)用户显式要求报告 (d)规则15要求的同turn结束进度行("第N轮: X→Y→继", X/Y可含单位词如"X个发现") 这四种情况下输出用户可见消息。
+1. **工作流完成通知=继续信号, 用户可见消息=停止** (v4.7.5 标记NON-VIABLE): task-notification跨turn自主处理不可行(CC无自主通知处理能力)。降级替代: 用户"继"触发恢复→CC读取最近journal.jsonl→提取问题→应用修复→同turn内启动下一轮。CC若写了分析/汇报/状态文本→已违反规则15, 已停止。CC只能在(a)达标停止确认 (b)致命错误无法继续 (c)用户显式要求报告 (d)规则15要求的同turn结束进度行("第N轮: X→Y→继", X/Y可含单位词如"X个发现"; 干净轮变体"第N轮: 干净轮i/2→继"同属此例外) 这四种情况下输出用户可见消息。
    `# ponytail: 自检#1依赖task-notification自主处理(不可行 v4.6.10审计)，ceiling: 用户"继"→读取journal.jsonl→恢复，upgrade: CC自主通知处理时`
 2. **不等待检查** (v4.7.5 降级): CC是否在等用户回复才继续? 若当前turn内可继续→立即处理结果+继续。若turn已结束→输出"第N轮: X→Y→继"→等用户"继"恢复。`# ponytail: 自检#2跨turn依赖用户"继"恢复，ceiling: 同turn内连续处理+跨turn一字恢复，upgrade: CC支持turn边界自动检测时`
 3. **不静默检查** (v4.7.5 标记NON-VIABLE): CC是否在工作流完成后退出了? 若退出→等用户"继"触发恢复→读取最后journal.jsonl+应用修复+启动下一轮。`# ponytail: 自检#3依赖跨turn自主重启(不可行 v4.6.10审计)，ceiling: 用户"继"→读取journal.jsonl→恢复，upgrade: CC支持SessionStart hook自动检测退出状态时`
