@@ -1,5 +1,24 @@
 # code-shiniyaya CHANGELOG
 
+## v4.7.9-r4 — 2026-07-18 (Scan 7修复轮: 12 Agent轮换扫描, 1 P0+5确认P1全修, 6/6复核零驳回)
+
+### P0: 陈旧goal-reached.md旁路终局验证门
+- L175④"goal-reached.md已存在→直接签收单"=无版本作用域存在性短路——HEAD上躺着v4.0.2陈旧文件(内容还是"25 P0 bugs found"), 恢复④按字面即跳过50 Agent P0=0终验
+- 修复: ④改带版本goal-reached-{当前版本}.md且须含P0=0字段; 旧文件git mv为goal-reached-v4.0.2.md排雷
+
+### 确认P1×5 (复核零驳回)
+- **echo-guard误伤自家工作流**(Scan5/6审计被拦实证): v3.2新增READONLY类(grep/rg/cat/head/tail/wc/find/diff+hooks.test.js)免指纹阶梯+免cap; IDEMPOTENT不计cap; cap拦截时不记指纹不刷lastTs(拒绝重试不再毒化阶梯+无限续窗)
+- **stop-guard两门19%失效**: task-notification样板文"stops"命中userStop→v3.2边界照断但机器消息不作userText+\bstop\b词边界
+- **签收单无字面模板**: L351强制"## 签收单"首行(stop-guard锚点)+goal-reached最小字段规范+④补同turn写最终snapshot
+- **STEP 4截断代码AttributeError**: L1077 `import os, datetime`→`from datetime import datetime`(溢出主分支一执行即抛)
+- 50 Agent终验构成规格补定(10维×5源, 禁同型同文件)
+
+### P2批量 (echo-guard v3.2 / stop-guard v3.2 / bearings)
+- echo-guard: 脏state类型归一(TypeError exit1违反exit-0契约→修)+原子写(tmp+rename)+状态文件GC(TMP已积323个, >24h回收每次≤20)+指纹归一只小写命令词(grep TODO≠grep todo)
+- stop-guard: 饱和豁免收窄共现/⚡[^"]{0,80}\/compact/(裸⚡或裸/compact过度豁免实测三例)+收敛正则容"最终签收单"
+- bearings: hookWarn第四形态EMPTY(0字节截断——03:43事故类正好是它, 原逻辑st为空整体跳过检查)
+- hooks.test 24→27(脏state/READONLY免阶梯/notification边界), 27/27绿
+
 ## v4.7.9-r3 — 2026-07-18 (Scan 6修复轮: 19 Agent对抗扫描, 1 P0+7确认P1+廉价P2批量落地)
 
 ### P0: settings.json二次损坏 (04:27外部程序删zh-cn session-start条目漏删逗号→尾逗号=非法JSON)

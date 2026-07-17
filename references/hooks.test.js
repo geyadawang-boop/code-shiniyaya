@@ -142,7 +142,33 @@ check('bearings v3: hookWarn on missing settings.json (ENOENT no longer silent)'
 try { fs.rmSync(fakeHome, { recursive: true, force: true }); } catch (e) {}
 
 r = runHook('bearings.js', { cwd: 'C:/Users/shiniyaya/Desktop/code-shiniyaya' });
-check('bearings v3: STATE version keeps -rN suffix (live snapshot says v4.7.9-r2)', r.out.includes('"version":"v4.7.9-r2"'));
+check('bearings v3: STATE version keeps -rN suffix (live snapshot says v4.7.9-r2)', r.out.includes('"version":"v4.7.9-r'));
+
+// --- v3.2 (Scan 7) ---
+// echo-guard: corrupted state file must not break the exit-0 contract
+const dirtySid = 'dirty' + Date.now();
+fs.writeFileSync(path.join(os.tmpdir(), '.cc_echoguard_' + dirtySid + '.json'), '{"hist":5,"wcFiles":"x","count":"NaN"}', 'utf8');
+r = runHook('echo-guard.js', { session_id: dirtySid, tool_input: { command: 'wc -l foo.md' } });
+check('echo-guard v3.2: dirty state file still exit 0', r.code === 0);
+
+// echo-guard: READONLY repetition (mandated test reruns / audit greps) never climbs the ladder
+const roSid = 'ro' + Date.now();
+let laddered = false;
+for (let i = 0; i < 5; i++) {
+  const rr = runHook('echo-guard.js', { session_id: roSid, tool_input: { command: 'grep -n TODO SKILL.md' } });
+  if (rr.out.includes('deny') || rr.out.includes('ask') || rr.out.includes('block')) { laddered = true; break; }
+}
+check('echo-guard v3.2: READONLY grep 5x exempt from ladder+cap', !laddered);
+
+// stop-guard: task-notification boundary must not satisfy userStop ("stops" boilerplate)
+const tmpN = path.join(os.tmpdir(), 'sg-notif-' + Date.now() + '.jsonl');
+fs.writeFileSync(tmpN, [
+  JSON.stringify({ type: 'user', message: { content: '[SYSTEM NOTIFICATION - NOT USER INPUT]\nA task-notification fires each time this agent stops with no live background children.' } }),
+  JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: '第4轮[6A]: 干净轮0/2→继' }] } })
+].join('\n'), 'utf8');
+r = runHook('stop-guard.js', { transcript_path: tmpN });
+check('stop-guard v3.2: notification "stops" boilerplate does not disarm stall gate', r.out.includes('"block"'));
+try { fs.unlinkSync(tmpN); } catch (e) {}
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

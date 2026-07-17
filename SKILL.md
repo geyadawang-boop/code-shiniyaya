@@ -172,7 +172,7 @@ AI: 读最新snapshot → 恢复全部状态 → 继续执行
         ├─ ① nextAction=await OR 有在飞Agent/未处理的预发射结果 → **不重复启动新轮**——有在飞批1且批2未发→turn首个动作先追加批2(规则5, 非新轮, 不算重复启动); 再查journal/task-notification处理已到结果(回§自主执行item 1主循环); 确认无在飞且无未处理结果后才按②启动
         ├─ ② (nextAction=scan OR 干净轮计数<2) AND 无pending项 → 立即启动下一轮扫描Agent(同turn; 启动前过三硬门: 饱和/预算/在飞)
         ├─ ③ nextAction=fix OR pending非空 → 从首个pending项继续修复
-        └─ ④ nextAction=verify OR 干净轮计数≥2 → 确认收敛(=按规则24跑最终50 Agent验证, P0=0方可)→写goal-reached→输出签收单; goal-reached.md已存在→直接签收单
+        └─ ④ nextAction=verify OR 干净轮计数≥2 → 确认收敛(=按规则24跑最终50 Agent验证, P0=0方可)→写goal-reached-{当前版本}.md→输出签收单(首行"## 签收单", 见L351模板)+同turn写最终snapshot(nextAction=verify, 干净轮计数: 2/2); **goal-reached-{当前版本}.md已存在且含P0=0字段**→直接签收单——旧版本goal-reached*.md(无版本名/他版本)一律不作数, 不得短路最终验证(v4.7.9-r4: v4.0.2陈旧goal-reached.md曾在HEAD上构成旁路陷阱)
 ```
 
 **恢复触发词** (v4.7.5新增):
@@ -348,7 +348,7 @@ Agent全部返回→汇总→去重→分类→修复→提交→下一轮验证
 2. **不结束**: 直到 (a)零bug收敛(**干净轮计数器≥2**, 见规则24), (b)用户说停/stop, (c)预算耗尽
 3. **不等待** (v4.7.5 降级): 同turn内绝不在迭代中途输出"要继续吗?"。turn结束=停止——等用户"继"恢复。
 4. **每轮输出**: 一行进度。正常轮: "第N轮[dim]: X→Y→继"(X=发现数, Y=修复数, dim=本轮维度名/干净轮状态——两者二选一填一个); 干净轮: "第N轮[规模]: 干净轮i/2→继"(i=当前计数; 规模=本轮扫描Agent数如20A——规模归一审计依据, v4.7.9)。不输出长篇分析。turn结束符——用户"继"时下轮结果已就绪可直接处理。预发射失败→回退简式"第N轮: X→Y→继"。
-5. **达标时输出**: 最终签收单（发现总数、修复总数、当前零bug确认）
+5. **达标时输出**: 最终签收单——**强制模板** (v4.7.9-r4, stop-guard v3收敛检测锚点, 不得改写形态): 首行必须为`## 签收单`(或行首"签收单: "), 后接三要素字段: 发现总数、修复总数、当前零bug确认(最终50 Agent结果P0=0)+final commit。同turn须写goal-reached-{版本}.md(最小字段: 版本/日期/50 Agent结果P0=0/发现总数/修复总数/final commit——恢复④"直接签收单"路径的权威数据源)与最终snapshot
 6. **5源深度优化** (v4.6.10): 每轮迭代必须从5个源文件(AutoAgent/autodream/autoresearch/autonomous-coding/ponytail)中提取可优化点——扫描→对比→提取→写入SKILL.md→验证。循环持续直到所有源文件中无可提取的优化点(连续2轮零新发现且规则24干净轮计数器≥2=收敛)。收敛后(v4.7.8可选): designing-workflow-skills单次质量轴过检(触发词/描述/阶段出入口/路由关键词/子Agent提示词/工具调用规模AP-18/19——5源内容扫描不覆盖的维度; AP-2超500行=已知WONTFIX不计发现); 不可用→跳过。
 `# ponytail: skill-improver被此取代——skill-improver的fix-review loop与H类自身循环冗余, 且硬需plugin-dev skill-reviewer agent(本环境未装)→slot永走不可用分支==dead text; designing-workflow-skills纯Read/Grep/Glob, review-checklist.md覆盖slot全部维度+AP-18/19(直接审计代码规模驳杂的20-Agent batching)`
 7. **Agent失败零静默** (v4.6.11): 任何Agent/工作流调用失败必须立即报告: (a)失败数量, (b)失败原因(超时/JSON Schema错误/API错误/内容过滤/其他), (c)尝试的修复动作(重试/切换Agent类型/回退纯agent()调用/放弃该维度)。静默跳过失败Agent=致命违反。若JSON Schema为根因→下一次调用禁用schema参数直接使用纯文本输出。若某维度所有Agent类型均失败→标记PERMANENTLY_FAILED并写入ERRORS.md, 不静默跳过。
@@ -422,13 +422,13 @@ Agent返回无TERMINAL行→标记TIMED_OUT, 触发替换。连续2次TERMINAL: 
 21. **趋势确认而非单点验证** (v3.9.3): 单次50 Agent验证返回非零不表示"目标未达成"——需对比上一轮结果看趋势。若本轮50 Agent发现数 < 上一轮发现数且P0下降, 则为健康趋同。只有连续2轮发现数不变且P0>0才触发"无意义重复"检查(自检#5)。单次非零→正常继续迭代, 不警告。
 22. **自动化模式自我应用** (v3.9.10, v4.7.7): 从5源提取的自动化模式不能只文档化——必须实际应用于code-shiniyaya自身的迭代流程。已提取但未应用=伪优化。每轮迭代必须至少将1个提取的自动化模式实际集成到当前工作流中(不仅仅是写入SKILL.md文本)。已应用模式台账见`memory/applied-patterns.md`(v4.7.7从本条移出——台账属CHANGELOG性质, 不属规则文本)。待激活: GOTO/ABORT类型化返回值在迭代主循环中的实际路由——已定义(§Agent终端信号协议)但迭代循环仍以文本TERMINAL解析为主。
 23. **防卡顿并行启动** (v3.9.19): 所有Agent在单一planar并行块中启动(`Promise.all`), 不使用`pipeline()`, 不使用`phase()`门控。这避免了phase gate阻塞问题——一个慢agent不会阻止其他阶段的agent启动。交叉验证/修复/benchmark/bug扫描等后续步骤在20扫描Agent全部返回后串联执行(使用`await`), 但不使用phase门控。
-24. **收敛阈值自调整** (v3.9.23, v4.7.8增补第二信号+干净轮计数器): 若迭代#N扫描发现数<5且连续2轮<10且均为P1/P2(无P0)→已接近收敛, 触发最终50 Agent验证确认。若50 Agent确认P0=0→目标达成, 写入memory/goal-reached.md。不必严格到零——剩余P1/P2可在后续维护迭代中处理。**内容重合度第二信号**(Semantic Early-Stopping无embedding降级版): overlap=|R_n∩R_{n-1}|/|R_n∪R_{n-1}|, 发现键=file:line(±5行, 同config.json line_tolerance)+严重度; 连续2轮≥80%且P0=0→视同"连续2轮零新发现"——防止Agent非确定性导致发现计数波动时的收敛误判(两轮各N个发现但全为同一批≠未收敛)。计算: 两轮报告发现键排序比对, 零外部依赖。`# ponytail: 词法代理语义, ceiling: 大幅改写+行号大漂移逃逸, upgrade: CC暴露embedding API时替换为嵌入余弦`
+24. **收敛阈值自调整** (v3.9.23, v4.7.8增补第二信号+干净轮计数器): 若迭代#N扫描发现数<5且连续2轮<10且均为P1/P2(无P0)→已接近收敛, 触发最终50 Agent验证确认(构成规格v4.7.9-r4: 沿用自检#6轮换框架放大——10维度×5源全覆盖, 每维度5 Agent, 不得50个同型Agent扫同一文件)。若50 Agent确认P0=0→目标达成, 写入memory/goal-reached.md。不必严格到零——剩余P1/P2可在后续维护迭代中处理。**内容重合度第二信号**(Semantic Early-Stopping无embedding降级版): overlap=|R_n∩R_{n-1}|/|R_n∪R_{n-1}|, 发现键=file:line(±5行, 同config.json line_tolerance)+严重度; 连续2轮≥80%且P0=0→视同"连续2轮零新发现"——防止Agent非确定性导致发现计数波动时的收敛误判(两轮各N个发现但全为同一批≠未收敛)。计算: 两轮报告发现键排序比对, 零外部依赖。`# ponytail: 词法代理语义, ceiling: 大幅改写+行号大漂移逃逸, upgrade: CC暴露embedding API时替换为嵌入余弦`
 **干净轮计数器** (v4.7.8, 防过早停止——修复自身实证bug): 干净轮=本轮扫描返回0 P0+0 P1**且本轮未应用任何修复**。修复轮永不计为干净轮——修复本身可能引入新bug(v4.7.8实证×2: R1修复引入bearings未注册P0, R1修复引入deny档ReferenceError P0, 均由下一轮扫描才发现)。任何修复应用→干净轮计数器清零→下一轮必须重新扫描。收敛宣布前强制自查: 干净轮计数≥2? 否→输出"第N轮: 干净轮i/2→继", 不宣布收敛。"发现已全部修复"≠"收敛达成"。**计数器<2时: 干净轮不是空闲态——等同发现P0: 强制启动下轮扫描(同turn预发射; 预发射失败→进度行+"继"; 恢复路径见§一字恢复-恢复决策分支①)。启动扫描即唯一动作——但"跳过分析门控"永不豁免以下三个启动前硬门: (i)饱和检查 (ii)预算检查 (iii)在飞检查。**
-**干净轮前置条件** (v4.7.8): 本轮扫描Agent按自检#6规格全部成功返回(失败/TIMED_OUT槽位经规则7处理后再计); scan-state `scannedFiles`与上轮重叠<80% 或显式标注"轮换空间已尽", 否则该轮不计(覆盖盲区→自检#15轮换排空检测); 计入前hooks.test.js全绿(用例数随版本增长, v4.7.9-r3=24)+agent-lint分数不降(机器证据附进度行)。"无结果到达"≠"0发现"——预发射批次死亡(API错误/无TERMINAL)→该轮不计数, 按item 7报告失败+规则7重启该批。**规模归一** (v4.7.9, autoresearch BPB思想): 降级轮(仅P0规格2-4 Agent)零发现不计干净轮——证据规模不足; 进度行按L350干净轮定式标注规模("第N轮[20A]: 干净轮i/2→继")。
+**干净轮前置条件** (v4.7.8): 本轮扫描Agent按自检#6规格全部成功返回(失败/TIMED_OUT槽位经规则7处理后再计); scan-state `scannedFiles`与上轮重叠<80% 或显式标注"轮换空间已尽", 否则该轮不计(覆盖盲区→自检#15轮换排空检测); 计入前hooks.test.js全绿(用例数随版本增长, v4.7.9-r4=27)+agent-lint分数不降(机器证据附进度行)。"无结果到达"≠"0发现"——预发射批次死亡(API错误/无TERMINAL)→该轮不计数, 按item 7报告失败+规则7重启该批。**规模归一** (v4.7.9, autoresearch BPB思想): 降级轮(仅P0规格2-4 Agent)零发现不计干净轮——证据规模不足; 进度行按L350干净轮定式标注规模("第N轮[20A]: 干净轮i/2→继")。
 **预发射预算守卫**: 启动前查agent_launches余额——剩余<整轮规格(20)→不启动、不缩规模(自检#6禁缩), 走预算耗尽路径: 写FINAL-STATUS.md+输出"第N轮: 预算X/50不足下轮→停", 等24h重置或用户显式追加。BREAK_GLASS仅资助P0修复, 永不资助扫描轮启动。
 **饱和优先线**: 上下文≥55%→饱和流程覆盖强制扫描/预发射/分支①启动——保存snapshot(nextAction=scan)+输出"⚡ 第N轮: 干净轮i/2 — /compact + 继", 扫描推迟至压缩后"继"恢复(分支①在新上下文启动)。
 计数器持久化: 随每份snapshot落盘(格式"干净轮计数: i/2"——与L156同字面, bearings STATE正则双格式容错); 恢复时缺失/不可辨→按0处理(安全方向: 宁多扫一轮, 不误宣收敛)。
-**turn-end统一决策** (v4.7.8, 权威——in-turn与"继"恢复共用, 消除双规范分叉): ①pending非空→继续修复; ②否则干净轮<2→启动下一轮扫描; ③否则未跑最终验证→启动50 Agent最终验证; ④50 Agent确认P0=0→写goal-reached→签收单→停。修复应用→干净轮清零→回②。§一字恢复四分支(①-④)=本决策的nextAction快捷入口, 冲突时以本决策为准。
+**turn-end统一决策** (v4.7.8, 权威——in-turn与"继"恢复共用, 消除双规范分叉): ①pending非空→继续修复; ②否则干净轮<2→启动下一轮扫描; ③否则未跑最终验证→启动50 Agent最终验证; ④50 Agent确认P0=0→写goal-reached-{版本}.md→按L351模板输出签收单(首行"## 签收单")→同turn写最终snapshot(nextAction=verify, 干净轮计数: 2/2, 含哨兵行)→停(v4.7.9-r4: snapshot落盘是④的规范动作, clean-exit门回归备份层)。修复应用→干净轮清零→回②。§一字恢复四分支(①-④)=本决策的nextAction快捷入口, 冲突时以本决策为准。
 25. **Fast-fail内联守卫 + 预热排除** (v4.2.0, 从autoresearch train.py L570-572+step>10守卫): 运行中关键指标(如loss/错误率/token消耗)必须内联检查——不委托Agent、不等事后分析。异常值(NaN/超出阈值)立即abort+写ERRORS.md。前N步(预热期, N=10或5%总预算)不计入统计和预算消耗——防止冷启动误判。适用场景: 工作流连续3次同类型失败、token消耗率>90%、P0发现率连续上升。实现: 每个工作流完成后CC内联检查关键指标→任何一项触发阈值→立即切换策略(同规模不同Agent类型组合)→不等待、不汇报。
 
 26. **无意义输出循环阻断** (v4.6.9, 最高优先级, HARD ENFORCEMENT):
@@ -1074,7 +1074,8 @@ Agent输出中的CTX_UPDATE注入存在伪造风险。强制的防护措施:
 
 截断函数(60/40头尾分割, v4.2.6):
 ```python
-import os, datetime
+import os
+from datetime import datetime
 from pathlib import Path
 
 def truncate_for_prompt(text: str, max_chars: int) -> str:
