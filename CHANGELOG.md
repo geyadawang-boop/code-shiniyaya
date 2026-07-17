@@ -1,5 +1,27 @@
 # code-shiniyaya CHANGELOG
 
+## v4.7.9-r3 — 2026-07-18 (Scan 6修复轮: 19 Agent对抗扫描, 1 P0+7确认P1+廉价P2批量落地)
+
+### P0: settings.json二次损坏 (04:27外部程序删zh-cn session-start条目漏删逗号→尾逗号=非法JSON)
+- 复核Agent用真实claude.exe 2.1.212 `claude doctor` A/B实测: 非法JSON→"Invalid settings"整文件拒载(hooks/代理env/阈值55全离线)。修复=删一个逗号
+- **full-bak同步陷阱**(确认P1): 旧full-bak含zh-cn泄漏hook, 按hookWarn指引恢复会复活泄漏——已用当前净化版刷新
+- extraKnownMarketplaces死路径条目(Desktop\claude-code-zh-cn已删)清除
+
+### 确认P1修复 (13复核Agent, 1项驳回)
+- bearings hookWarn三形态: 子串检查对非法JSON/文件缺失双盲→新增JSON.parse校验+ENOENT独立告警(恰是本轮P0形态)
+- bearings STATE版本正则丢-r后缀→`(v[\d.]+(?:-r\d+)?)`; cleanRounds正则冒号/"计数"可选(双规范格式容错)
+- SKILL.md L892自相矛盾: 排除条款收窄"限bug扫描输入", 反思Phase豁免(记忆=Learn法定输入)
+- SKILL.md frontmatter/标题4.7.8→4.7.9(5-Agent门控Agent 3必FAIL项); 70-90%档阈值70残留→55+勿改回警示
+- 驳回1项: "决策④签收turn必被clean-exit门block"——签收turn按规范必读snapshot(路径出现即满足子串检测), 非死锁
+
+### P2批量 (stop-guard v3.0/bearings v3.0)
+- stop-guard: 窗口120→400行(50-Agent波次不溢出); turn边界结构化(content数组type检查, 防用户粘贴'tool_result'字面穿透); 饱和豁免(⚡//compact→stall门放行, 消除与饱和优先线矛盾); 收敛正则收窄(签收位形态, 防计划文本误触发); reason补三硬门
+- 进度行定式统一(L350权威加[规模]槽, L427/L429对齐); 计数器落盘格式统一"干净轮计数: i/2"(L156/L430)
+- 两hook头注释版本对齐v3.0; hooks.test 21→24用例(非法JSON/ENOENT/-rN后缀)全绿
+
+### 事故档案: settings.json外部写入者×2 (03:43截断/04:27删块)
+- 未锁定写入者(嫌疑: zh-cn插件自修复/代理管理器)。防御=bearings三形态告警+full-bak+严格JSON验证入回归
+
 ## v4.7.9-r2 — 2026-07-18 (压缩后恢复轮: settings.json截断事故修复 + Scan 4 carry-forward落地 + Scan 5全HOLDS)
 
 ### 事故: settings.json被外部程序截断 (03:43:40, 357行→15行只剩env/model)

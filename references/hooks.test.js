@@ -131,7 +131,18 @@ fs.mkdirSync(path.join(fakeHome, '.claude'), { recursive: true });
 fs.writeFileSync(path.join(fakeHome, '.claude', 'settings.json'), '{"model":"opus"}', 'utf8');
 r = runHook('bearings.js', { cwd: 'C:/Users/shiniyaya/Desktop/code-shiniyaya' }, { USERPROFILE: fakeHome });
 check('bearings v3: hookWarn on truncated settings.json', r.out.startsWith('⚠ HOOK REGISTRATION LOST'));
+
+fs.writeFileSync(path.join(fakeHome, '.claude', 'settings.json'), '{"hooks":{"a":["echo-guard.js","stop-guard.js"],]}', 'utf8');
+r = runHook('bearings.js', { cwd: 'C:/Users/shiniyaya/Desktop/code-shiniyaya' }, { USERPROFILE: fakeHome });
+check('bearings v3: hookWarn on invalid-JSON settings (2026-07-18 trailing-comma class)', r.out.startsWith('⚠ settings.json UNPARSEABLE'));
+
+fs.unlinkSync(path.join(fakeHome, '.claude', 'settings.json'));
+r = runHook('bearings.js', { cwd: 'C:/Users/shiniyaya/Desktop/code-shiniyaya' }, { USERPROFILE: fakeHome });
+check('bearings v3: hookWarn on missing settings.json (ENOENT no longer silent)', r.out.startsWith('⚠ settings.json MISSING'));
 try { fs.rmSync(fakeHome, { recursive: true, force: true }); } catch (e) {}
+
+r = runHook('bearings.js', { cwd: 'C:/Users/shiniyaya/Desktop/code-shiniyaya' });
+check('bearings v3: STATE version keeps -rN suffix (live snapshot says v4.7.9-r2)', r.out.includes('"version":"v4.7.9-r2"'));
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);
