@@ -1,5 +1,22 @@
 # code-shiniyaya CHANGELOG
 
+## v4.7.9-r2 — 2026-07-18 (压缩后恢复轮: settings.json截断事故修复 + Scan 4 carry-forward落地 + Scan 5全HOLDS)
+
+### 事故: settings.json被外部程序截断 (03:43:40, 357行→15行只剩env/model)
+- **丢失**: hooks三件套注册(echo-guard/stop-guard/bearings)+permissions deny+autoCompactThreshold——三层防御整体离线
+- **修复**: 从会话上下文完整重建357行+阈值70→55(用户定案)+建立`settings.json.full-bak`权威备份
+- **防御**: bearings v3兄弟hook自检——settings.json缺echo-guard/stop-guard注册→启动注入⚠警告+指向full-bak恢复
+
+### Scan 4 carry-forward落地 (hooks v3, 测试21/21)
+- **bearings STATE-json注入**: 机读state行`STATE:{version,nextAction,cleanRounds,snapshotComplete,snapshotFile}`
+- **stop-guard clean-exit门**: 收敛/签收声明但本turn未写snapshot→block一次(收敛态必须落盘, 防compact丢失)
+- **bearings matcher补clear** (Scan 5 ponytail MEDIUM): startup|resume|clear|compact——/clear后自动重注入
+- hooks.test.js 17→21用例(clean-exit block/pass + STATE行 + hookWarn), 21/21通过
+
+### Scan 5 (5源穷尽重扫, 被中断后重发射): 5/5 HOLDS, 零HIGH遗漏——穷尽声明成立
+- dynamic.py/auto_dream.py/prepare.py/agent.py/ponytail SKILL.md全部HOLDS; 3 MEDIUM已落地一行化: 自产工件排除(STEP 8输入, autodream tag-and-filter)+干净轮规模归一(降级轮不计, autoresearch BPB)+matcher clear; 11 LOW=YAGNI不落地(各域已有更直接机制)
+- 本轮=修复轮→干净轮计数仍0/2
+
 ## v4.7.8 — 2026-07-18 (转移包5 Agent迭代: 5轮+R4补丁+R8卡顿修复, 收敛中——干净轮0/2)
 
 ### Round 7-8 (卡顿根因: R7干净轮后又卡住——用户问"为什么又卡住了?"→3 Agent诊断+修复)

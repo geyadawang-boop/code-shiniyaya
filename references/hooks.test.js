@@ -13,9 +13,10 @@ const fs = require('fs');
 const HOOKS = 'C:/Users/shiniyaya/.claude/hooks';
 let pass = 0, fail = 0;
 
-function runHook(hook, payload) {
+function runHook(hook, payload, env) {
   const r = spawnSync('node', [path.join(HOOKS, hook)], {
-    input: JSON.stringify(payload), encoding: 'utf8', timeout: 10000
+    input: JSON.stringify(payload), encoding: 'utf8', timeout: 10000,
+    env: env ? Object.assign({}, process.env, env) : process.env
   });
   return { out: (r.stdout || '').trim(), code: r.status === null ? 1 : r.status };
 }
@@ -104,6 +105,33 @@ check('bearings: silent outside code-shiniyaya repo', r.code === 0 && r.out === 
 
 r = runHook('bearings.js', { cwd: 'C:/Users/shiniyaya/Desktop/code-shiniyaya' });
 check('bearings: emits BEARINGS (or NEXT ACTION first line) in repo', r.code === 0 && (r.out.startsWith('[BEARINGS]') || (r.out.startsWith('NEXT ACTION:') && r.out.includes('[BEARINGS]'))));
+
+// --- v3 (Scan 4 carry-forward) ---
+const tmpC = path.join(os.tmpdir(), 'sg-clean-' + Date.now() + '.jsonl');
+fs.writeFileSync(tmpC, [
+  JSON.stringify({ type: 'user', message: { content: '继续' } }),
+  JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: '第3轮: 干净轮2/2 达成, 签收单如下' }] } })
+].join('\n'), 'utf8');
+r = runHook('stop-guard.js', { transcript_path: tmpC });
+check('stop-guard v3: converged w/o snapshot blocked', r.out.includes('"block"') && r.out.includes('snapshot'));
+
+fs.writeFileSync(tmpC, [
+  JSON.stringify({ type: 'user', message: { content: '继续' } }),
+  JSON.stringify({ type: 'assistant', message: { content: [{ type: 'tool_use', name: 'Write', input: { file_path: 'C:/x/memory/snapshot-9.md' } }, { type: 'text', text: '干净轮2/2 签收单完成' }] } })
+].join('\n'), 'utf8');
+r = runHook('stop-guard.js', { transcript_path: tmpC });
+check('stop-guard v3: converged with snapshot Write passes', r.code === 0 && r.out === '{}');
+try { fs.unlinkSync(tmpC); } catch (e) {}
+
+r = runHook('bearings.js', { cwd: 'C:/Users/shiniyaya/Desktop/code-shiniyaya' });
+check('bearings v3: STATE json line present', /STATE: \{"version"/.test(r.out));
+
+const fakeHome = path.join(os.tmpdir(), 'bear-fakehome-' + Date.now());
+fs.mkdirSync(path.join(fakeHome, '.claude'), { recursive: true });
+fs.writeFileSync(path.join(fakeHome, '.claude', 'settings.json'), '{"model":"opus"}', 'utf8');
+r = runHook('bearings.js', { cwd: 'C:/Users/shiniyaya/Desktop/code-shiniyaya' }, { USERPROFILE: fakeHome });
+check('bearings v3: hookWarn on truncated settings.json', r.out.startsWith('⚠ HOOK REGISTRATION LOST'));
+try { fs.rmSync(fakeHome, { recursive: true, force: true }); } catch (e) {}
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);
