@@ -340,10 +340,10 @@ Agent全部返回→汇总→去重→分类→修复→提交→下一轮验证
 
 ### 自主执行
 一旦用户批准（或用户下一条消息为非否决/非修改内容的任意回复→视为批准）:
-1. **不中断** (v4.7.5 降级): 同turn内工作流完成→立即处理结果→修复→若可继续同turn→继续。若turn自然结束→输出"第N轮: X个发现→Y个修复→继"→等用户"继"→从snapshot恢复→继续下一轮。不可跨turn自主启动(CC架构: 无自主跨turn执行)。
+1. **不中断** (v4.7.5 降级, v4.7.8消除干净轮卡顿): 同turn内工作流完成→立即处理结果→修复→**若未收敛→同turn内立即启动下一轮扫描Agent(不等用户"继")→然后输出进度行+等待结果**。若turn自然结束→输出"第N轮: X个发现→Y个修复→继"或"第N轮: 干净轮i/2→继"→等用户"继"→从snapshot恢复→继续下一轮。不可跨turn自主启动(CC架构: 无自主跨turn执行)。**关键**: 扫描结果返回且未收敛时——在同turn内启动下一轮扫描Agent, Agent启动后才输出进度行结束turn。这消除了"修完后卡住等用户说继才扫下一轮"的卡顿(本案实证×2: R3宣布收敛被用户质疑, R7干净轮后卡住)。启动失败(turn token不足等)→输出进度行+等待用户"继"。
 2. **不结束**: 直到 (a)零bug收敛(**干净轮计数器≥2**, 见规则24), (b)用户说停/stop, (c)预算耗尽
 3. **不等待** (v4.7.5 降级): 同turn内绝不在迭代中途输出"要继续吗?"。turn结束=停止——等用户"继"恢复。
-4. **每轮输出**: 仅输出一行进度（"第N轮: X个发现→Y个修复→继"），不输出长篇分析。此行为turn结束符——用户"继"→下一轮继续。
+4. **每轮输出**: 一行进度。正常轮: "第N轮[dim]: X→Y→继"(X=发现数, Y=修复数, dim=本轮维度名/干净轮状态——两者二选一填一个); 干净轮: "第N轮: 干净轮i/2→继"(i=当前计数)。不输出长篇分析。turn结束符——用户"继"时下轮结果已就绪可直接处理。预发射失败→回退简式"第N轮: X→Y→继"。
 5. **达标时输出**: 最终签收单（发现总数、修复总数、当前零bug确认）
 6. **5源深度优化** (v4.6.10): 每轮迭代必须从5个源文件(AutoAgent/autodream/autoresearch/autonomous-coding/ponytail)中提取可优化点——扫描→对比→提取→写入SKILL.md→验证。循环持续直到所有源文件中无可提取的优化点(连续2轮零新发现且规则24干净轮计数器≥2=收敛)。收敛后(v4.7.8可选): designing-workflow-skills单次质量轴过检(触发词/描述/阶段出入口/路由关键词/子Agent提示词/工具调用规模AP-18/19——5源内容扫描不覆盖的维度; AP-2超500行=已知WONTFIX不计发现); 不可用→跳过。
 `# ponytail: skill-improver被此取代——skill-improver的fix-review loop与H类自身循环冗余, 且硬需plugin-dev skill-reviewer agent(本环境未装)→slot永走不可用分支==dead text; designing-workflow-skills纯Read/Grep/Glob, review-checklist.md覆盖slot全部维度+AP-18/19(直接审计代码规模驳杂的20-Agent batching)`
@@ -361,6 +361,7 @@ Agent全部返回→汇总→去重→分类→修复→提交→下一轮验证
 ### 中断恢复
 - stop/CTRL+C → 保存session状态 → 等用户
 - "继续修复" → 从session JSON恢复继续
+- "继" → snapshot恢复 → **snapshot中`nextAction`字段决定恢复后首个动作("scan"=启动下一轮扫描/"fix"=从pending项继续修复/"verify"=进入验证)。scan→在同turn内启动扫描Agent, 启动后输出进度行; 启动失败→回退fix或verify→仍失败→输出进度行+等用户"继"。**`# ponytail: nextAction字段规范级(手工写入snapshot), ceiling: 恢复动作依赖模型读取+执行(非自动), upgrade: 同bearings.js自动注入一起自动化`
 - 预算完全耗尽(>90%+BREAK_GLASS, 见§修复预算) → 写FINAL-STATUS.md → 停止并通知
 
 ### 与其他规则的关系

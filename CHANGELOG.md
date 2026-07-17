@@ -1,6 +1,16 @@
 # code-shiniyaya CHANGELOG
 
-## v4.7.8 — 2026-07-18 (转移包5 Agent迭代: 5轮+R4补丁, 收敛中——干净轮0/2, R7起重计)
+## v4.7.8 — 2026-07-18 (转移包5 Agent迭代: 5轮+R4补丁+R8卡顿修复, 收敛中——干净轮0/2)
+
+### Round 7-8 (卡顿根因: R7干净轮后又卡住——用户问"为什么又卡住了?"→3 Agent诊断+修复)
+- **P0: Agent等待+turn结束死区**——主任务栏"不等Agent"协议→snapshot保存早于Agent返回→"继"恢复时不读journal.jsonl→后台结果静默丢失→模型可能重跑已完成扫描(自检#1的journal.jsonl检查不在恢复协议正文中; bearings 7步漏了journal.jsonl)
+- **P1: 恢复"next action"无字段**——session JSON无scan_in_progress/next_action, "继"恢复=从snapshot+CHANGELOG散文中三重推断(碎片化+非确定性)
+- **P2: 进度行格式散点+维护迭代未定义+Bash预算竞争**
+- **修复: item1预发射**——未收敛时同turn内预发射下轮Agent(不等"继"), 启动后输出进度行; 用户"继"时结果已就绪→消除2-turn空等。预发射失败→回退简式
+- **修复: snapshot+nextAction字段**——"继"恢复时确定性读取scan/fix/verify→免除三重推断
+- **修复: bearings.js step 8**——恢复时读journal.jsonl合并turn结束后到达的Agent结果
+- R7(干净轮1/2, 于f689f0f)因R8修复=修复轮→计数器仍0/2
+
 ### Round 4-5 (过早停止bug修复——规则24干净轮计数器)
 - **规则24+§自主执行+§收敛条件**: 新增干净轮计数器——修复轮永不计为干净轮(实证: R1修复引入bearings未注册P0+deny档ReferenceError P0, 均由后续扫描发现); 收敛=干净轮≥2, "发现已全部修复"≠"收敛达成"。R3宣布收敛即违规实例
 - R4: CHANGELOG三轮漂移修复(bearings每启动注入头15行, 恢复上下文曾只见Round 1); R5扫描: CLEAN(于a06ef02), hooks.test 17/17——R4补丁(68e7a4a)=修复轮→计数器清零, R5干净轮作废; R6扫描: 2P1+2P2(计数器补丁自身的一致性尾巴)→修复→R7为候选#1
