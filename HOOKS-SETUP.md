@@ -58,7 +58,20 @@ cp hooks/bearings.js ~/.claude/hooks/bearings.js
       "Bash(chmod -R:*)",
       "Bash(chmod --recursive:*)",
       "Bash(git push --force:*)",
-      "Bash(git push -f:*)"
+      "Bash(git push -f:*)",
+      "Bash(echo done:*)",
+      "Bash(echo ok:*)",
+      "Bash(echo final:*)",
+      "Bash(echo complete:*)",
+      "Bash(echo verified:*)",
+      "Bash(echo confirmed:*)",
+      "Bash(echo \"done\":*)",
+      "Bash(echo \"ok\":*)",
+      "Bash(echo \"final\":*)",
+      "Bash(echo \"complete\":*)",
+      "Bash(echo \"verified\":*)",
+      "Bash(echo \"confirmed\":*)",
+      "Bash(echo:*)"
     ]
   },
   "hooks": {
@@ -106,7 +119,20 @@ cp hooks/bearings.js ~/.claude/hooks/bearings.js
       "Bash(chmod -R:*)",
       "Bash(chmod --recursive:*)",
       "Bash(git push --force:*)",
-      "Bash(git push -f:*)"
+      "Bash(git push -f:*)",
+      "Bash(echo done:*)",
+      "Bash(echo ok:*)",
+      "Bash(echo final:*)",
+      "Bash(echo complete:*)",
+      "Bash(echo verified:*)",
+      "Bash(echo confirmed:*)",
+      "Bash(echo \"done\":*)",
+      "Bash(echo \"ok\":*)",
+      "Bash(echo \"final\":*)",
+      "Bash(echo \"complete\":*)",
+      "Bash(echo \"verified\":*)",
+      "Bash(echo \"confirmed\":*)",
+      "Bash(echo:*)"
     ]
   },
   "hooks": {
