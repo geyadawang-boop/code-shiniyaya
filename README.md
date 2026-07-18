@@ -109,17 +109,18 @@ cd code-shiniyaya
 ls ~/.claude/hooks/echo-guard.js 2>/dev/null && echo "⚠ 已有同名文件，建议先备份" || echo "✓ ok"
 
 # 3. 创建 hooks 目录并复制 3 个防御钩子
+# ⚠️ 注意：Windows 用户请在 Git Bash 中执行，cmd.exe 不识别 mkdir -p
 mkdir -p ~/.claude/hooks
 cp hooks/echo-guard.js ~/.claude/hooks/echo-guard.js
 cp hooks/stop-guard.js ~/.claude/hooks/stop-guard.js
 cp hooks/bearings.js ~/.claude/hooks/bearings.js
 
-# 3. 注册 hooks 到 settings.json（编辑或创建 ~/.claude/settings.json）
+# 4. 注册 hooks 到 settings.json（编辑或创建 ~/.claude/settings.json）
 ```
 
 ### settings.json 配置
 
-编辑 `~/.claude/settings.json`（如果文件已存在，请先备份再合并，不要直接替换），在文件末尾的 `}` 前插入以下内容（注意在前面已有的最后一个键后面加逗号）：
+编辑 `~/.claude/settings.json`（如果文件已存在，请先备份再合并，不要直接替换），在文件末尾的 `}` 前插入以下内容。**注意逗号规则**：原有内容的最后一个键后面需要加逗号（如 `"language": "zh-CN"` → `"language": "zh-CN",`），而新插入内容中 `"autoCompactThreshold": 55` 后面**不**加逗号——它是 JSON 对象的最后一个键：
 
 > **⚠️ 重要**：编辑 settings.json 前请确保 Claude Code 未运行，编辑后重启 CC 才能使配置生效（CC 不会热加载 settings.json 变更）。
 
@@ -171,7 +172,12 @@ cp hooks/bearings.js ~/.claude/hooks/bearings.js
   "autoCompactThreshold": 55
 ```
 
-> **Windows 注意**：路径使用双引号包裹的 `/` 或 `\\`，不要用单反斜杠。**macOS/Linux 用户**将路径中的 `C:/Users/<你的用户名>/` 替换为 `/Users/<你的用户名>/`（macOS）或 `/home/<你的用户名>/`（Linux）。`permissions.deny` 是 hooks 的互补层——即使 hooks 被其他插件覆盖，deny 仍在。`autoCompactThreshold:55` 是上下文防饱和的关键参数（需要 CC v1.0.57+）。
+> **Windows 注意**：
+> 1. 路径使用双引号包裹的 `/` 或 `\\`
+> 2. **不要用记事本编辑 settings.json**——记事本默认保存为 UTF-16，Node.js 无法解析 JSON。请用 VS Code 或 Notepad++
+> 3. 以上安装命令请在 Git Bash 中执行，cmd.exe 不识别 `mkdir -p` 和 `~`
+>
+> **macOS/Linux 用户**将路径中的 `C:/Users/<你的用户名>/` 替换为 `/Users/<你的用户名>/`（macOS）或 `/home/<你的用户名>/`（Linux）。需要 CC v1.0.57+ 支持 autoCompactThreshold。
 
 ### 验证安装
 
@@ -540,6 +546,7 @@ bearings.js 仅在以下工作目录激活：
 | **23** | 防卡顿并行启动 | 所有 Agent 在单一 planar 并行块中启动（Promise.all），不使用 phase 门控。 |
 | **24** | 收敛阈值自调整 | 发现数 < 5 且连续 2 轮 < 10 且无 P0 → 触发 50 Agent 最终验证。干净轮 ≥ 2 才宣布收敛。 |
 | **25** | Fast-fail 内联守卫 | 关键指标内联检查，不委托 Agent。异常值立即 abort。前 N 步为预热期，不计入统计。 |
+| **26** | **无意义输出循环阻断**（最高优先级）| 同文件+同内容 Read 连续 ≥2 次 → 阻断。同 turn 内确认词（done/ok/final）≥3 且零 Write/Edit → 阻断。连续 3 次相同 Write（同文件+同内容） → 触发卡死处理。跨 turn 内容 hash 连续 ≥2 次相同度 >80% 且无 Write/Edit → 阻断。**与外部 hook 协作**：PreToolUse echo-guard.js v4.3 管 Bash 层重复命令，Stop hook stop-guard.js v3.5 管 turn 终态纯确认，规则 26 管 Read/Grep/Write 工具层 transcript 自查。三层互补。 |
 
 **规则 24 干净轮计数器详解：**
 

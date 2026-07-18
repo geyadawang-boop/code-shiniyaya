@@ -12,6 +12,17 @@
 
 ## 安装
 
+### 0. 克隆仓库和检查环境
+
+```bash
+# 克隆本仓库
+git clone https://github.com/geyadawang-boop/code-shiniyaya.git
+cd code-shiniyaya
+
+# 检查 Node.js 版本（需要 18+）
+node --version
+```
+
 ### 1. 复制 hook 文件
 
 ```bash
@@ -34,6 +45,8 @@ cp hooks/bearings.js ~/.claude/hooks/bearings.js
 ---
 
 #### 方案 A：全新安装（`~/.claude/settings.json` 不存在或为空）
+
+> ⚠️ 注意：此方案会覆盖整个 settings.json。如果你的文件已有其他配置（模型、环境变量、MCP 插件等），请使用下方方案 B 合并插入，不要直接替换。
 
 将以下内容完整写入 `~/.claude/settings.json`（将 `<你的用户名>` 替换为实际用户名）：
 
@@ -84,7 +97,7 @@ cp hooks/bearings.js ~/.claude/hooks/bearings.js
 
 先备份：`cp ~/.claude/settings.json ~/.claude/settings.json.bak`
 
-打开 `~/.claude/settings.json`，在文件末尾的 `}` 前面插入以下内容。**注意**：如果前面已有其他键，请在插入内容的最后一行 `"autoCompactThreshold": 55` 后面加**逗号**：
+打开 `~/.claude/settings.json`，在文件末尾的 `}` 前面插入以下内容。**注意逗号规则**：原有内容的最后一个键后面**需要加逗号**（如 `"language": "zh-CN"` → `"language": "zh-CN",`）；插入内容中 `"autoCompactThreshold": 55` 是 JSON 对象的最后一个键，后面**不要**加逗号。详见下方逗号规则说明：
 
 ```json
   "permissions": {
@@ -133,15 +146,15 @@ cp hooks/bearings.js ~/.claude/hooks/bearings.js
 
 #### 路径对照表（三平台）
 
-将上方模板中 `C:/Users/<你的用户名>/` 替换为：
+将上方模板中 `C:/Users/<你的用户名>/` 替换为对应路径。**不要用记事本编辑**——记事本默认保存 UTF-16，Node.js 无法解析。请用 VS Code 或 Notepad++：
 
-| 操作系统 | hooks 目录路径 |
-|---------|---------------|
-| **Windows** | `C:/Users/<你的用户名>/.claude/hooks/echo-guard.js` |
+| 操作系统 | hook 文件路径示例 |
+|---------|----------------|
+| **Windows**（Git Bash） | `C:/Users/<你的用户名>/.claude/hooks/echo-guard.js` |
 | **macOS** | `/Users/<你的用户名>/.claude/hooks/echo-guard.js` |
 | **Linux** | `/home/<你的用户名>/.claude/hooks/echo-guard.js` |
 
-> 三个 hook 文件（echo-guard.js、stop-guard.js、bearings.js）都要改，把文件名替换为对应的名字即可。
+> 三个 hook 文件（echo-guard.js、stop-guard.js、bearings.js）都要改，把文件名替换为对应的名字即可。以上 bash 命令请在 Git Bash 中执行，Windows 自带的 cmd.exe 不识别 `mkdir -p` 和 `~`。
 
 ---
 
@@ -152,6 +165,12 @@ cp hooks/bearings.js ~/.claude/hooks/bearings.js
 node references/hooks.test.js
 # 预期输出: 42 passed, 0 failed
 ```
+
+> **如果测试失败**，请检查：
+> 1. hook 文件是否在 `~/.claude/hooks/` 目录中（`ls ~/.claude/hooks/`）
+> 2. `~/.claude/settings.json` 中的路径是否与实际文件位置一致
+> 3. 路径中的用户名是否已替换
+> 4. JSON 格式是否正确（可用 `node -e "JSON.parse(require('fs').readFileSync('$HOME/.claude/settings.json','utf8'))"` 验证）
 
 ### 4. 确认 hook 生效
 
@@ -164,8 +183,8 @@ node references/hooks.test.js
 
 ```bash
 # 检查 settings.json 中是否有 hook 配置
-grep -c "echo-guard.js" ~/.claude/settings.json
-# 应返回 1 或更多（表示配置中存在）
+grep -c "echo-guard\|stop-guard\|bearings" ~/.claude/settings.json
+# 应返回 ≥3（三个 hook 文件各匹配一次）
 ```
 
 ---
