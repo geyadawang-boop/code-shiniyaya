@@ -31,7 +31,7 @@
 3. **headroom集成**: 手动可用(14.9%实测), references/headroom-usage.md + hooks/headroom-bash.js
 4. **aislop 138基线**: 全AI Slop, 0安全漏洞. agent-lint 51/100 baseline. ponytail-review 21建议(62%裁减)
 5. **token优化审计**: RTK未装, headroom可行, caveman 65%待验证
-6. hooks.test 35/35 (v4.7.10-r1→r3: TestEchoGuard成对验证+5用例, 30→35)
+6. hooks.test 42/42 (v4.7.10-r1→r3: TestEchoGuard成对验证+5用例, 30→35; r5→r8: destruct-vet, 35→38; r15: stop-guard v3.5 + echo-guard v4.2, 38→42)
 
 ## v4.7.9-r10 — 2026-07-18 (Scan13修复轮: selftest悬空锚点)
 

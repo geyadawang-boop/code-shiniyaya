@@ -168,7 +168,7 @@ check('echo-guard v3.2: READONLY grep 5x exempt from ladder+cap', !laddered);
 const fdsid = 'fd' + Date.now();
 for (let i = 0; i < 5; i++) { runHook('echo-guard.js', { session_id: fdsid, tool_input: { command: 'find . -name "*.tmp" -delete' } }); }
 const fdf = runHook('echo-guard.js', { session_id: fdsid, tool_input: { command: 'find . -name "*.tmp" -delete' } });
-check('echo-guard v3.3: find -delete NOT exempt (destruct-vet)', fdf.out.includes('deny') || fdf.out.includes('ask'));
+check('echo-guard v4.1: find -delete NOT exempt (destruct-vet)', fdf.out.includes('deny') || fdf.out.includes('ask'));
 
 // echo-guard: sort -o is destruct — not exempt (flag-last form: sort data.txt -o output.txt)
 const sosid = 'so' + Date.now();
@@ -183,7 +183,7 @@ for (let i = 0; i < 6; i++) {
   const rr = runHook('echo-guard.js', { session_id: frsid, tool_input: { command: 'find . -name "*.py"' } });
   if (rr.out.includes('deny') || rr.out.includes('ask')) { frhit = true; }
 }
-check('echo-guard v3.3: read-only find exempt (no ladder)', !frhit);
+check('echo-guard v4.1: read-only find exempt (no ladder)', !frhit);
 
 // stop-guard: task-notification boundary must not satisfy userStop ("stops" boilerplate)
 const tmpN = path.join(os.tmpdir(), 'sg-notif-' + Date.now() + '.jsonl');
@@ -194,6 +194,58 @@ fs.writeFileSync(tmpN, [
 r = runHook('stop-guard.js', { transcript_path: tmpN });
 check('stop-guard v3.2: notification "stops" boilerplate does not disarm stall gate', r.out.includes('"block"'));
 try { fs.unlinkSync(tmpN); } catch (e) {}
+
+// stop-guard v3.5: tool_result boundary break prevents cross-turn pollution
+// PoC: turn N has Agent call → turn N+1 (after tool_result) pure confirmation → should be blocked
+const tmpX = path.join(os.tmpdir(), 'sg-xpoll-' + Date.now() + '.jsonl');
+fs.writeFileSync(tmpX, [
+  JSON.stringify({ type: 'user', message: { content: 'start scan' } }),
+  JSON.stringify({ type: 'assistant', message: { content: [{ type: 'tool_use', name: 'Workflow', input: {} }] } }),
+  JSON.stringify({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: 'x' }] } }),
+  JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: 'All done. Verified. Confirmed.' }] } })
+].join('\n'), 'utf8');
+r = runHook('stop-guard.js', { transcript_path: tmpX });
+check('stop-guard v3.5: tool_result boundary break — pure-confirm turn NOT bypassed by prior Agent',
+  r.out.includes('"block"'));
+try { fs.unlinkSync(tmpX); } catch (e) {}
+
+// stop-guard v3.5: pre-launch gate not bypassed by prior-turn Workflow
+const tmpP = path.join(os.tmpdir(), 'sg-plpoll-' + Date.now() + '.jsonl');
+fs.writeFileSync(tmpP, [
+  JSON.stringify({ type: 'user', message: { content: 'start scan' } }),
+  JSON.stringify({ type: 'assistant', message: { content: [{ type: 'tool_use', name: 'Workflow', input: {} }] } }),
+  JSON.stringify({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: 'p' }] } }),
+  JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: '第3轮干净轮 0/2 →继' }] } })
+].join('\n'), 'utf8');
+r = runHook('stop-guard.js', { transcript_path: tmpP });
+check('stop-guard v3.5: pre-launch gate NOT bypassed by prior-turn Workflow (cross-turn pollution fixed)',
+  r.out.includes('"block"') && r.out.includes('预发射'));
+try { fs.unlinkSync(tmpP); } catch (e) {}
+
+// stop-guard v3.5: userStop no longer matches bare 报告
+const tmpR = path.join(os.tmpdir(), 'sg-rpt-' + Date.now() + '.jsonl');
+fs.writeFileSync(tmpR, [
+  JSON.stringify({ type: 'user', message: { content: '请报告进度' } }),
+  JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: '第4轮[6A]: 干净轮0/2→继' }] } })
+].join('\n'), 'utf8');
+r = runHook('stop-guard.js', { transcript_path: tmpR });
+check('stop-guard v3.5: userStop "报告" removed — "请报告进度" does NOT disarm stall gate',
+  r.out.includes('"block"'));
+try { fs.unlinkSync(tmpR); } catch (e) {}
+
+// stop-guard v3.5: CONFIRM only matches text blocks (not tool_use/tool_result)
+const tmpQ = path.join(os.tmpdir(), 'sg-txtonly-' + Date.now() + '.jsonl');
+fs.writeFileSync(tmpQ, [
+  JSON.stringify({ type: 'user', message: { content: 'do something' } }),
+  JSON.stringify({ type: 'assistant', message: { content: [
+    { type: 'tool_use', name: 'Bash', input: { command: 'echo Build completed successfully. ok done verified confirmed.' } },
+    { type: 'text', text: 'ok' }
+  ] } })
+].join('\n'), 'utf8');
+r = runHook('stop-guard.js', { transcript_path: tmpQ });
+check('stop-guard v3.5: CONFIRM text-only — tool_use "completed/ok/done" NOT counted (only 1 text "ok" < 2 threshold)',
+  r.code === 0 && r.out === '{}');
+try { fs.unlinkSync(tmpQ); } catch (e) {}
 
 // --- 成对验证工具函数 (from test-security-hook-template.md L89-103) ---
 // 函数签名: testEchoGuard(command, expectedDecision)
