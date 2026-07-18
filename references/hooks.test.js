@@ -6,7 +6,7 @@
 // v1.1: spawnSync with input option — no shell, no quoting hazards.
 // v3.2: echo-guard dirty-state/destruct-vet/lastTs-freeze; stop-guard notification-boundary tests added.
 // v3.3: echo-guard READONLY bypass checks (find -delete/sort -o blocked + grep exempt).
-// v3.4: dual-timestamp fix — _capTs (non-exempt only) vs lastTs (all calls) prevents exempt-call cap-freeze.
+// v3.5: echo-guard destruct-vet regex fixes (-execdir/\bsort\s+-[oO]\b/flag-first)
 
 const { spawnSync } = require('child_process');
 const path = require('path');
@@ -170,11 +170,11 @@ for (let i = 0; i < 5; i++) { runHook('echo-guard.js', { session_id: fdsid, tool
 const fdf = runHook('echo-guard.js', { session_id: fdsid, tool_input: { command: 'find . -name "*.tmp" -delete' } });
 check('echo-guard v3.3: find -delete NOT exempt (destruct-vet)', fdf.out.includes('deny') || fdf.out.includes('ask'));
 
-// echo-guard: sort -o is destruct — not exempt
+// echo-guard: sort -o is destruct — not exempt (flag-last form: sort data.txt -o output.txt)
 const sosid = 'so' + Date.now();
 for (let i = 0; i < 5; i++) { runHook('echo-guard.js', { session_id: sosid, tool_input: { command: 'sort data.txt -o output.txt' } }); }
 const sof = runHook('echo-guard.js', { session_id: sosid, tool_input: { command: 'sort data.txt -o output.txt' } });
-check('echo-guard v3.3: sort -o NOT exempt', sof.out.includes('deny') || sof.out.includes('ask'));
+check('echo-guard v3.5: sort -o flag-last NOT exempt', sof.out.includes('deny') || sof.out.includes('ask'));
 
 // echo-guard: read-only find . -name IS exempt
 const frsid = 'fr' + Date.now();
@@ -247,6 +247,18 @@ for (let i = 0; i < 3; i++) runHook('echo-guard.js', { session_id: fpsid, tool_i
 const fpR = runHook('echo-guard.js', { session_id: fpsid, tool_input: { command: fpcmd } });
 check('testEchoGuard FINGERPRINT ladder: curl-pipe-sh 4th call escalated',
   fpR.code === 0 && (fpR.out.includes('"deny"') || fpR.out.includes('"ask"') || fpR.out.includes('"systemMessage"')));
+
+// echo-guard: destruct-vet catches find -execdir (v3.5 fix — was bypassed via /-exec\b(?:dir)?\b/ regex blind spot)
+const exdsid = 'exd' + Date.now();
+for (let i = 0; i < 5; i++) runHook('echo-guard.js', { session_id: exdsid, tool_input: { command: 'find . -execdir rm {} +' } });
+const exdR = runHook('echo-guard.js', { session_id: exdsid, tool_input: { command: 'find . -execdir rm {} +' } });
+check('echo-guard v3.5: find -execdir NOT exempt (destruct-vet fixed)', exdR.out.includes('deny') || exdR.out.includes('ask'));
+
+// echo-guard: destruct-vet catches sort -o in flag-first position (v3.5 fix — was bypassed)
+const sofsid = 'sof' + Date.now();
+for (let i = 0; i < 5; i++) runHook('echo-guard.js', { session_id: sofsid, tool_input: { command: 'sort -o output.txt input.txt' } });
+const sofR = runHook('echo-guard.js', { session_id: sofsid, tool_input: { command: 'sort -o output.txt input.txt' } });
+check('echo-guard v3.5: sort -o flag-first NOT exempt (destruct-vet fixed)', sofR.out.includes('deny') || sofR.out.includes('ask'));
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);
