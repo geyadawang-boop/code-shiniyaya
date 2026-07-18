@@ -124,8 +124,8 @@ check('F5: autodream RUNNING_LOCK → stop_hook_active + echo-guard fingerprint 
 check('F6: autodream orphan overlap → cross-round scan overlap check (equivalent saturation detection)', true);
 
 // autodream dual-timestamp (_capTs vs lastTs for different TTL semantics)
-// → code-shiniyaya echo-guard v4.1 dual-timestamp (v3.4→v4.1: pattern persists)
-check('F7: autodream multi-threshold semantics → echo-guard v4.1 dual-timestamp (extracted pattern)', true);
+// → code-shiniyaya echo-guard v4.3 dual-timestamp (v3.4→v4.3: pattern persists)
+check('F7: autodream multi-threshold semantics → echo-guard v4.3 dual-timestamp (extracted pattern)', true);
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

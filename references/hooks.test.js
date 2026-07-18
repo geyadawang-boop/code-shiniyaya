@@ -152,7 +152,7 @@ check('bearings v3: STATE version keeps -rN suffix (live snapshot says v4.7.9-r2
 const dirtySid = 'dirty' + Date.now();
 fs.writeFileSync(path.join(os.tmpdir(), '.cc_echoguard_' + dirtySid + '.json'), '{"hist":5,"wcFiles":"x","count":"NaN"}', 'utf8');
 r = runHook('echo-guard.js', { session_id: dirtySid, tool_input: { command: 'wc -l foo.md' } });
-check('echo-guard v3.2: dirty state file still exit 0', r.code === 0);
+check('echo-guard: dirty state file still exit 0', r.code === 0);
 
 // echo-guard: READONLY repetition (mandated test reruns / audit greps) never climbs the ladder
 const roSid = 'ro' + Date.now();
@@ -161,7 +161,7 @@ for (let i = 0; i < 5; i++) {
   const rr = runHook('echo-guard.js', { session_id: roSid, tool_input: { command: 'grep -n TODO SKILL.md' } });
   if (rr.out.includes('deny') || rr.out.includes('ask') || rr.out.includes('block')) { laddered = true; break; }
 }
-check('echo-guard v3.2: READONLY grep 5x exempt from ladder+cap', !laddered);
+check('echo-guard: READONLY grep 5x exempt from ladder+cap', !laddered);
 
 // --- v3.3 (Scan 8) ---
 // echo-guard: destruct-vet blocks find -delete from READONLY exemption
@@ -174,7 +174,7 @@ check('echo-guard v4.1: find -delete NOT exempt (destruct-vet)', fdf.out.include
 const sosid = 'so' + Date.now();
 for (let i = 0; i < 5; i++) { runHook('echo-guard.js', { session_id: sosid, tool_input: { command: 'sort data.txt -o output.txt' } }); }
 const sof = runHook('echo-guard.js', { session_id: sosid, tool_input: { command: 'sort data.txt -o output.txt' } });
-check('echo-guard v3.5: sort -o flag-last NOT exempt', sof.out.includes('deny') || sof.out.includes('ask'));
+check('echo-guard v4.1: sort -o flag-last NOT exempt', sof.out.includes('deny') || sof.out.includes('ask'));
 
 // echo-guard: read-only find . -name IS exempt
 const frsid = 'fr' + Date.now();
@@ -312,7 +312,7 @@ for (let i = 0; i < 5; i++) runHook('echo-guard.js', { session_id: sofsid, tool_
 const sofR = runHook('echo-guard.js', { session_id: sofsid, tool_input: { command: 'sort -o output.txt input.txt' } });
 check('echo-guard v4.1: sort -o flag-first NOT exempt (destruct-vet fixed)', sofR.out.includes('deny') || sofR.out.includes('ask'));
 
-// echo-guard v3.6: destruct-vet catches find -fprintf (file-write action previously unblocked)
+// echo-guard v4.1: destruct-vet catches find -fprintf (file-write action previously unblocked)
 const fpfid = 'fpf' + Date.now();
 for (let i = 0; i < 5; i++) runHook('echo-guard.js', { session_id: fpfid, tool_input: { command: 'find . -fprintf /tmp/x %p' } });
 const fpfR = runHook('echo-guard.js', { session_id: fpfid, tool_input: { command: 'find . -fprintf /tmp/x %p' } });
