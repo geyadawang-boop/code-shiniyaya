@@ -1,0 +1,3372 @@
+{
+  "schemaVersion": "1",
+  "cliVersion": "0.13.1",
+  "version": "0.13.1",
+  "score": 18,
+  "label": "Critical",
+  "scoreable": true,
+  "coverage": {
+    "supportedFiles": 14,
+    "unsupportedFiles": 0,
+    "dominantUnsupported": null,
+    "scoreable": true
+  },
+  "engines": {
+    "format": {
+      "issues": 0,
+      "skipped": false,
+      "elapsed": 345.9004
+    },
+    "lint": {
+      "issues": 0,
+      "skipped": false,
+      "elapsed": 345.90149999999994
+    },
+    "code-quality": {
+      "issues": 2,
+      "skipped": false,
+      "elapsed": 345.8710000000001
+    },
+    "ai-slop": {
+      "issues": 136,
+      "skipped": false,
+      "elapsed": 304.3796
+    },
+    "security": {
+      "issues": 0,
+      "skipped": false,
+      "elapsed": 17.970600000000104
+    }
+  },
+  "engineDefinitions": {
+    "format": {
+      "label": "Formatting",
+      "description": "Whitespace, indentation, line wrapping, and import ordering"
+    },
+    "lint": {
+      "label": "Linting",
+      "description": "Static analysis for likely bugs and bad patterns"
+    },
+    "code-quality": {
+      "label": "Code Quality",
+      "description": "Complexity limits, dead code detection, and duplication checks"
+    },
+    "ai-slop": {
+      "label": "AI Slop",
+      "description": "Narrative comments, dead patterns, unsafe type casts, TODO stubs, generic names"
+    },
+    "architecture": {
+      "label": "Architecture",
+      "description": "Project-specific import and layering rules"
+    },
+    "security": {
+      "label": "Security",
+      "description": "Secret leaks, risky APIs, and dependency vulnerabilities"
+    }
+  },
+  "diagnostics": [
+    {
+      "filePath": "references\\journal-parser.py",
+      "engine": "code-quality",
+      "rule": "complexity/file-too-large",
+      "severity": "warning",
+      "message": "File too large (max: 400)",
+      "help": "Consider splitting this file into smaller modules",
+      "line": 0,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "606 lines",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Large files are reviewability pressure, but size alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\journal-parser.py",
+      "engine": "code-quality",
+      "rule": "complexity/deep-nesting",
+      "severity": "warning",
+      "message": "Function nested too deeply (max: 5)",
+      "help": "Consider using early returns or extracting nested logic",
+      "line": 235,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "extract_labels_from_agent_journals · depth 7",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "Deep nesting makes behavior harder to reason about and is more actionable than pure size."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\adversarial-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/trivial-comment",
+      "severity": "warning",
+      "message": "Trivial comment that restates the code",
+      "help": "Remove comments that don't add information beyond what the code already expresses",
+      "line": 373,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Restating comments are style noise; keep the finding visible but score gently."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\e2e-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/trivial-comment",
+      "severity": "warning",
+      "message": "Trivial comment that restates the code",
+      "help": "Remove comments that don't add information beyond what the code already expresses",
+      "line": 251,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Restating comments are style noise; keep the finding visible but score gently."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\adversarial-55.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/trivial-comment",
+      "severity": "warning",
+      "message": "Trivial comment that restates the code",
+      "help": "Remove comments that don't add information beyond what the code already expresses",
+      "line": 69,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Restating comments are style noise; keep the finding visible but score gently."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\adversarial-55.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/trivial-comment",
+      "severity": "warning",
+      "message": "Trivial comment that restates the code",
+      "help": "Remove comments that don't add information beyond what the code already expresses",
+      "line": 73,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Restating comments are style noise; keep the finding visible but score gently."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\e2e-3story-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/trivial-comment",
+      "severity": "warning",
+      "message": "Trivial comment that restates the code",
+      "help": "Remove comments that don't add information beyond what the code already expresses",
+      "line": 211,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Restating comments are style noise; keep the finding visible but score gently."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\echo-interleave-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/trivial-comment",
+      "severity": "warning",
+      "message": "Trivial comment that restates the code",
+      "help": "Remove comments that don't add information beyond what the code already expresses",
+      "line": 53,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Restating comments are style noise; keep the finding visible but score gently."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\journal-parser.py",
+      "engine": "ai-slop",
+      "rule": "ai-slop/trivial-comment",
+      "severity": "warning",
+      "message": "Trivial comment that restates the code",
+      "help": "Remove comments that don't add information beyond what the code already expresses",
+      "line": 326,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Restating comments are style noise; keep the finding visible but score gently."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\journal-parser.py",
+      "engine": "ai-slop",
+      "rule": "ai-slop/trivial-comment",
+      "severity": "warning",
+      "message": "Trivial comment that restates the code",
+      "help": "Remove comments that don't add information beyond what the code already expresses",
+      "line": 369,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Restating comments are style noise; keep the finding visible but score gently."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\journal-parser.py",
+      "engine": "ai-slop",
+      "rule": "ai-slop/trivial-comment",
+      "severity": "warning",
+      "message": "Trivial comment that restates the code",
+      "help": "Remove comments that don't add information beyond what the code already expresses",
+      "line": 552,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Restating comments are style noise; keep the finding visible but score gently."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\journal-parser.py",
+      "engine": "ai-slop",
+      "rule": "ai-slop/trivial-comment",
+      "severity": "warning",
+      "message": "Trivial comment that restates the code",
+      "help": "Remove comments that don't add information beyond what the code already expresses",
+      "line": 561,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Restating comments are style noise; keep the finding visible but score gently."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\journal-parser.py",
+      "engine": "ai-slop",
+      "rule": "ai-slop/trivial-comment",
+      "severity": "warning",
+      "message": "Trivial comment that restates the code",
+      "help": "Remove comments that don't add information beyond what the code already expresses",
+      "line": 566,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Restating comments are style noise; keep the finding visible but score gently."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\journal-parser.py",
+      "engine": "ai-slop",
+      "rule": "ai-slop/trivial-comment",
+      "severity": "warning",
+      "message": "Trivial comment that restates the code",
+      "help": "Remove comments that don't add information beyond what the code already expresses",
+      "line": 575,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Restating comments are style noise; keep the finding visible but score gently."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\journal-parser.py",
+      "engine": "ai-slop",
+      "rule": "ai-slop/trivial-comment",
+      "severity": "warning",
+      "message": "Trivial comment that restates the code",
+      "help": "Remove comments that don't add information beyond what the code already expresses",
+      "line": 582,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Restating comments are style noise; keep the finding visible but score gently."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\stop-prelaunch-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/trivial-comment",
+      "severity": "warning",
+      "message": "Trivial comment that restates the code",
+      "help": "Remove comments that don't add information beyond what the code already expresses",
+      "line": 54,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Restating comments are style noise; keep the finding visible but score gently."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\adversarial-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 143,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\adversarial-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 242,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\adversarial-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 292,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\adversarial-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 293,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\adversarial-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 305,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\adversarial-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 313,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\adversarial-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 335,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\adversarial-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 336,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\adversarial-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 337,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\adversarial-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 365,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\adversarial-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 366,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\adversarial-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 380,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\adversarial-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 383,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\e2e-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 252,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\verify-hooks-20260718-v2.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 141,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\verify-hooks-20260718-v2.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 152,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\verify-hooks-20260718-v2.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 162,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\verify-hooks-20260718-v2.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 172,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\verify-hooks-20260718-v2.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 182,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\verify-hooks-20260718-v2.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 192,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\verify-hooks-20260718-v2.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 202,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\verify-hooks-20260718-v2.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 238,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\verify-hooks-20260718.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 147,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\verify-hooks-20260718.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 165,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\verify-hooks-20260718.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 175,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\verify-hooks-20260718.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 193,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\verify-hooks-20260718.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 226,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\audit-pre-launch.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 28,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\audit-pre-launch.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 58,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\audit-pre-launch.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 73,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\audit-pre-launch.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 90,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\audit-pre-launch.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 105,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\audit-pre-launch.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 135,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\audit-pre-launch.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 150,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\audit-pre-launch.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 168,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\e2e-3story-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 47,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\e2e-3story-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 48,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\e2e-3story-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 91,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\e2e-3story-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 111,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\e2e-3story-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 157,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\e2e-3story-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 175,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\e2e-3story-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 197,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\echo-interleave-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 58,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\echo-interleave-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 60,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\stop-prelaunch-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 55,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\stop-prelaunch-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 56,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\stop-prelaunch-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 57,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\v3.4-sim.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 113,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\v3.4-sim.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 114,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\v3.4-sim.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 115,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\v3.4-sim.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/swallowed-exception",
+      "severity": "error",
+      "message": "Empty catch block swallows errors silently",
+      "help": "Handle errors explicitly: log with context, rethrow, or return an error value",
+      "line": 116,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "high",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Swallowed failures hide real broken states and deserve full scoring impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\audit-pre-launch.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/console-leftover",
+      "severity": "warning",
+      "message": "console.log/debug/info statement left in production code",
+      "help": "Remove debugging console statements or replace with a proper logger",
+      "line": 11,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover debug output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\audit-pre-launch.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/console-leftover",
+      "severity": "warning",
+      "message": "console.log/debug/info statement left in production code",
+      "help": "Remove debugging console statements or replace with a proper logger",
+      "line": 12,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover debug output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\audit-pre-launch.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/console-leftover",
+      "severity": "warning",
+      "message": "console.log/debug/info statement left in production code",
+      "help": "Remove debugging console statements or replace with a proper logger",
+      "line": 132,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover debug output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\audit-pre-launch.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/console-leftover",
+      "severity": "warning",
+      "message": "console.log/debug/info statement left in production code",
+      "help": "Remove debugging console statements or replace with a proper logger",
+      "line": 166,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover debug output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\audit-pre-launch.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/console-leftover",
+      "severity": "warning",
+      "message": "console.log/debug/info statement left in production code",
+      "help": "Remove debugging console statements or replace with a proper logger",
+      "line": 170,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover debug output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\cwd-encoding-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/console-leftover",
+      "severity": "warning",
+      "message": "console.log/debug/info statement left in production code",
+      "help": "Remove debugging console statements or replace with a proper logger",
+      "line": 12,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover debug output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\cwd-encoding-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/console-leftover",
+      "severity": "warning",
+      "message": "console.log/debug/info statement left in production code",
+      "help": "Remove debugging console statements or replace with a proper logger",
+      "line": 13,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover debug output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\cwd-encoding-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/console-leftover",
+      "severity": "warning",
+      "message": "console.log/debug/info statement left in production code",
+      "help": "Remove debugging console statements or replace with a proper logger",
+      "line": 17,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover debug output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\cwd-encoding-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/console-leftover",
+      "severity": "warning",
+      "message": "console.log/debug/info statement left in production code",
+      "help": "Remove debugging console statements or replace with a proper logger",
+      "line": 18,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover debug output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\cwd-encoding-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/console-leftover",
+      "severity": "warning",
+      "message": "console.log/debug/info statement left in production code",
+      "help": "Remove debugging console statements or replace with a proper logger",
+      "line": 22,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover debug output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\cwd-encoding-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/console-leftover",
+      "severity": "warning",
+      "message": "console.log/debug/info statement left in production code",
+      "help": "Remove debugging console statements or replace with a proper logger",
+      "line": 24,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover debug output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\cwd-encoding-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/console-leftover",
+      "severity": "warning",
+      "message": "console.log/debug/info statement left in production code",
+      "help": "Remove debugging console statements or replace with a proper logger",
+      "line": 28,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover debug output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\cwd-encoding-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/console-leftover",
+      "severity": "warning",
+      "message": "console.log/debug/info statement left in production code",
+      "help": "Remove debugging console statements or replace with a proper logger",
+      "line": 29,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover debug output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\echo-interleave-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/console-leftover",
+      "severity": "warning",
+      "message": "console.log/debug/info statement left in production code",
+      "help": "Remove debugging console statements or replace with a proper logger",
+      "line": 16,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover debug output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\echo-interleave-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/console-leftover",
+      "severity": "warning",
+      "message": "console.log/debug/info statement left in production code",
+      "help": "Remove debugging console statements or replace with a proper logger",
+      "line": 17,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover debug output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\echo-interleave-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/console-leftover",
+      "severity": "warning",
+      "message": "console.log/debug/info statement left in production code",
+      "help": "Remove debugging console statements or replace with a proper logger",
+      "line": 62,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover debug output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\minimal-debug.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/console-leftover",
+      "severity": "warning",
+      "message": "console.log/debug/info statement left in production code",
+      "help": "Remove debugging console statements or replace with a proper logger",
+      "line": 6,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover debug output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\minimal-debug.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/console-leftover",
+      "severity": "warning",
+      "message": "console.log/debug/info statement left in production code",
+      "help": "Remove debugging console statements or replace with a proper logger",
+      "line": 7,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover debug output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\minimal-debug.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/console-leftover",
+      "severity": "warning",
+      "message": "console.log/debug/info statement left in production code",
+      "help": "Remove debugging console statements or replace with a proper logger",
+      "line": 8,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover debug output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\minimal-debug.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/console-leftover",
+      "severity": "warning",
+      "message": "console.log/debug/info statement left in production code",
+      "help": "Remove debugging console statements or replace with a proper logger",
+      "line": 12,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover debug output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\minimal-debug.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/console-leftover",
+      "severity": "warning",
+      "message": "console.log/debug/info statement left in production code",
+      "help": "Remove debugging console statements or replace with a proper logger",
+      "line": 13,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover debug output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\minimal-debug.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/console-leftover",
+      "severity": "warning",
+      "message": "console.log/debug/info statement left in production code",
+      "help": "Remove debugging console statements or replace with a proper logger",
+      "line": 14,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover debug output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\stop-prelaunch-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/console-leftover",
+      "severity": "warning",
+      "message": "console.log/debug/info statement left in production code",
+      "help": "Remove debugging console statements or replace with a proper logger",
+      "line": 16,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover debug output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\stop-prelaunch-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/console-leftover",
+      "severity": "warning",
+      "message": "console.log/debug/info statement left in production code",
+      "help": "Remove debugging console statements or replace with a proper logger",
+      "line": 17,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover debug output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\stop-prelaunch-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/console-leftover",
+      "severity": "warning",
+      "message": "console.log/debug/info statement left in production code",
+      "help": "Remove debugging console statements or replace with a proper logger",
+      "line": 59,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover debug output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\continuation-planner.py",
+      "engine": "ai-slop",
+      "rule": "ai-slop/unused-import",
+      "severity": "warning",
+      "message": "Imported symbol 'Dict' is never used",
+      "help": "Remove unused imports to keep the code clean",
+      "line": 20,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "mechanical",
+        "multiplier": 0.5,
+        "cap": 16,
+        "rationale": "Unused imports are mechanical cleanup."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\continuation-planner.py",
+      "engine": "ai-slop",
+      "rule": "ai-slop/unused-import",
+      "severity": "warning",
+      "message": "Imported symbol 'Optional' is never used",
+      "help": "Remove unused imports to keep the code clean",
+      "line": 20,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "mechanical",
+        "multiplier": 0.5,
+        "cap": 16,
+        "rationale": "Unused imports are mechanical cleanup."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\journal-parser.py",
+      "engine": "ai-slop",
+      "rule": "ai-slop/unused-import",
+      "severity": "warning",
+      "message": "Imported symbol 'Any' is never used",
+      "help": "Remove unused imports to keep the code clean",
+      "line": 33,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": true,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "mechanical",
+        "multiplier": 0.5,
+        "cap": 16,
+        "rationale": "Unused imports are mechanical cleanup."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\adversarial-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 30,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\adversarial-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 136,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\adversarial-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 215,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\adversarial-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 277,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\adversarial-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 370,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\e2e-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 62,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\e2e-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 87,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\e2e-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 105,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\e2e-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 121,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\e2e-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 155,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\e2e-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 185,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\e2e-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 211,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\e2e-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 248,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\verify-hooks-20260718-v2.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 25,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\verify-hooks-20260718-v2.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 123,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\verify-hooks-20260718-v2.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 208,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\verify-hooks-20260718.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 25,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\verify-hooks-20260718.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 121,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "memory\\verify-hooks-20260718.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 195,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\adversarial-55.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 7,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\adversarial-55.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 21,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\adversarial-55.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 49,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\adversarial-55.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 60,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\adversarial-55.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 85,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\adversarial-55.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 94,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\adversarial-55.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 101,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\e2e-3story-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 26,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\e2e-3story-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 44,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\e2e-3story-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 55,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\e2e-3story-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 137,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\e2e-3story-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 201,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\e2e-3story-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 288,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\e2e-3story-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 338,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\e2e-3story-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 377,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\e2e-3story-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 400,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\e2e-3story-test.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 425,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\v3.4-sim.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 28,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\v3.4-sim.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 55,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\v3.4-sim.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 73,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\v3.4-sim.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 103,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\v3.4-sim.js",
+      "engine": "ai-slop",
+      "rule": "ai-slop/narrative-comment",
+      "severity": "warning",
+      "message": "Narrative comment block (decorative separator)",
+      "help": "Remove — narrative/decorative comments belong in PR descriptions, not source. Code should be self-explanatory.",
+      "line": 112,
+      "column": 0,
+      "category": "Comments",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Narrative comments are cleanup/style findings rather than defects."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\continuation-planner.py",
+      "engine": "ai-slop",
+      "rule": "ai-slop/python-chained-dict-get",
+      "severity": "warning",
+      "message": "Chained `.get(..., {})` defaults hide missing-data cases.",
+      "help": "Normalize the input at the boundary, use a typed object, or split the lookup into explicit steps. Empty-dict fallback chains are a common agent shortcut that becomes brittle as schemas evolve.",
+      "line": 124,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "Chained dict fallback hides shape assumptions and deserves review."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "references\\continuation-planner.py",
+      "engine": "ai-slop",
+      "rule": "ai-slop/python-chained-dict-get",
+      "severity": "warning",
+      "message": "Chained `.get(..., {})` defaults hide missing-data cases.",
+      "help": "Normalize the input at the boundary, use a typed object, or split the lookup into explicit steps. Empty-dict fallback chains are a common agent shortcut that becomes brittle as schemas evolve.",
+      "line": 181,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "Chained dict fallback hides shape assumptions and deserves review."
+      },
+      "forceFixable": false
+    }
+  ],
+  "findingAssessment": {
+    "rows": [
+      {
+        "kind": "style-policy",
+        "label": "style/policy",
+        "count": 82,
+        "errors": 0,
+        "warnings": 82,
+        "info": 0,
+        "fixable": 80
+      },
+      {
+        "kind": "ai-slop-indicator",
+        "label": "AI-slop indicators",
+        "count": 56,
+        "errors": 51,
+        "warnings": 5,
+        "info": 0,
+        "fixable": 3
+      }
+    ],
+    "byKind": {
+      "confirmed-defect": 0,
+      "conservative-security": 0,
+      "style-policy": 82,
+      "ai-slop-indicator": 56
+    },
+    "byConfidence": {
+      "high": 51,
+      "medium": 87,
+      "low": 0
+    }
+  },
+  "summary": {
+    "errors": 51,
+    "warnings": 87,
+    "fixable": 83,
+    "files": 14,
+    "elapsed": "487ms"
+  }
+}
