@@ -40,3 +40,6 @@ test_agent.md
 # v7.4 — code-shiniyaya source archives (reference only, not part of skill)
 *-src/
 *-src
+
+# v4.7.10-r22 — Temp workflow output files
+*.output
