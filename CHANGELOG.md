@@ -1,5 +1,9 @@
 # code-shiniyaya CHANGELOG
 
+## v4.7.10-r4 — 2026-07-18 (Scan26 P1双修——CHANGELOG r1-r3条目+goal-reached 35同步+hooks 35/35全站)
+
+- CHANGELOG r1/r2/r3 条目补全；goal-reached 30→35；CHANGELOG v4.7.10主条目 hooks 30→35
+
 ## v4.7.10-r3 — 2026-07-18 (Scan25 P0+P1——编辑点失败残留行)
 
 - **P0**: SKILL.md L394编辑点失败(r2声称修复但实际漏行，残留"v4.7.9-r8=30")
