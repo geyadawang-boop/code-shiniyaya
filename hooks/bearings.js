@@ -8,6 +8,7 @@
 
 const { execFileSync } = require('child_process');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 function git(cwd, args) {
@@ -83,7 +84,7 @@ try {
   // (2026-07-18 ×2: external tool wiped hooks block, then left trailing comma = invalid JSON)
   let hookWarn = '';
   try {
-    const sp = path.join(process.env.USERPROFILE || 'C:/Users/shiniyaya', '.claude', 'settings.json');
+    const sp = path.join(process.env.USERPROFILE || os.homedir(), '.claude', 'settings.json');
     let st = '';
     try { st = fs.readFileSync(sp, 'utf8'); } catch (e) {
       hookWarn = '⚠ settings.json MISSING/unreadable (' + (e.code || 'error') + ') — all hooks offline; restore from settings.json.full-bak.';
@@ -121,7 +122,7 @@ try {
     // Global scan would inject other projects' journal data, violating Step 8 recovery semantics.
     (() => {
       try {
-        const home = process.env.USERPROFILE || 'C:/Users/shiniyaya';
+        const home = process.env.USERPROFILE || os.homedir();
         const projDir = path.join(home, '.claude', 'projects');
         if (!fs.existsSync(projDir)) return '';
         // Encode cwd to match CC project-dir naming: C:\Users\...\code-shiniyaya → C--Users-...-code-shiniyaya

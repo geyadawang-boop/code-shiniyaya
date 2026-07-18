@@ -13,7 +13,11 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 
-const HOOKS = 'C:/Users/shiniyaya/.claude/hooks';
+// Cross-machine: look in repo's hooks/ first, fall back to user's ~/.claude/hooks/
+const REPO_ROOT = path.resolve(__dirname, '..');
+const LOCAL_HOOKS = path.join(REPO_ROOT, 'hooks');
+const GLOBAL_HOOKS = path.join(os.homedir(), '.claude', 'hooks');
+const HOOKS = fs.existsSync(LOCAL_HOOKS) ? LOCAL_HOOKS : GLOBAL_HOOKS;
 let pass = 0, fail = 0;
 
 function runHook(hook, payload, env) {
@@ -106,7 +110,7 @@ try { fs.unlinkSync(tmpT); } catch (e) {}
 r = runHook('bearings.js', { cwd: os.tmpdir() });
 check('bearings: silent outside code-shiniyaya repo', r.code === 0 && r.out === '');
 
-r = runHook('bearings.js', { cwd: 'C:/Users/shiniyaya/Desktop/code-shiniyaya' });
+r = runHook('bearings.js', { cwd: REPO_ROOT });
 check('bearings: emits BEARINGS (or NEXT ACTION first line) in repo', r.code === 0 && (r.out.startsWith('[BEARINGS]') || r.out.startsWith('NEXT ACTION:') || r.out.startsWith('⚠') || r.out.includes('[BEARINGS]')));
 
 // --- v3 (Scan 4 carry-forward) ---
@@ -126,25 +130,25 @@ r = runHook('stop-guard.js', { transcript_path: tmpC });
 check('stop-guard v3: converged with snapshot Write passes', r.code === 0 && r.out === '{}');
 try { fs.unlinkSync(tmpC); } catch (e) {}
 
-r = runHook('bearings.js', { cwd: 'C:/Users/shiniyaya/Desktop/code-shiniyaya' });
+r = runHook('bearings.js', { cwd: REPO_ROOT });
 check('bearings v3: STATE json line present', /STATE: \{"version"/.test(r.out));
 
 const fakeHome = path.join(os.tmpdir(), 'bear-fakehome-' + Date.now());
 fs.mkdirSync(path.join(fakeHome, '.claude'), { recursive: true });
 fs.writeFileSync(path.join(fakeHome, '.claude', 'settings.json'), '{"model":"opus"}', 'utf8');
-r = runHook('bearings.js', { cwd: 'C:/Users/shiniyaya/Desktop/code-shiniyaya' }, { USERPROFILE: fakeHome });
+r = runHook('bearings.js', { cwd: REPO_ROOT }, { USERPROFILE: fakeHome });
 check('bearings v3: hookWarn on truncated settings.json', r.out.startsWith('⚠ HOOK REGISTRATION LOST'));
 
 fs.writeFileSync(path.join(fakeHome, '.claude', 'settings.json'), '{"hooks":{"a":["echo-guard.js","stop-guard.js"],]}', 'utf8');
-r = runHook('bearings.js', { cwd: 'C:/Users/shiniyaya/Desktop/code-shiniyaya' }, { USERPROFILE: fakeHome });
+r = runHook('bearings.js', { cwd: REPO_ROOT }, { USERPROFILE: fakeHome });
 check('bearings v3: hookWarn on invalid-JSON settings (2026-07-18 trailing-comma class)', r.out.startsWith('⚠ settings.json UNPARSEABLE'));
 
 fs.unlinkSync(path.join(fakeHome, '.claude', 'settings.json'));
-r = runHook('bearings.js', { cwd: 'C:/Users/shiniyaya/Desktop/code-shiniyaya' }, { USERPROFILE: fakeHome });
+r = runHook('bearings.js', { cwd: REPO_ROOT }, { USERPROFILE: fakeHome });
 check('bearings v3: hookWarn on missing settings.json (ENOENT no longer silent)', r.out.startsWith('⚠ settings.json MISSING'));
 try { fs.rmSync(fakeHome, { recursive: true, force: true }); } catch (e) {}
 
-r = runHook('bearings.js', { cwd: 'C:/Users/shiniyaya/Desktop/code-shiniyaya' });
+r = runHook('bearings.js', { cwd: REPO_ROOT });
 check('bearings v3: STATE version keeps -rN suffix (live snapshot says v4.7.9-r2)', /"version":"v[\d.]+(-r\d+)?"/.test(r.out));
 
 // --- v3.2 (Scan 7) ---
