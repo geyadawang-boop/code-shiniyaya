@@ -1,5 +1,86 @@
 # code-shiniyaya CHANGELOG
 
+## v4.7.10-r17 — 2026-07-19 (50A终验 P0修复——README L48 v4.2→v4.3+L7脱版号+SKILL.md bearings标签+r12→r13)
+
+- 50A终验: 2 P0 + 16 P1 + 11 P2, P0清零
+- README L48 echo-guard v4.2→v4.3 + deny()/hookSpecificOutput说明
+- README L7 "echo-guard v3"→脱版号(历史语境)
+- SKILL.md L119 外部看门狗: 双hook→三hook + bearings v3.0-r9标签
+- SKILL.md L606 规则30: r12→r13(自引用年份修正)
+- 50A驳回: CHANGELOG误扫到BiliSum项目 + hooks 42→44误判(grep含函数定义行)
+
+## v4.7.10-r16 — 2026-07-18 (Scan37 P0/P1——echo-guard bare respond→deny()格式)
+
+- **P0**: SKILL.md L1669 echo-guard v4.1→v4.3 + stop-guard v3.4→v3.5
+- **P1**: echo-guard v4.3——echo-block/wc-loop/cap-exceeded 三路径统一使用deny()辅助函数(hookSpecificOutput.permissionDecision: 'deny'), 替代bare respond({decision:'block'})——PreToolUse handler需此格式方可实际拒绝
+- **P1**: SKILL.md L1655/L1671/L591-592 echo-guard v3/v4.1→v4.3全站5处
+- **P1**: README L75 10-Skill表格 "29 规则"→"30 规则"
+- hooks.test 42/42 green (echo-guard deny匹配项正常)
+
+## v4.7.10-r15 — 2026-07-18 (Scan35 P0/P1——stop-guard跨turn污染+echo-guard指纹绕过)
+
+- **P0**: stop-guard v3.5——tool_result边界break(防跨turn污染: 前一turn Agent/Write泄漏substantive→绕过pure-confirmation+pre-launch门)
+- **P0**: README L57 "29 条硬规则"→"30 条硬规则"
+- **P1**: stop-guard v3.5——CONFIRM仅匹配text块(排除tool_use/tool_result中done/ok膨化)
+- **P1**: stop-guard v3.5——userStop移除裸"报告"("请报告进度"不应禁用保护门)
+- **P1**: echo-guard v4.2——指纹文件参数归一化(rm a.mp4/rm b.mp4→同指纹<FILE>, 防参数变体绕过)
+- **P1**: README L48 diff→READONLY_WITH_POTENTIAL_FLAGS(代码正确, 文档描述不准确)
+- **P1**: README CHANGELOG goal-reached 全站30/42同步+hooks.test标签v3.3→v4.1+adversarial-55 v3.4→v4.2
+- hooks.test: 38→42 (4个新stop-guard v3.5回归用例)
+
+## v4.7.10-r14 — 2026-07-18 (Scan34 P1——bearings header+README防御表)
+
+- bearings.js v3.0-r8→r9 header版本号同步(cwd-filter功能存在但header未更新)
+- README L48 防御表 echo-guard v3.4→v4.1 token-array描述
+
+## v4.7.10-r13 — 2026-07-18 (规则30——修复后全站交叉一致性审计+全站29→30同步)
+
+- **新增规则30**: 修复后全站交叉一致性审计——三步(A)确定权威源(B)grep全站引用(C)差异→批量修正
+- 全站29→30同步: SKILL.md 6处 + README 1处 + CHANGELOG + goal-reached
+
+## v4.7.10-r12 — 2026-07-18 (P2收尾——README+goal-reached同步)
+
+- README L108 echo-guard v3.4→v4.1
+- goal-reached 防御栈: echo-guard v3.4→v4.1 + hooks.test 35→38
+
+## v4.7.10-r11/r11p1 — 2026-07-18 (Scan32/33 P1——SKILL.md stop-guard遗漏行+echo-guard v3.0-3.3残留清零)
+
+- r11: SKILL.md L121 stop-guard v3.3→v3.4(Scan32 P1遗漏行)
+- r11p1: SKILL.md L120 echo-guard描述更新v4.1 token-array+command-context-aware+L533版本链去v3.x残留
+- autoCompactThreshold=55从full-bak恢复(18:57 settings.json被外部截断)
+
+## v4.7.10-r10 — 2026-07-18 (Scan32 P1——SKILL.md echo-guard/stop-guard版本号5+5处)
+
+- SKILL.md echo-guard v3.4→v4.1全站5处(L117/119/120/1667/1669)
+- SKILL.md stop-guard v3.3→v3.4全站5处(L117/119/121/349/1667)
+
+## v4.7.10-r9 — 2026-07-18 (autoCompactThreshold恢复——settings.json从full-bak重建)
+
+- 根因: 18:57 settings.json被外部截断, autoCompactThreshold:55+hooks+permissions丢失
+- 修复: 从full-bak完整恢复(337行)
+
+## v4.7.10-r8 — 2026-07-18 (echo-guard v4.1 rubber-band收敛——command-context-aware)
+
+- echo-guard v4.1: find -o=逻辑OR(非破坏) vs sort -o=输出文件(破坏)——command-context-aware区分
+- --output=FILE equals-form处理
+- hooks.test: 38/38 green
+
+## v4.7.10-r7 — 2026-07-18 (echo-guard v4.0 token-array——regex→Set重构)
+
+- echo-guard v4.0: destruct-vet核心重构——正则枚举→token-array/Set数据结构
+- READONLY_COMMANDS/READONLY_WITH_POTENTIAL_FLAGS/DESTRUCTIVE_FLAGS/SORT_ONLY_DESTRUCTIVE Set
+- isReadonly()/isIdempotent()/isPure() 函数
+
+## v4.7.10-r6 — 2026-07-18 (Scan28 P1——echo-guard v3.6 -fprint* flags)
+
+- echo-guard v3.6: DESTRUCTIVE_FLAGS追加 -fprint/-fprint0/-fprintf/-fls (regex未枚举完整)
+- hooks.test: 38/38 green
+
+## v4.7.10-r5 — 2026-07-18 (Scan27 P0——echo-guard v3.5 -execdir bypass+sort -o)
+
+- echo-guard v3.5: -execdir bypass修复(\\b在exec和dir间) + sort -o flag-first修复
+- hooks.test: 37→38
+
 ## v4.7.10-r4 — 2026-07-18 (Scan26 P1双修——CHANGELOG r1-r3条目+goal-reached 35同步+hooks 35/35全站)
 
 - CHANGELOG r1/r2/r3 条目补全；goal-reached 30→35；CHANGELOG v4.7.10主条目 hooks 30→35

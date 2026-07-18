@@ -304,19 +304,19 @@ check('testEchoGuard FINGERPRINT ladder: curl-pipe-sh 4th call escalated',
 const exdsid = 'exd' + Date.now();
 for (let i = 0; i < 5; i++) runHook('echo-guard.js', { session_id: exdsid, tool_input: { command: 'find . -execdir rm {} +' } });
 const exdR = runHook('echo-guard.js', { session_id: exdsid, tool_input: { command: 'find . -execdir rm {} +' } });
-check('echo-guard v3.5: find -execdir NOT exempt (destruct-vet fixed)', exdR.out.includes('deny') || exdR.out.includes('ask'));
+check('echo-guard v4.1: find -execdir NOT exempt (destruct-vet fixed)', exdR.out.includes('deny') || exdR.out.includes('ask'));
 
 // echo-guard: destruct-vet catches sort -o in flag-first position (v3.5 fix — was bypassed)
 const sofsid = 'sof' + Date.now();
 for (let i = 0; i < 5; i++) runHook('echo-guard.js', { session_id: sofsid, tool_input: { command: 'sort -o output.txt input.txt' } });
 const sofR = runHook('echo-guard.js', { session_id: sofsid, tool_input: { command: 'sort -o output.txt input.txt' } });
-check('echo-guard v3.5: sort -o flag-first NOT exempt (destruct-vet fixed)', sofR.out.includes('deny') || sofR.out.includes('ask'));
+check('echo-guard v4.1: sort -o flag-first NOT exempt (destruct-vet fixed)', sofR.out.includes('deny') || sofR.out.includes('ask'));
 
 // echo-guard v3.6: destruct-vet catches find -fprintf (file-write action previously unblocked)
 const fpfid = 'fpf' + Date.now();
 for (let i = 0; i < 5; i++) runHook('echo-guard.js', { session_id: fpfid, tool_input: { command: 'find . -fprintf /tmp/x %p' } });
 const fpfR = runHook('echo-guard.js', { session_id: fpfid, tool_input: { command: 'find . -fprintf /tmp/x %p' } });
-check('echo-guard v3.6: find -fprintf NOT exempt (destruct-vet)', fpfR.out.includes('deny') || fpfR.out.includes('ask'));
+check('echo-guard v4.1: find -fprintf NOT exempt (destruct-vet)', fpfR.out.includes('deny') || fpfR.out.includes('ask'));
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);
