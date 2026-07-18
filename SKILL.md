@@ -33,37 +33,47 @@ v4.7.10 — 五层验证管线落地(L1静态→L2 AI初审→L3对抗验证→L
 
 编排CC与Codex之间标准化双向验证闭环的元编排Skill。**不修改代码** — 编排诊断、方案生成、双批准门控、执行验证。
 
-## 开发Skill栈 (v4.6.9, 每次对话强制激活)
+## 内嵌规则集 — 外部skill模式已全部内化 (v4.7.10-r26)
 
-code-shiniyaya自身的开发/迭代/优化必须在以下10个skill全部激活的状态下进行。缺失skill→先安装再继续。
+以下规则来自已评估的外部skill，其核心模式已提取并内嵌为code-shiniyaya自有规则。不再要求安装外部skill。
 
-| # | Skill | 级别 | 职责 |
-|---|-------|------|------|
-| 1 | **code-shiniyaya** | 编排器 | 9步闭环(STEP 0-8)+30条硬规则+20项自检+5源+ponytail七步阶梯+Hook基础设施 |
-| 2 | **ponytail** | ultra | YAGNI极端主义: 删除优先→七步阶梯→ponytail: debt标注。永不新增无必要代码 |
-| 3 | **caveman** | full | 输出压缩: 丢弃冠词/填充词/客套话, 代码/安全写正常。**auto-clarity**(v4.7.6,来自caveman CLAUDE.md L54-63): 安全警告/不可逆操作确认/多步骤序列→自动解除压缩写完整语言, 结束后恢复。`# ponytail: 3场景手动触发(无CC hook自动检测)，ceiling: 文本规则提示，upgrade: CC PreToolUse hook检测危险Bash命令时自动切换` |
-| 4 | **ponytail-review** | 审查 | 过度工程审查: delete/stdlib/native/yagni/shrink标签, 单行发现, net: -N lines |
-| 5 | **ponytail-audit** | 审计 | 全仓过度工程审计: 排序列出可删除的内容, net: -N lines, -M deps |
-| 6 | **ponytail-debt** | 债务追踪 | ponytail: 注释收割→债务账本, no-trigger腐烂风险标记, PONYTAIL-DEBT.md |
-| 7 | **ponytail-gain** | 计量 | 基准中位分板: LOC 6-20%(减少80-94%)/成本 23-53%(减少47-77%)/速度 3-6x。5任务×3模型。诚实边界: 不打印per-repo估算 |
-| 8 | **ponytail-help** | 参考 | 全ponytail模式/子skill/配置快查卡片 |
-| 9 | **using-superpowers** | 触发守卫 | 任何操作前先检查skill是否适用, 适用则强制调用, 不可跳过 |
-| 10 | **openspec-explore** | 探索 | 思考不实现, 可视化, 质疑假设, 不rush, 不force structure |
+### §31 YAGNI极简准则（原ponytail）
+- (a) YAGNI：只需要存在的东西，不写推测性代码
+- (b) stdlib优先：标准库能做的，不用外部依赖
+- (c) 无投机抽象：一个实现不要接口，一个产品不要工厂
+- (d) 删除胜于新增：删除一行比新增十行更有价值
+- (e) 有意简化标注：所有 `# ponytail:` 注释为code-shiniyaya自有债务系统——标注ceiling(天花板)和upgrade(升级触发条件)，不强制重命名
+- (f) 安全/正确性 > 极简：6项永不简化——信任边界验证、数据丢失保护、安全措施、无障碍、校准真实硬件、任何明确要求
 
-**优先级链**: code-shiniyaya(编排) > ponytail(极简) > using-superpowers(触发) > caveman(输出) > ponytail-review/audit/debt/gain/help(审查层) > openspec-explore(探索)
+### §32 过度工程审查（原ponytail-review）
+- 5标签审查框架：delete(可删代码) / stdlib(可用标准库替代) / native(原生特性覆盖) / yagni(不需要的灵活度) / shrink(可合并简化)
+- 输出格式：单行发现 + `net: -N lines`（净减少行数）
+- 触发时机：L2 AI初审中占用1个Agent槽位（4维度之"过度工程"）
+- 失败处理：发现over-engineering→标注`# ponytail: debt`，不阻塞通过
 
-**冲突裁决**: 安全/正确性 > 极简。信任边界验证/数据丢失保护/安全措施/无障碍/校准真实硬件/任何明确要求——6项永不简化。ponytail ultra的"删除优先"不覆盖code-shiniyaya规则1(双批准门控)。
+### §33 全仓过度工程审计（原ponytail-audit）
+- 与§32相同5标签，但scope扩展为全仓
+- 输出格式：排序列 + `net: -N lines, -M deps`（净减少行数和依赖数）
+- 触发时机：每轮迭代结束时
 
-**关键交互**:
-- code-shiniyaya STEP 2方案生成: 先用ponytail七步阶梯检查→再生成方案→ponytail-review审查过度工程
-- code-shiniyaya STEP 6执行: ponytail阶梯守卫验证修复梯级≤方案梯级
-- 每次Write/Edit: caveman确保输出简洁 + ponytail: debt标注有意简化 + using-superpowers确认无遗漏skill触发
-- 每轮迭代结束: ponytail-audit全仓审计 + ponytail-debt收割债务 + ponytail-gain诚实计量
-- openspec-explore: 仅探索/设计方案时活跃, 执行/修复时降为背景
+### §34 输出压缩规范（原caveman，文本规则，无需hook）
+- (a) 默认碎片化：丢弃冠词/填充词/客套话，[事物][动作][理由]模式
+- (b) 技术精确性：术语/代码块/API名/CLI命令/错误串保持原样
+- (c) 代码/安全始终完整：commit/PR/安全警告用完整语言
+- (d) **auto-clarity**：安全警告、不可逆操作、歧义时→写完整语言。结束后恢复
+- (e) 级别切换：用户"stop caveman"→§34暂停；"resume caveman"→恢复
+- (f) 不自称：不输出"[CAVEMAN]"标签，不宣布风格
 
-**ponytail-gain基准来源** (v4.6.9): 5个日常任务(邮箱验证器/debounce/CSV求和/倒计时器/速率限制器) × 3个模型(Haiku/Sonnet/Opus)。每任务分别用"无ponytail"与"ponytail"生成方案, LLM裁判(temperature=0)按公开rubric评分。原始数据见 judge.py + tasks.py。
+### §35 触发守卫（原using-superpowers）
+- 任何操作前：先检查code-shiniyaya §触发词表(L311-331)是否匹配
+- 匹配则强制调用skill工作流
+- 假阳性门控：裸词"双重检查"/"交叉审计"不含"codex"前缀→不触发
+- 13条红旗思维问题见`§触发词表-假阳性门控`
 
-**ponytail LOC计量代理** (v4.6.9): 源代码文件数 + 源代码LOC(排除测试文件/配置文件/文档/构建产物)。仅计算非测试源代码的实际行数变化。
+### §36 探索模式（原openspec-explore）
+- STEP 2(深度诊断)和STEP 3(方案生成)中活跃
+- 执行/修复时降为背景
+- 只思考不实现、质疑假设、不rush
 
 ### 外部加速Skill (v4.7.8, 可选层)
 
@@ -389,8 +399,8 @@ Agent全部返回→汇总→去重→分类→修复→提交→下一轮验证
 **触发时机**: 每轮修复后、commit前、干净轮计数器计入前。
 
 **检查方法**:
-- `npx aislop .` — 50+反模式规则(TS/JS/Python/Go/Rust), 亚秒, 按严重度注入Agent prompt。CLI不可用→跳过(零影响)
-- `npx agent-lint score SKILL.md` — Skill/Agent元质量分数。较上轮下降→LINT_REGRESS。CLI不可用→跳过, 人工比对
+- **自检#21 Scope完整性** — 变更是否覆盖所有相关范围(触发词/规则体系/反模式/参考源)。Scope遗漏→本轮修复标INCOMPLETE。grep验证: `grep -qi "^##.*scope\|in.scope\|out.of.scope" SKILL.md`
+- **自检#22 注入防护** — 变更文本是否含Bidi控制字符/零宽注入/围栏逃逸。发现注入→本轮修复标INJECTION_RISK。grep验证: `grep -Pc '[\x01-\x08\x0E-\x1F\x7F]' <变更文件>`
 - `node hooks.test.js` — hooks/echo-guard/stop-guard自测, 42用例全绿(当前v4.7.10=42, 历史: 30→33→35→38→42)
 
 **失败动作**:
@@ -461,10 +471,10 @@ Agent全部返回→汇总→去重→分类→修复→提交→下一轮验证
 
 ### 管线硬性约束
 
-- **L1为干净轮前置条件**: hooks.test全绿 + agent-lint分数不降 + aislop无新增HIGH/CRITICAL——三者缺一→该轮不计干净轮(§硬规则-规则24 L531)。外部工具不可用时跳过(重依赖自检#5+#6人工比对), 不阻塞
+- **L1为干净轮前置条件**: hooks.test全绿 + 自检#21 Scope无遗漏 + 自检#22 无注入风险——三者缺一→该轮不计干净轮(§硬规则-规则24 L531)。自检#21+#22完全内化, 无不可用风险, 不阻塞
 - **L1-L3为L4输入**: 只有通过前置层的变更才进入清单核对——跳过前置层的清单核对=形式主义
 - **L5不可跳过**: 迭代模式规则15暂停规则4(逐项反馈), 但P0安全敏感修复仍需用户中断确认(§硬规则-规则15例外条款 L522)
-- **外部skill不可用的回退**: aislop/agent-lint不可用→跳过(重依赖自检#5+#6人工比对); pantheon/MMAR/PAR不可用→降级CC 6+ Agent自我验证(§STEP 7降级模式, L988); Quadruple不安装→本表内化映射; 所有回退不阻塞管线, 仅降低对应层置信度
+- **外部skill回退**: pantheon/MMAR/PAR不可用→降级CC 6+ Agent自我验证(§STEP 7降级模式, L988); Quadruple不安装→本表内化映射
 - **headroom压缩**(v4.7.10, RTK/headroom实测): RTK未安装(无可优化); headroom_compress可用但价值有限(实测14.9%节省+7/8次noop, 代理127.0.0.1:8787不可达→仅手动触发, 不建议hook集成)。手动用法: `mcp__headroom__headroom_compress({content})`→`mcp__headroom__headroom_retrieve({hash})`恢复原文, `mcp__headroom__headroom_stats()`查看统计。使用时机: 工具输出>2000字符时推理前压缩——大型grep/Read输出可受益, 小输出不走(noop=白费token)。集成: C:\Users\shiniyaya\.claude\hooks\headroom-bash.js(检测大输出+写信号文件)+manual invoke by model when warranted
 - **aislop 138发现全AI Slop**(v4.7.10实测): 136/138=AI Slop(叙述性注释/死模式/不安全类型转换/TODO桩/泛化名称), 2=代码质量(references/journal-parser.py 606行+深层嵌套), 0安全漏洞, 60%可自动修复。结论: 全仓Python引用脚本有代码气味但非运行时bug——aislop在自检#5的人工比对模式中提供token-efficient脏数据, 无需每轮安装
 - **agent-lint 51/100 baseline**(v4.7.10实测): scope-control 0(缺失§Scope)/injection-resistance 0/maintainability 2/completeness 3/verifiability 3。根因: SKILL.md 117K字符/1658行, 编排框架内联——ponytail-review结论62%可裁(1660→~630行)。agent-lint基线分数已记录入memory/agent-lint-results.txt, 随迭代比较。低于51→LINT_REGRESS, 每轮比较baseline而非绝对值
@@ -475,8 +485,8 @@ Agent全部返回→汇总→去重→分类→修复→提交→下一轮验证
 
 | Skill | 类型 | 利用状态 | 适用场景与说明 |
 |-------|------|---------|---------------|
-| **variant-analysis** | 安全分析 | 待试用 | 可立即用于SKILL.md历史版本规则漂移检测——对比v4.7.9与v4.7.10的硬规则/自检/管线变更, 识别意外漂移或回退; 建议一次试用后评估常态化价值 |
-| **graph-evolution** | 结构分析 | 待试用 | 适用于code-shiniyaya git仓库结构diff——追踪SKILL.md引用的外部文件(转移包/references/memory)随版本的结构演变, 识别孤立引用或断裂依赖链 |
+| **variant-analysis** | 安全分析 | 已内化 | 已内化为`references/variant-analysis.sh`(规则漂移检测脚本), 用法: `bash references/variant-analysis.sh` |
+| **graph-evolution** | 结构分析 | 已内化 | 已内化为`references/graph-evolution.sh`(仓库结构演变脚本,如文件不存在则创建), 用法: `bash references/graph-evolution.sh` |
 | **diagramming-code** | 可视化 | 已集成 | 生成现有SKILL.md的call/module图——五层验证管线流程图、30条硬规则依赖关系图、Skill交叉引用网络图, 辅助新对话快速理解编排架构; 已在L1-L5管线文档化中使用 |
 | **trailmark** | 代码图 | 不适用 | 仅限代码仓库(Python/JS/TS等源码)的调用图构建, 不适用于Markdown为主的SKILL.md编排文件; 对code-shiniyaya仓库中的Python脚本(references/*.py)可构建调用图, 但与SKILL.md本体的规则利用无直接关联 |
 | **semgrep** | 静态分析 | 不适用 | 仅限Python/JS源码的模式匹配和漏洞扫描, 不适用于Markdown规则文件; 对仓库中的Python引用脚本可运行安全规则, 但SKILL.md的规则合规性检查由agent-lint和人工比对(L1)覆盖 |
