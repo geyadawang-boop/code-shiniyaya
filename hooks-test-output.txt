@@ -1,0 +1,44 @@
+PASS echo-guard: echo done blocked, exit 0
+PASS echo-guard: bare number echo blocked
+PASS echo-guard: first wc -l passes
+PASS echo-guard: second wc -l same file blocked
+PASS ladder 1st: pass
+PASS ladder 2nd: systemMessage warn
+PASS ladder 3rd: ask
+PASS ladder 4th: deny, exit 0 (the v3.0 ReferenceError regression)
+PASS echo-guard: git status 4x exempt from ladder
+PASS echo-guard: compound "git status; X" NOT exempt (A3 bypass closed)
+PASS echo-guard: 50 random commands, always exit 0
+PASS stop-guard: stop_hook_active passthrough
+PASS stop-guard: missing transcript silent pass
+PASS stop-guard: pure-confirmation turn blocked
+PASS stop-guard: substantive turn (Write) passes
+PASS bearings: silent outside code-shiniyaya repo
+PASS bearings: emits BEARINGS (or NEXT ACTION first line) in repo
+PASS stop-guard v3: converged w/o snapshot blocked
+PASS stop-guard v3: converged with snapshot Write passes
+PASS bearings v3: STATE json line present
+PASS bearings v3: hookWarn on truncated settings.json
+PASS bearings v3: hookWarn on invalid-JSON settings (2026-07-18 trailing-comma class)
+PASS bearings v3: hookWarn on missing settings.json (ENOENT no longer silent)
+PASS bearings v3: STATE version keeps -rN suffix (live snapshot says v4.7.9-r2)
+PASS echo-guard v3.2: dirty state file still exit 0
+PASS echo-guard v3.2: READONLY grep 5x exempt from ladder+cap
+PASS echo-guard v4.1: find -delete NOT exempt (destruct-vet)
+PASS echo-guard v3.5: sort -o flag-last NOT exempt
+PASS echo-guard v4.1: read-only find exempt (no ladder)
+PASS stop-guard v3.2: notification "stops" boilerplate does not disarm stall gate
+PASS stop-guard v3.5: tool_result boundary break — pure-confirm turn NOT bypassed by prior Agent
+PASS stop-guard v3.5: pre-launch gate NOT bypassed by prior-turn Workflow (cross-turn pollution fixed)
+PASS stop-guard v3.5: userStop "报告" removed — "请报告进度" does NOT disarm stall gate
+PASS stop-guard v3.5: CONFIRM text-only — tool_use "completed/ok/done" NOT counted (only 1 text "ok" < 2 threshold)
+PASS testEchoGuard ALLOW: ls -la
+PASS testEchoGuard BLOCK ladder: rm -rf 4th call escalated
+PASS testEchoGuard READONLY exempt: grep -rn 5x still passes (no ladder)
+PASS testEchoGuard DESTRUCT-VET: find -delete blocked after ladder
+PASS testEchoGuard FINGERPRINT ladder: curl-pipe-sh 4th call escalated
+PASS echo-guard v3.5: find -execdir NOT exempt (destruct-vet fixed)
+PASS echo-guard v3.5: sort -o flag-first NOT exempt (destruct-vet fixed)
+PASS echo-guard v3.6: find -fprintf NOT exempt (destruct-vet)
+
+42 passed, 0 failed

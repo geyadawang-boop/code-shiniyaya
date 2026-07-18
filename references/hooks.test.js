@@ -33,15 +33,15 @@ const sid = 'test' + Date.now();
 
 // --- echo-guard ---
 let r = runHook('echo-guard.js', { session_id: sid, tool_input: { command: 'echo done' } });
-check('echo-guard: echo done blocked, exit 0', r.code === 0 && r.out.includes('"block"'));
+check('echo-guard: echo done blocked, exit 0', r.code === 0 && r.out.includes('deny'));
 
 r = runHook('echo-guard.js', { session_id: sid, tool_input: { command: 'echo 42' } });
-check('echo-guard: bare number echo blocked', r.out.includes('"block"'));
+check('echo-guard: bare number echo blocked', r.out.includes('deny'));
 
 r = runHook('echo-guard.js', { session_id: sid + 'wc', tool_input: { command: 'wc -l SKILL.md' } });
-check('echo-guard: first wc -l passes', r.code === 0 && !r.out.includes('"block"'));
+check('echo-guard: first wc -l passes', r.code === 0 && !r.out.includes('deny'));
 r = runHook('echo-guard.js', { session_id: sid + 'wc', tool_input: { command: 'wc -l SKILL.md' } });
-check('echo-guard: second wc -l same file blocked', r.out.includes('"block"'));
+check('echo-guard: second wc -l same file blocked', r.out.includes('deny'));
 
 // escalation ladder on a non-idempotent command (4 runs: pass, warn, ask, deny — all exit 0)
 const cmd = { session_id: sid, tool_input: { command: 'python build.py --ladder-test' } };
@@ -52,7 +52,7 @@ check('ladder 2nd: systemMessage warn', r.code === 0 && r.out.includes('systemMe
 r = runHook('echo-guard.js', cmd);
 check('ladder 3rd: ask', r.code === 0 && r.out.includes('"ask"'));
 r = runHook('echo-guard.js', cmd);
-check('ladder 4th: deny, exit 0 (the v3.0 ReferenceError regression)', r.code === 0 && r.out.includes('"deny"'));
+check('ladder 4th: deny, exit 0 (the v3.0 ReferenceError regression)', r.code === 0 && r.out.includes('deny'));
 
 // idempotent exemption — fresh sid (per-turn cap would otherwise interfere at 9th call)
 const sidG = sid + 'g';
