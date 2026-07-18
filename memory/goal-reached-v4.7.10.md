@@ -7,8 +7,8 @@
 **记忆入库**: 4 份新记忆（源文件利用 Skill 审计 + test_hook 安全测试模板 + 5 源未读缺口 + 5 源参考路径）已写入 [[memory/MEMORY.md]]
 
 ## 收敛证明
-- **Scan18 (1/2[4A])**: 4/4维零P0/P1, 2驳回, hooks 30/30
-- **Scan20 (1/2[4A])**: 4/4维零P0/P1, 1驳回, hooks 30/30
+- **Scan18 (1/2[4A])**: 4/4维零P0/P1, 2驳回, hooks 35/35
+- **Scan20 (1/2[4A])**: 4/4维零P0/P1, 1驳回, hooks 35/35
 - **内容重合度**: Scan18/19/20 三维度无重叠>80%, 轮换有效
 
 ## v4.7.10 本 session 战绩
@@ -32,5 +32,5 @@
 | 驳回 | 8 | 跨项目journal注入/规则29自引用/RC CHANGELOG/stop-guard版本幻影 etc |
 
 ### 防御栈
-echo-guard v3.4 | stop-guard v3.4 | bearings v3.0-r9 | hooks.test 30/30
+echo-guard v3.4 | stop-guard v3.4 | bearings v3.0-r9 | hooks.test 35/35
 29条硬规则+20自检+12拒绝台账+五层管线L1-L5+规则29契约前置
