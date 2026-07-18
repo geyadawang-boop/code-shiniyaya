@@ -55,7 +55,11 @@ No security issues found. The bulk of findings are in Python reference files und
 
 ### Strong dimensions (8+/10)
 
-clarity (10), specificity (10), safety (10), platform-fit (8), actionability (7)
+clarity (10), specificity (10), safety (10), platform-fit (8)
+
+### Moderate dimensions (5-7/10)
+
+actionability (7)
 
 ### Key gap
 

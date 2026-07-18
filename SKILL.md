@@ -409,7 +409,7 @@ Agent全部返回→汇总→去重→分类→修复→提交→下一轮验证
 |------|---------|------|------|
 | 正确性 | 2 | investigator+general-purpose | 代码逻辑、行号对齐 |
 | 编码安全 | 2 | investigator+general-purpose | 注入/越权/泄露 |
-| 规则合规 | 1 | Plan | 26条硬规则逐条对照 |
+| 规则合规 | 1 | Plan | 29条硬规则逐条对照 |
 | 过度工程 | 1 | ponytail-review | diff审查—delete/stdlib/native/yagni |
 
 **失败动作**: 任一P0维度FAIL→整体不通过→退回STEP 2。仅P1/P2 split→多数Agent通过→整体通过(附注split维度)。ponytail-review发现over-engineering→标注ponytail:debt, 不阻塞通过。
@@ -469,7 +469,7 @@ Agent全部返回→汇总→去重→分类→修复→提交→下一轮验证
 - **aislop 138发现全AI Slop**(v4.7.10实测): 136/138=AI Slop(叙述性注释/死模式/不安全类型转换/TODO桩/泛化名称), 2=代码质量(references/journal-parser.py 606行+深层嵌套), 0安全漏洞, 60%可自动修复。结论: 全仓Python引用脚本有代码气味但非运行时bug——aislop在自检#5的人工比对模式中提供token-efficient脏数据, 无需每轮安装
 - **agent-lint 51/100 baseline**(v4.7.10实测): scope-control 0(缺失§Scope)/injection-resistance 0/maintainability 2/completeness 3/verifiability 3。根因: SKILL.md 117K字符/1658行, 编排框架内联——ponytail-review结论62%可裁(1660→~630行)。agent-lint基线分数已记录入memory/agent-lint-results.txt, 随迭代比较。低于51→LINT_REGRESS, 每轮比较baseline而非绝对值
 
-## 硬规则 (27条, 交付规则27-28, 质量门控规则29)
+## 硬规则 (29条: 核心规则1-26 + 交付规则27-28 + 质量门控规则29, v4.7.10)
 
 ### 门控
 1. **双批准门控**: 用户+Codex双方批准 = 必须。单方禁止。Codex批准需每项file:line证据(拒绝笼统"all items approved")。CC必须独立验证每项Codex批准(读源码+ast.parse)。Codex "approved IF X" = 部分: 批准项执行, 条件项重做方案+再审批。Codex不可用(codex静默→降级模式): 用户单批准可执行(Step 5降级条款)。
