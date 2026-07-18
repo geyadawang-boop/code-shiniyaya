@@ -260,5 +260,11 @@ for (let i = 0; i < 5; i++) runHook('echo-guard.js', { session_id: sofsid, tool_
 const sofR = runHook('echo-guard.js', { session_id: sofsid, tool_input: { command: 'sort -o output.txt input.txt' } });
 check('echo-guard v3.5: sort -o flag-first NOT exempt (destruct-vet fixed)', sofR.out.includes('deny') || sofR.out.includes('ask'));
 
+// echo-guard v3.6: destruct-vet catches find -fprintf (file-write action previously unblocked)
+const fpfid = 'fpf' + Date.now();
+for (let i = 0; i < 5; i++) runHook('echo-guard.js', { session_id: fpfid, tool_input: { command: 'find . -fprintf /tmp/x %p' } });
+const fpfR = runHook('echo-guard.js', { session_id: fpfid, tool_input: { command: 'find . -fprintf /tmp/x %p' } });
+check('echo-guard v3.6: find -fprintf NOT exempt (destruct-vet)', fpfR.out.includes('deny') || fpfR.out.includes('ask'));
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);
