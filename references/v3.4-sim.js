@@ -5,7 +5,8 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 
-const HOOK = 'C:/Users/shiniyaya/.claude/hooks/echo-guard.js';
+const HOOK_PATH = path.join(fs.existsSync(path.join(__dirname, '..', 'hooks')) ? path.join(__dirname, '..', 'hooks') : path.join(os.homedir(), '.claude', 'hooks'), 'echo-guard.js');
+const HOOK = HOOK_PATH;
 let pass = 0, fail = 0;
 
 function run(sid, cmd) {
@@ -102,7 +103,7 @@ check('(iii.h) _capTs=0: after non-exempt call, _capTs updated from 0 to real ts
 
 // ===== Regression: existing test suite passes =====
 console.log('\n=== Regression: hooks.test.js ===');
-const reg = spawnSync('node', ['C:/Users/shiniyaya/Desktop/code-shiniyaya/references/hooks.test.js'], {
+const reg = spawnSync('node', [path.join(__dirname, 'hooks.test.js')], {
   encoding: 'utf8', timeout: 30000
 });
 console.log(reg.stdout);

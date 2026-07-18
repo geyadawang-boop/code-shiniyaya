@@ -2,7 +2,8 @@ const {spawnSync} = require('child_process');
 const os = require('os');
 const fs = require('fs');
 const path = require('path');
-const H = 'C:/Users/shiniyaya/.claude/hooks/echo-guard.js';
+const HOOK_DIR = fs.existsSync(path.join(__dirname, '..', 'hooks')) ? path.join(__dirname, '..', 'hooks') : path.join(os.homedir(), '.claude', 'hooks');
+const H = path.join(HOOK_DIR, 'echo-guard.js');
 
 function runHook(payload) {
   const x = spawnSync('node', [H], {

@@ -7,8 +7,8 @@ const path = require('path');
 const os = require('os');
 const { execFileSync } = require('child_process');
 
-const HOOKS_DIR = 'C:/Users/shiniyaya/.claude/hooks';
-const REPO_DIR = 'C:/Users/shiniyaya/Desktop/code-shiniyaya';
+const HOOKS_DIR = fs.existsSync(path.join(__dirname, '..', 'hooks')) ? path.join(__dirname, '..', 'hooks') : path.join(os.homedir(), '.claude', 'hooks');
+const REPO_DIR = path.resolve(__dirname, '..');
 const TMP = process.env.TEMP || os.tmpdir();
 
 let failures = 0;
@@ -64,7 +64,7 @@ console.log('\n### Story 1: 正常轮 (echo-guard READONLY放行 + stop-guard ag
   const eg1 = callHook('echo-guard.js', {
     session_id: sid,
     tool_name: 'Bash',
-    tool_input: { command: 'grep "echo-guard" "C:/Users/shiniyaya/Desktop/code-shiniyaya/SKILL.md"' }
+    tool_input: { command: 'grep "echo-guard" "' + path.join(REPO_DIR, 'SKILL.md') + '"' }
   });
   const eg1ok = !eg1 || !eg1.decision || eg1.decision !== 'block';
   assert('1a: echo-guard pass-thru grep (READONLY exempt)', eg1ok,

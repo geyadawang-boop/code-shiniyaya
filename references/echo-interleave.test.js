@@ -3,7 +3,7 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 
-const HOOK = 'C:/Users/shiniyaya/.claude/hooks/echo-guard.js';
+const HOOK = fs.existsSync(path.join(__dirname, '..', 'hooks', 'echo-guard.js')) ? path.join(__dirname, '..', 'hooks', 'echo-guard.js') : path.join(os.homedir(), '.claude', 'hooks', 'echo-guard.js');
 let pass = 0, fail = 0;
 
 function runHook(payload) {

@@ -6,7 +6,7 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 
-const HOOKS = 'C:/Users/shiniyaya/.claude/hooks';
+const HOOKS = fs.existsSync(path.join(__dirname, '..', 'hooks')) ? path.join(__dirname, '..', 'hooks') : path.join(os.homedir(), '.claude', 'hooks');
 let pass = 0, fail = 0;
 
 function runHook(hook, payload) {
