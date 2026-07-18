@@ -200,7 +200,7 @@ AI: 读最新snapshot → 恢复全部状态 → 继续执行
 
 **基线优先原则** (v4.7.6, 来自autoresearch program.md:39): 任何优化/修复循环的第一步永远是建立无修改基线。STEP 6修复前必须先记录当前指标基线——修复后才知是否改善。`# ponytail: 手动记录基线(CC无自动benchmark)，ceiling: 人工比对，upgrade: CC集成自动化benchmark时`
 
-**为什么不自动`/compact`?** 见§记忆保存架构现实——`/compact`是终端命令, Claude不能向自己发送; ScheduleWakeup/CronCreate均不能替代。任何绕过声明=伪功能。
+**为什么不自动`/compact`?** 见§记忆保存+一字恢复(L152 架构现实段)——`/compact`是终端命令, Claude不能向自己发送; ScheduleWakeup/CronCreate均不能替代。任何绕过声明=伪功能。
 
 **一字恢复的可靠性保证**:
 - snapshot 文件是结构化的，恢复时不需要重新理解上下文；写入走原子协议(tmp+rename)+末尾哨兵行`<!-- SNAPSHOT-COMPLETE {ts} -->`——"继"恢复时先验证哨兵，缺失=截断快照，进入第二道防线

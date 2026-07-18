@@ -6,6 +6,7 @@
 // v1.1: spawnSync with input option — no shell, no quoting hazards.
 // v3.2: echo-guard dirty-state/destruct-vet/lastTs-freeze; stop-guard notification-boundary tests added.
 // v3.3: echo-guard READONLY bypass checks (find -delete/sort -o blocked + grep exempt).
+// v3.4: dual-timestamp fix — _capTs (non-exempt only) vs lastTs (all calls) prevents exempt-call cap-freeze.
 
 const { spawnSync } = require('child_process');
 const path = require('path');

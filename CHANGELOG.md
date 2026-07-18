@@ -1,5 +1,68 @@
 # code-shiniyaya CHANGELOG
 
+## v4.7.9-r10 — 2026-07-18 (Scan13修复轮: selftest悬空锚点)
+
+### Selftest双层门控悬空锚点 (Scan13 P1)
+- §Selftest双层门控在SKILL.md无对应标题→改为"§自应用差距-Selftest双层门控已定义, L1565" + README补路径引用
+
+## v4.7.9-r9 — 2026-07-18 (Scan12修复轮: 2确认P1)
+
+### bearings journal cwd项目过滤 (Scan12 P1-1)
+- 全局扫描所有projects/*/取最新journal会注入其他项目agent结果到code-shiniyaya上下文
+- 改为按cwd编码匹配当前项目目录(C--Users-shiniyaya-Desktop-code-shiniyaya)
+
+### snapshot保留策略 (Scan12 P1-2)
+- 13个snapshot无限增长无清理规则→config.json新增max_snapshots:20+retention_days:7+SKILL.md清理条款
+
+## v4.7.9-r8 — 2026-07-18 (Scan10 P0+P1落地)
+
+### P0: bearings journal UUID嵌套层缺失
+- r6修复漏了projects/{pd}/{uuid}/subagents/中的UUID层——0/14 project dir匹配→147个journal全部丢失
+- 修复后bearings实测输出wf_c4005fa7-102 journal行
+
+### P1: scan-state.json非自动化
+- journal-parser.py是手动CLI, 无hook/STEP触发, L429 scannedFiles永久空
+- 轮换排空退化为scanner显式标注+snapshot维度清单
+
+## v4.7.9-r7p1 — 2026-07-18 (Scan11 P2速修)
+
+### echo-guard v3.3→v3.4全站同步
+- SKILL.md 5处echo-guard版本号更新
+- stop-guard v3.2→v3.3+pre-launch门描述补充
+- README版本v4.7.6→v4.7.9+Echo防御表hook版本同步+自检18→20
+
+## v4.7.9-r7 — 2026-07-18 (预发射中立方顺序)
+
+### 中立方执行顺序: (A)Workflow/Agent (B)commit (C)进度行
+- 诊断#7: commit的"已完成"信号在Agent前触发=动作幻觉→禁止AB倒序
+- 与r6 55%commit推迟形成镜像对称——两条路径都是Agent发射优先于commit
+
+## v4.7.9-r6 — 2026-07-18 (预发射伪发射根因修复)
+
+### 审计7矛盾(3 CRITICAL+2 HIGH+2 MEDIUM)全落地
+- CRITICAL#1: 饱和豁免绕过stall门→L431增硬约束+stop-guard二轮检查
+- CRITICAL#2: "回退简式"零定义→精确定义(仅平台拒绝/API错误可用,X/Y须审计)
+- CRITICAL#3: commit在Agent前制造"已完成"认知→55%commit推迟
+- HIGH#4: ④"停"跨路径污染→限定词+⑤失败分支(②/③不可执行时的fallback)
+- HIGH#5: 进度行=合规万能牌→前置Agent调用硬约束
+- MEDIUM#6-7: stall门与强制扫描互锁/失败报告vs进度行义务
+
+### 防御落地
+- stop-guard v3.3 pre-launch门(第N轮→继但无Workflow/Agent/Task→block一次)
+- bearings journal路径CC实际位置(projects/*/subagents/workflows/)
+- echo-guard v3.4双时间戳(lastTs/_capTs分离——fix v3.3 wc同文件检查假死)
+
+## v4.7.9-r5 — 2026-07-18 (Scan8修复轮: echo-guard destruct-vet)
+
+### P0: echo-guard READONLY豁免find -delete/sort -o旁路
+- regex \b-delete\b在空格后永不匹配(-和空格都是非单词字符)
+- 改为(?:^|\s)-delete\b; find . -name "*.tmp" -delete实测修复前12次连续免拦
+
+### P1: exempt调用冻cap窗口
+- v3.3不刷新lastTs→共用时间戳→wc同文件检查假死
+- v3.4双时间戳: lastTs(所有调用刷新TURN_GAP)+_capTs(仅非豁免刷新cap窗口)
+- 台账收敛约束落地(台账闭合12项+新增须三条件)
+
 ## v4.7.9-r4 — 2026-07-18 (Scan 7修复轮: 12 Agent轮换扫描, 1 P0+5确认P1全修, 6/6复核零驳回)
 
 ### P0: 陈旧goal-reached.md旁路终局验证门
