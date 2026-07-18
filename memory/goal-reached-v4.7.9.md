@@ -1,8 +1,14 @@
 # Goal Reached — code-shiniyaya v4.7.9 FINAL
 
 **日期**: 2026-07-18
-**final commit**: 8715ab8 (v4.7.9-r12p1)
-**50 Agent 终验结果**: P0=0 ✅
+**final commit**: c982cc2 (v4.7.9 FINAL)
+**50 Agent 终验结果**: P0=0 ✅ (空字段P0驳回 + 其余P0均已在r12/r12p1全修)
+
+### 50A 终验全量复核 (重新解析 journal wf_c3bb1d7c-199, 50 result lines)
+- **P0×4**: 1空字段(驳回) + 2 stop-guard agentLaunched/substantive 不含 Workflow(→r12 f183b83 已修) + 1 hooks.test 断言僵化(→r12p1 8715ab8 已修)
+- **P1×2**: SKILL.md autodream 源文件归因(→r12 f183b83 已修) + stop-guard stall门不对称(→同P0, 已修)
+- **18 P2**: 全文档边际, 无功能影响
+- **后处理 crash**: JS script array-of-functions 语法错误(已验证不影响 scan 结果)
 
 ## 50 Agent 终验明细
 - 50/50 agent 完成 (journal L88, 35 result entries)
