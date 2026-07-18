@@ -1,5 +1,15 @@
 # code-shiniyaya CHANGELOG
 
+## v4.7.10 — 2026-07-18 (转移包全量落地: 95%利用度, 29条硬规则+五层验证管线+规则29契约前置TDD)
+
+### 转移包6项全落地
+1. **五层验证管线 L1-L5**: L1静态(aislop/agent-lint/hooks.test)→L2 AI初审(4维6+Agent)→L3对抗(pantheon/MMAR/PAR)→L4清单(Quadruple→20自检映射)→L5人工(STEP 5)
+2. **规则29契约前置+验证驱动**: 每P0/P1修复→验证用例, fix done由验证exit code定义
+3. **headroom集成**: 手动可用(14.9%实测), references/headroom-usage.md + hooks/headroom-bash.js
+4. **aislop 138基线**: 全AI Slop, 0安全漏洞. agent-lint 51/100 baseline. ponytail-review 21建议(62%裁减)
+5. **token优化审计**: RTK未装, headroom可行, caveman 65%待验证
+6. hooks.test 30/30
+
 ## v4.7.9-r10 — 2026-07-18 (Scan13修复轮: selftest悬空锚点)
 
 ### Selftest双层门控悬空锚点 (Scan13 P1)
