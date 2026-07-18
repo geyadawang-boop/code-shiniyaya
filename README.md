@@ -69,26 +69,20 @@ code-shiniyaya 的哲学根基是一个清醒的认知：**Claude Code 是请求
 └─────────────────────────────────────────────────────┘
 ```
 
-### 与外部 Skill 的关系
+### 外部 Skill 内化（v4.7.10-r26）
 
-code-shiniyaya 自身开发/迭代必须在以下 10 个 Skill 全部激活的状态下进行：
+以下外部 skill 的模式已全部内化为 code-shiniyaya 自有规则（SKILL.md §31-36），**不再要求安装或激活**：
 
-| #  | Skill             | 级别  | 职责                                           |
-|----|-------------------|-------|------------------------------------------------|
-| 1  | code-shiniyaya    | 编排器 | 9 步闭环 + 30 条硬规则 + 20 项自检 + Hook 基础设施   |
-| 2  | ponytail          | ultra | YAGNI 极端主义：删除优先，永不新增无必要代码         |
-| 3  | caveman           | full  | 输出压缩，但安全警告/不可逆操作恢复完整语言           |
-| 4  | ponytail-review   | 审查   | 过度工程审查：delete/stdlib/native/yagni          |
-| 5  | ponytail-audit    | 审计   | 全仓过度工程审计                                   |
-| 6  | ponytail-debt     | 债务追踪 | ponytail 注释收割→债务账本                        |
-| 7  | ponytail-gain     | 计量   | 基准中位分板：LOC/成本/速度                        |
-| 8  | ponytail-help     | 参考   | 全 ponytail 模式快查卡片                           |
-| 9  | using-superpowers | 触发守卫 | 操作前检查 skill 是否适用，强制调用                  |
-| 10 | openspec-explore  | 探索   | 思考不实现，质疑假设，不 rush                       |
+| 内化编号 | 原外部 Skill | 内化后规则 |
+|----------|-------------|-----------|
+| §31 | ponytail | YAGNI 极简准则（stdlib优先/无投机抽象/删除优先） |
+| §32 | ponytail-review | 过度工程审查（5标签: delete/stdlib/native/yagni/shrink） |
+| §33 | ponytail-audit | 全仓过度工程审计（5标签 + deps计数） |
+| §34 | caveman | 输出压缩规范（碎片化模式 + auto-clarity机制） |
+| §35 | using-superpowers | 触发守卫（操作前匹配触发词表 + 假阳性门控） |
+| §36 | openspec-explore | 探索模式（仅思考不实现/质疑假设/不rush） |
 
-优先级链：`code-shiniyaya > ponytail > using-superpowers > caveman > ponytail-review/audit/debt/gain/help > openspec-explore`
-
-冲突裁决：安全/正确性 > 极简。信任边界验证、数据丢失保护、安全措施、无障碍、校准真实硬件、任何明确要求——这 6 项永不简化。
+**冲突裁决**: 安全/正确性 > 极简。信任边界验证、数据丢失保护、安全措施、无障碍、校准真实硬件、任何明确要求——6项永不简化（§31(f)）。
 
 ---
 
