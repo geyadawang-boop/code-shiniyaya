@@ -469,6 +469,21 @@ Agent全部返回→汇总→去重→分类→修复→提交→下一轮验证
 - **aislop 138发现全AI Slop**(v4.7.10实测): 136/138=AI Slop(叙述性注释/死模式/不安全类型转换/TODO桩/泛化名称), 2=代码质量(references/journal-parser.py 606行+深层嵌套), 0安全漏洞, 60%可自动修复。结论: 全仓Python引用脚本有代码气味但非运行时bug——aislop在自检#5的人工比对模式中提供token-efficient脏数据, 无需每轮安装
 - **agent-lint 51/100 baseline**(v4.7.10实测): scope-control 0(缺失§Scope)/injection-resistance 0/maintainability 2/completeness 3/verifiability 3。根因: SKILL.md 117K字符/1658行, 编排框架内联——ponytail-review结论62%可裁(1660→~630行)。agent-lint基线分数已记录入memory/agent-lint-results.txt, 随迭代比较。低于51→LINT_REGRESS, 每轮比较baseline而非绝对值
 
+### 已安装Skill利用路线(v4.7.10-r1)
+
+以下6个已安装skill在code-shiniyaya项目中的利用状态、适用场景及集成方式。状态分为**已集成**(已验证可用并纳入工作流)、**待试用**(理论适用但尚未实际运行)、**不适用**(不支持Markdown编排文件或技能范围不匹配)。
+
+| Skill | 类型 | 利用状态 | 适用场景与说明 |
+|-------|------|---------|---------------|
+| **variant-analysis** | 安全分析 | 待试用 | 可立即用于SKILL.md历史版本规则漂移检测——对比v4.7.9与v4.7.10的硬规则/自检/管线变更, 识别意外漂移或回退; 建议一次试用后评估常态化价值 |
+| **graph-evolution** | 结构分析 | 待试用 | 适用于code-shiniyaya git仓库结构diff——追踪SKILL.md引用的外部文件(转移包/references/memory)随版本的结构演变, 识别孤立引用或断裂依赖链 |
+| **diagramming-code** | 可视化 | 已集成 | 生成现有SKILL.md的call/module图——五层验证管线流程图、29条硬规则依赖关系图、Skill交叉引用网络图, 辅助新对话快速理解编排架构; 已在L1-L5管线文档化中使用 |
+| **trailmark** | 代码图 | 不适用 | 仅限代码仓库(Python/JS/TS等源码)的调用图构建, 不适用于Markdown为主的SKILL.md编排文件; 对code-shiniyaya仓库中的Python脚本(references/*.py)可构建调用图, 但与SKILL.md本体的规则利用无直接关联 |
+| **semgrep** | 静态分析 | 不适用 | 仅限Python/JS源码的模式匹配和漏洞扫描, 不适用于Markdown规则文件; 对仓库中的Python引用脚本可运行安全规则, 但SKILL.md的规则合规性检查由agent-lint和人工比对(L1)覆盖 |
+| **agentic-actions-auditor** | 安全审计 | 待试用 | 安全审计适用——可审计SKILL.md中定义的Agent动作(Edit/Write/Execute权限边界)与实际hook配置的一致性, 识别权限提升或未经门控的写路径; 建议在每次硬规则变更后运行一次 |
+
+**交叉引用**: §STEP 7-双向验证(L870) | §外部加速Skill(8挂点, L70) | §硬规则-规则20(P0验证规格化, L423) | §迭代自检#10(5源深度利用)
+
 ## 硬规则 (29条: 核心规则1-26 + 交付规则27-28 + 质量门控规则29, v4.7.10)
 
 ### 门控
@@ -1219,6 +1234,8 @@ def paginate_large_output(text: str, page_size: int = 8192) -> list[str]:
 - **扫描状态JSON Schema**: `references/scan-state.schema.json` — scan-state-{iter}.json模式
 - **延续规划器**: `references/continuation-planner.py` — 最小重跑计划生成
 - **延续工作流模板**: `references/resume-workflow.md` — CC编排器和纯CLI延续模式
+
+注: D--/memory/(~/.claude/projects/D--/memory/)为CC持久记忆空间, 与项目内memory/独立。新记忆索引见MEMORY.md L14-L18(v4.7.10-r1)。跨空间引用用[[name]]格式。
 
 ## 迭代扫描恢复 (v3.8.0)
 
