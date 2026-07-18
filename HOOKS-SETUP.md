@@ -23,10 +23,12 @@ cp hooks/bearings.js ~/.claude/hooks/bearings.js
 
 ### 2. 注册 hook 到 settings.json
 
-编辑 `~/.claude/settings.json`（若无则创建），添加如下内容：
+> **⚠️ 重要**：如果 `~/.claude/settings.json` 已存在（里面可能有 CC 的模型/环境/MCP 等配置），请先备份再手动合并，不要直接替换。编辑完成后重启 Claude Code 使配置生效（CC 不会热加载 settings.json 变更）。
 
+编辑 `~/.claude/settings.json`（若无则创建），在文件末尾的 `}` 前插入以下内容（注意在前面最后一个键后面加逗号）。将 `<你的用户名>` 替换为实际用户名：
+
+**Windows 用户：**
 ```json
-{
   "permissions": {
     "deny": [
       "Bash(rm:*)",
@@ -37,35 +39,52 @@ cp hooks/bearings.js ~/.claude/hooks/bearings.js
     ]
   },
   "hooks": {
-    "PreToolUse": {
-      "Bash": [
-        {
-          "matcher": ".",
-          "command": "node",
-          "args": ["C:/Users/<你的用户名>/.claude/hooks/echo-guard.js"]
-        }
-      ]
-    },
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/Users/<你的用户名>/.claude/hooks/echo-guard.js\""
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
-        "matcher": ".",
-        "command": "node",
-        "args": ["C:/Users/<你的用户名>/.claude/hooks/stop-guard.js"]
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/Users/<你的用户名>/.claude/hooks/stop-guard.js\""
+          }
+        ]
       }
     ],
     "SessionStart": [
       {
         "matcher": "startup|resume|clear|compact",
-        "command": "node",
-        "args": ["C:/Users/<你的用户名>/.claude/hooks/bearings.js"]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/Users/<你的用户名>/.claude/hooks/bearings.js\""
+          }
+        ]
       }
     ]
   },
   "autoCompactThreshold": 55
-}
 ```
 
-> **注意**: 将 `<你的用户名>` 替换为实际用户名。Windows 路径用 `\\` 或 `/`。
+**macOS 用户**将路径改为：
+```json
+"command": "node \"/Users/<你的用户名>/.claude/hooks/echo-guard.js\""
+```
+
+**Linux 用户**将路径改为：
+```json
+"command": "node \"/home/<你的用户名>/.claude/hooks/echo-guard.js\""
+```
 
 ### 3. 验证
 

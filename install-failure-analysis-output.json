@@ -1,0 +1,111 @@
+{
+  "dimension": "hooks-install-failure-modes",
+  "filesScanned": [
+    "C:\\Users\\shiniyaya\\Desktop\\code-shiniyaya\\HOOKS-SETUP.md",
+    "C:\\Users\\shiniyaya\\Desktop\\code-shiniyaya\\README.md",
+    "C:\\Users\\shiniyaya\\Desktop\\code-shiniyaya\\hooks\\echo-guard.js",
+    "C:\\Users\\shiniyaya\\Desktop\\code-shiniyaya\\hooks\\stop-guard.js",
+    "C:\\Users\\shiniyaya\\Desktop\\code-shiniyaya\\hooks\\bearings.js",
+    "C:\\Users\\shiniyaya\\Desktop\\code-shiniyaya\\references\\hooks.test.js"
+  ],
+  "findings": [
+    {
+      "severity": "P0",
+      "file": "C:\\Users\\shiniyaya\\Desktop\\code-shiniyaya\\HOOKS-SETUP.md",
+      "line": "14",
+      "problem": "Node not in PATH: all three hooks invoke via 'command: node' in settings.json. If Node.js is not in the system PATH (nvm-windows managed, portable Node, corporate image), CC silently fails to execute every hook. Zero defense with zero error indication.",
+      "evidence": "HOOKS-SETUP.md L52-60 uses 'command': 'node' for echo-guard, stop-guard, bearings. Every hook file begins with require('fs'), require('path') — these fail if node cannot be found. CC hook runner catches the spawn error but produces no user-visible warning or log entry."
+    },
+    {
+      "severity": "P0",
+      "file": "C:\\Users\\shiniyaya\\Desktop\\code-shiniyaya\\HOOKS-SETUP.md",
+      "line": "17-21",
+      "problem": "Wrong working directory in cp commands: 'cp hooks/echo-guard.js ~/.claude/hooks/' only works if cwd is repo root. Users who clone but forget to cd, or download ZIP and extract into a differently-named folder, silently copy nothing. No $? check or validation step before the cp.",
+      "evidence": "HOOKS-SETUP.md L17-21 and README.md L109-112 both use bare 'cp hooks/...'. Neither file checks the return code. A 'ls ~/.claude/hooks/' post-copy verification is absent from the guide. First indication of failure would be at 'node references/hooks.test.js' which would fail with ENOENT."
+    },
+    {
+      "severity": "P0",
+      "file": "C:\\Users\\shiniyaya\\Desktop\\code-shiniyaya\\HOOKS-SETUP.md",
+      "line": "18",
+      "problem": "~/.claude/hooks/ does not exist and CC does not auto-create it. User who skips 'mkdir -p' step or whose shell doesn't expand ~ correctly (common in PowerShell, cmd.exe, or misconfigured Git Bash) will have cp fail or write files to unexpected locations. All hooks silently offline.",
+      "evidence": "CC creates ~/.claude/ on first run (with projects/, sessions/, etc.) but NEVER creates hooks/. It is entirely user-created. The mkdir -p is the only guard. If it fails silently (e.g., permissions issue, disk full, or ~ resolves to a non-writable directory), hooks/=0 defense. Bearings.js L85-105 self-checks settings.json for missing hook registrations, but if bearings.js itself was never copied, that check never runs."
+    },
+    {
+      "severity": "P0",
+      "file": "C:\\Users\\shiniyaya\\Desktop\\code-shiniyaya\\HOOKS-SETUP.md",
+      "line": "1",
+      "problem": "Old CC version without hooks API: if the installed Claude Code version predates the hooks infrastructure (PreToolUse/Stop/SessionStart in settings.json), the entire hooks block is silently ignored. CC may not warn about unrecognized settings keys. All three defense layers are dead on arrival.",
+      "evidence": "There is zero version-check logic in HOOKS-SETUP.md, README.md, or any hook file. The documentation says 'Claude Code installed' (README L97) but never specifies minimum version. No 'cc --version' check in install instructions. The bearings.js HookWarn self-check only detects deleted/malformed entries, not a completely absent hooks API."
+    },
+    {
+      "severity": "P0",
+      "file": "C:\\Users\\shiniyaya\\Desktop\\code-shiniyaya\\README.md",
+      "line": "119-158",
+      "problem": "Windows backslash in settings.json path: the template says to replace '<your username>'. If user writes backslashes (C:\\Users\\name\\.claude\\hooks\\echo-guard.js), the JSON parser treats \\U as unicode escape and \\h/\\e/\\s as invalid escape sequences, corrupting the entire settings.json file. CC rejects invalid JSON silently.",
+      "evidence": "README.md L161 warns 'Windows 注意：路径使用 / 或 \\\\' but this is easily missed. HOOKS-SETUP.md L68 repeats the warning. Both rely on user discipline. A corrupted settings.json causes CC to ignore the entire file — not just hooks. Bearings.js L96-99 detects UNPARSEABLE settings.json at SessionStart, but only if bearings.js itself is already registered and functioning (catch-22)."
+    },
+    {
+      "severity": "P0",
+      "file": "C:\\Users\\shiniyaya\\Desktop\\code-shiniyaya\\README.md",
+      "line": "104-105",
+      "problem": "git not installed or firewall blocks GitHub (real scenario in China): the install guide's only path is 'git clone https://github.com/...' which fails if git is missing OR if the Great Firewall blocks github.com. User has no alternative install path documented.",
+      "evidence": "README.md L104: 'git clone https://github.com/geyadawang-boop/code-shiniyaya.git'. No mention of downloading ZIP from GitHub web UI. No fallback instructions. Memory context shows the user is Chinese-speaking and uses VPN (VPN proxy 7897 from memory files). GitHub is frequently blocked in mainland China without VPN."
+    },
+    {
+      "severity": "P0",
+      "file": "C:\\Users\\shiniyaya\\Desktop\\code-shiniyaya\\HOOKS-SETUP.md",
+      "line": "19-21",
+      "problem": "Partial copy: user only copies 1 or 2 of the 3 hook files. Echo-guard and stop-guard are the critical defense pair, but if either is missing, a key protection layer silently fails. Bearings.js self-check only detects missing echo-guard.js and stop-guard.js (L101) but only if bearings.js itself was installed.",
+      "evidence": "Bearings.js L101 checks for 'echo-guard.js' and 'stop-guard.js' only — not bearings.js itself. If user copies only echo-guard.js and stop-guard.js but skips bearings.js, the memory-injection and self-check features are lost with zero warning. If user copies only bearings.js and echo-guard.js but skips stop-guard.js, the Stop-hook stall/pre-launch/clean-exit gates are silently missing."
+    },
+    {
+      "severity": "P0",
+      "file": "C:\\Users\\shiniyaya\\Desktop\\code-shiniyaya\\README.md",
+      "line": "119-158",
+      "problem": "settings.json permissions.deny block may be omitted: the install template includes a permissions.deny block for destructive commands (rm *, chmod -R, git push --force). If user only copies the hooks block and omits permissions.deny, these platform-level guards are lost. The hooks can be bypassed if CC changes hook behavior or has a bug in hook-specific output handling.",
+      "evidence": "README.md L122-131 shows the permissions.deny block as part of the template, but the instructions say '加入以下内容' without explicitly separating the permissions and hooks sections. A user who only adds the hooks block and skips permissions gets no warning. The echo-guard itself (L62-63) uses the newer 'hookSpecificOutput.permissionDecision: deny' pattern, which requires CC to support it — older CC versions may ignore it, making permissions.deny the only effective block."
+    },
+    {
+      "severity": "P1",
+      "file": "C:\\Users\\shiniyaya\\Desktop\\code-shiniyaya\\hooks\\echo-guard.js",
+      "line": "11",
+      "problem": "Windows TEMP not set: echo-guard uses process.env.TEMP as its state file directory. If TEMP env var is somehow cleared (pathological, e.g., running through a stripped-down CI-like shell), state tracking fails silently.",
+      "evidence": "Echo-guard.js L11: 'const TMP = process.env.TEMP || process.env.TMPDIR || os.tmpdir()'. Has two fallbacks including os.tmpdir() which on Windows always returns a valid path. Practical risk near zero. Classified P1 because the triple fallback is robust."
+    },
+    {
+      "severity": "P1",
+      "file": "C:\\Users\\shiniyaya\\Desktop\\code-shiniyaya\\HOOKS-SETUP.md",
+      "line": "43-65",
+      "problem": "Spaces in Windows username: the template path 'C:/Users/<your username>/.claude/hooks/echo-guard.js' uses a single JSON string array element, so spaces are syntactically valid. However, the instruction says '替换为实际用户名' — if user copy-pastes without escaping their username with spaces, it still works in JSON (single arg). Theoretical risk only.",
+      "evidence": "JSON array element 'C:/Users/John Doe/.claude/hooks/echo-guard.js' is a valid single argument. The Node.js child_process.spawn passes it as one arg to node. This is fundamentally different from the shell-quoting problem. P1 because it works correctly in practice."
+    },
+    {
+      "severity": "P1",
+      "file": "C:\\Users\\shiniyaya\\Desktop\\code-shiniyaya\\hooks\\bearings.js",
+      "line": "14-18",
+      "problem": "git not installed at runtime: bearings.js calls execFileSync('git', ...) to show HEAD and status. If git is missing, this throws, but the try-catch returns '(n/a)'. Minor degradation — no HEAD info shown on recovery, but all defense logic still works.",
+      "evidence": "Bearings.js L14-18: git() function catches all errors and returns '(n/a)'. No dependencies on git output for any defense decision. P1 because defense is unaffected, only context quality degrades."
+    },
+    {
+      "severity": "P1",
+      "file": "C:\\Users\\shiniyaya\\Desktop\\code-shiniyaya\\hooks\\bearings.js",
+      "line": "89-99",
+      "problem": "settings.json stale backup reference: HookWarn self-check advises restoring from 'settings.json.full-bak' but no installation step ever creates this backup. If settings.json is corrupted, the recommended recovery path points to a file that doesn't exist.",
+      "evidence": "Bearings.js L91: 'restore from settings.json.full-bak', L94: 'restore from settings.json.full-bak', L98: 'compare settings.json.full-bak'. No backup file is created anywhere in the install instructions (HOOKS-SETUP.md or README.md). P1 because this is a documentation fix, not a defense failure — CC will recreate settings.json with defaults if deleted."
+    },
+    {
+      "severity": "P1",
+      "file": "C:\\Users\\shiniyaya\\Desktop\\code-shiniyaya\\HOOKS-SETUP.md",
+      "line": "74",
+      "problem": "No hook file integrity check: the verification step only runs hooks.test.js but never validates file content (checksum, size, or that the files on disk match the repo's versions). A corrupted or truncated copy from a failed cp would not be detected.",
+      "evidence": "HOOKS-SETUP.md L74-76: 'node references/hooks.test.js' — the test suite runs hooks from the repo's hooks/ dir or ~/.claude/hooks/ (hooks.test.js L16-20: LOCAL_HOOKS vs GLOBAL_HOOKS fallback). The test does verify functional behavior, but a truncated file that still parses but has lost logic (e.g. partial write) could pass. P1 because the test suite is comprehensive enough that most regressions would trigger a specific test failure."
+    },
+    {
+      "severity": "P1",
+      "file": "C:\\Users\\shiniyaya\\Desktop\\code-shiniyaya\\README.md",
+      "line": "97",
+      "problem": "Node.js version < 18: the guide specifies Node.js 18+ but hooks use only stable APIs (fs, path, os, crypto, child_process) available since Node 10. A user with Node 16 would likely succeed but might find hooks.test.js failures if newer Node features are used in the test suite (though examination shows no such dependency).",
+      "evidence": "README.md L97: 'Node.js 18+'. All hook source files use only basic Node.js built-in APIs. Echo-guard: fs.readFileSync/writeFileSync/renameSync/readdirSync/statSync/unlinkSync. Stop-guard: fs.readFileSync. Bearings: fs.readFileSync/readdirSync/existsSync/statSync, child_process.execFileSync. All available since Node 10. However, if user has Node 20 but CC itself requires 18+, that's a separate concern. P1 because the stated minimum is conservative."
+    }
+  ]
+}
