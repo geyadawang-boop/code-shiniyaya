@@ -1225,11 +1225,11 @@ def paginate_large_output(text: str, page_size: int = 8192) -> list[str]:
 
 **工具预取Meta-Agent** [AGENT] (tool_retriver_agent.py): 专用Agent在执行前预取+合并下游Agent所需的所有工具文档——将"需要什么工具"与"如何使用工具"分离。`# ponytail: tool pre-fetch meta-agent not implemented, ceiling: agents discover tool signatures on-demand at first call, upgrade: when agent types exceed 20 or MCP servers exceed 5`
 
-**`.promptinclude.md` 规则vs事实分离** [MEM] (autodream autodream.msg.md): 记忆文件按性质分为`.promptinclude.md`(行为规则/约束——系统自动加载)和`.md`(事实/架构——按需检索)。适用: code-shiniyaya的记忆应区分规则类文件(如memory-isolation-rule.md→自动加载)和事实类文件(如reference-sources-v2.md→按需检索)，防止规则被错误修剪。
+**`.promptinclude.md` 规则vs事实分离** [MEM] (autodream autodream.sys.md): 记忆文件按性质分为`.promptinclude.md`(行为规则/约束——系统自动加载)和`.md`(事实/架构——按需检索)。适用: code-shiniyaya的记忆应区分规则类文件(如memory-isolation-rule.md→自动加载)和事实类文件(如reference-sources-v2.md→按需检索)，防止规则被错误修剪。
 
-**宿主重建索引+行限制** [MEM] (autodream autodream.msg.md): MEMORY.md索引由宿主(非Agent)从文件描述重建，有硬性行数限制——Agent管理内容，宿主管理索引。`# ponytail: host-rebuilt MEMORY.md index with line limit not implemented, ceiling: manual index maintenance, upgrade: when memory files exceed 50 or cross-reference density exceeds manual tracking`
+**宿主重建索引+行限制** [MEM] (autodream autodream.sys.md): MEMORY.md索引由宿主(非Agent)从文件描述重建，有硬性行数限制——Agent管理内容，宿主管理索引。`# ponytail: host-rebuilt MEMORY.md index with line limit not implemented, ceiling: manual index maintenance, upgrade: when memory files exceed 50 or cross-reference density exceeds manual tracking`
 
-**记忆内容质量3规则** [MEM] (autodream autodream.msg.md): (1)禁止原始转录转储到记忆, (2)精确计数需有证据支撑否则用谨慎语言, (3)文件名偏好稳定概念导向而非会话主题导向。适用: code-shiniyaya的memory/文件写入应遵循这三条规则——防止虚假精确记忆和命名漂移。
+**记忆内容质量3规则** [MEM] (autodream autodream.sys.md): (1)禁止原始转录转储到记忆, (2)精确计数需有证据支撑否则用谨慎语言, (3)文件名偏好稳定概念导向而非会话主题导向。适用: code-shiniyaya的memory/文件写入应遵循这三条规则——防止虚假精确记忆和命名漂移。
 
 ### v4.5.1 自主编码Agent完整管线 (autonomous-coding全量读取)
 
