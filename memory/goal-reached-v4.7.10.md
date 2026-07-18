@@ -32,5 +32,5 @@
 | 驳回 | 8 | 跨项目journal注入/规则29自引用/RC CHANGELOG/stop-guard版本幻影 etc |
 
 ### 防御栈
-echo-guard v4.3 | stop-guard v3.5 | bearings v3.0-r9 | hooks.test 42/42
+echo-guard v4.3 | stop-guard v3.5 | bearings v3.0-r9 | hooks.test 44/44
 30条硬规则+20自检+12拒绝台账+五层管线L1-L5+规则29契约前置+规则30全站审计
