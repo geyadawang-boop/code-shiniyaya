@@ -391,7 +391,7 @@ Agent全部返回→汇总→去重→分类→修复→提交→下一轮验证
 **检查方法**:
 - `npx aislop .` — 50+反模式规则(TS/JS/Python/Go/Rust), 亚秒, 按严重度注入Agent prompt。CLI不可用→跳过(零影响)
 - `npx agent-lint score SKILL.md` — Skill/Agent元质量分数。较上轮下降→LINT_REGRESS。CLI不可用→跳过, 人工比对
-- `node hooks.test.js` — hooks/echo-guard/stop-guard自测, 30用例全绿(当前v4.7.9-r8=30)
+- `node hooks.test.js` — hooks/echo-guard/stop-guard自测, 35用例全绿(当前v4.7.10-r2=35)
 
 **失败动作**:
 - aislop新增HIGH/CRITICAL→本轮修复标BLOCKED, 回STEP 2重方案
